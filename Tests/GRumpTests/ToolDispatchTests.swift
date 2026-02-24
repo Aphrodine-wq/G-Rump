@@ -4,10 +4,46 @@ import XCTest
 @MainActor
 final class ToolDispatchTests: XCTestCase {
 
-    /// Validates that every tool listed in ToolDefinitions routes to a handler
-    /// (i.e. doesn't hit the "is not recognized" default case).
-    /// Each tool call is given a 5-second timeout so tools that block on
-    /// network/hardware/permissions can't hang the entire test suite.
+    // Shared view model — avoids creating a new one for every tool.
+    private var viewModel: ChatViewModel!
+
+    override func setUp() {
+        super.setUp()
+        viewModel = ChatViewModel()
+    }
+
+    override func tearDown() {
+        viewModel = nil
+        super.tearDown()
+    }
+
+    // MARK: - Helpers
+
+    /// Races a tool call against a very short deadline.
+    /// We only care whether the dispatcher *recognises* the name;
+    /// a timeout means the tool WAS dispatched (just slow/blocking) — that's a pass.
+    private func dispatchRecognises(_ toolName: String) async -> Bool {
+        let result: String = await withTaskGroup(of: String?.self) { group in
+            group.addTask {
+                await self.viewModel.executeToolCall(name: toolName, arguments: "{}")
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 10_000_000) // 10 ms
+                return nil
+            }
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first ?? "__timeout__"
+        }
+        // Timeout → tool was dispatched (good).
+        if result == "__timeout__" { return true }
+        // Finished quickly → make sure it wasn't "not recognized".
+        return !result.contains("is not recognized")
+    }
+
+    // MARK: - Tests
+
+    /// Validates every tool in ToolDefinitions routes to a handler.
     func testAllToolDefinitionsHaveExecutors() async throws {
         let allTools = ToolDefinitions.toolsForCurrentPlatform
         let toolNames: [String] = allTools.compactMap { tool -> String? in
@@ -18,64 +54,32 @@ final class ToolDispatchTests: XCTestCase {
 
         XCTAssertFalse(toolNames.isEmpty, "Should have tools defined")
 
-        let viewModel = ChatViewModel()
+        var unrecognised: [String] = []
         for toolName in toolNames {
-            // Race the tool call against a 5-second deadline.
-            // We only care whether the dispatcher recognises the name;
-            // a timeout means the tool *was* dispatched (just slow/blocking).
-            let result: String = await withTaskGroup(of: String?.self) { group in
-                group.addTask {
-                    await viewModel.executeToolCall(name: toolName, arguments: "{}")
-                }
-                group.addTask {
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 s
-                    return nil // sentinel for "timed out"
-                }
-                // First to finish wins
-                let first = await group.next() ?? nil
-                group.cancelAll()
-                return first ?? "__timeout__"
-            }
-            // A timeout means the tool dispatched (good). Only fail on "not recognized".
-            if result != "__timeout__" {
-                XCTAssertFalse(result.contains("is not recognized"),
-                              "Missing executor for tool: \(toolName)")
-            }
+            let ok = await dispatchRecognises(toolName)
+            if !ok { unrecognised.append(toolName) }
         }
+        XCTAssertTrue(unrecognised.isEmpty,
+                      "Missing executors for tools: \(unrecognised.joined(separator: ", "))")
     }
 
-    /// Same idea for critical tools: verify dispatch, don't actually wait
-    /// for real execution to complete.
+    /// Verify critical tools are dispatched.
     func testCriticalToolExecutorsExist() async throws {
-        let viewModel = ChatViewModel()
-
         let criticalTools = [
             "read_file", "write_file", "edit_file", "list_directory",
             "search_files", "grep_search", "run_command", "web_search"
         ]
 
+        var unrecognised: [String] = []
         for toolName in criticalTools {
-            let result: String = await withTaskGroup(of: String?.self) { group in
-                group.addTask {
-                    await viewModel.executeToolCall(name: toolName, arguments: "{}")
-                }
-                group.addTask {
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 s
-                    return nil
-                }
-                let first = await group.next() ?? nil
-                group.cancelAll()
-                return first ?? "__timeout__"
-            }
-            if result != "__timeout__" {
-                XCTAssertFalse(result.contains("is not recognized"),
-                              "Missing critical tool executor: \(toolName)")
-            }
+            let ok = await dispatchRecognises(toolName)
+            if !ok { unrecognised.append(toolName) }
         }
+        XCTAssertTrue(unrecognised.isEmpty,
+                      "Missing critical tool executors: \(unrecognised.joined(separator: ", "))")
     }
 
     func testGRumpDefaultsConstants() throws {
-        // Test that GRumpDefaults contains expected constants
         XCTAssertFalse(GRumpDefaults.defaultSystemPrompt.isEmpty,
                       "defaultSystemPrompt should not be empty")
         XCTAssertTrue(GRumpDefaults.defaultSystemPrompt.contains("G-Rump"),
@@ -83,7 +87,6 @@ final class ToolDispatchTests: XCTestCase {
     }
 
     func testAgentModeProperties() throws {
-        // Test that all AgentMode cases have required properties
         for mode in AgentMode.allCases {
             XCTAssertFalse(mode.displayName.isEmpty,
                           "\(mode) should have non-empty displayName")
@@ -96,4 +99,3 @@ final class ToolDispatchTests: XCTestCase {
         }
     }
 }
-
