@@ -13,7 +13,7 @@ struct ToolDefinitions {
     ]
 
     /// Tools available on the current platform.
-    private static var toolsForCurrentPlatform: [[String: Any]] {
+    static var toolsForCurrentPlatform: [[String: Any]] {
         #if os(iOS)
         return allTools.filter { tool in
             guard let fn = tool["function"] as? [String: Any],

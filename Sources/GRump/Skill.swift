@@ -46,6 +46,7 @@ struct Skill: Identifiable, Equatable {
     enum Scope: String {
         case global
         case project
+        case builtIn
     }
 }
 
@@ -174,7 +175,7 @@ enum SkillsStorage {
     static func createSkill(id: String, name: String, description: String = "", scope: Skill.Scope, workingDirectory: String = "") -> Skill? {
         let dir: URL
         switch scope {
-        case .global:
+        case .global, .builtIn:
             dir = globalSkillsDirectory.appendingPathComponent(id)
         case .project:
             guard !workingDirectory.isEmpty else { return nil }
