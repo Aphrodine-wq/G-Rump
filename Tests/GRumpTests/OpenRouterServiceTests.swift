@@ -11,7 +11,7 @@ final class OpenRouterServiceTests: XCTestCase {
         ]
         let request = try service.buildRequest(messages: messages, apiKey: "test-key", model: "test/model", stream: true)
         XCTAssertEqual(request.httpMethod, "POST")
-        XCTAssertEqual(request.timeoutInterval, 90)
+        XCTAssertEqual(request.timeoutInterval, 180)
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
         XCTAssertEqual(request.value(forHTTPHeaderField: "X-Title"), "G-Rump")
         let body = try XCTUnwrap(request.httpBody)
