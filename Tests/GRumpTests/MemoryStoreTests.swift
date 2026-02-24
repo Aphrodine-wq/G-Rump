@@ -54,7 +54,7 @@ final class MemoryStoreTests: XCTestCase {
 
     func testMemoryStoreProtocolConformance() {
         let store: ProjectMemoryStore = MemoryStore(baseDirectory: tempDir)
-        store.addEntry(conversationId: "c1", userMessage: "What is Swift?", assistantContent: "A programming language.")
+        store.addEntry(conversationId: "c1", userMessage: "What is Swift?", assistantContent: "A programming language.", toolCallSummary: "")
         XCTAssertEqual(store.count(), 1)
 
         let unified = store.retrieveEntries(query: "Swift", limit: 5)
@@ -69,7 +69,7 @@ final class MemoryStoreTests: XCTestCase {
 
     func testMemoryBlockReturnsFormattedBlock() {
         let store: ProjectMemoryStore = MemoryStore(baseDirectory: tempDir)
-        store.addEntry(conversationId: "c1", userMessage: "Hello", assistantContent: "World")
+        store.addEntry(conversationId: "c1", userMessage: "Hello", assistantContent: "World", toolCallSummary: "")
         let block = store.memoryBlock(for: "Hello")
         XCTAssertNotNil(block)
         XCTAssertTrue(block!.contains("Project Memory"))
@@ -101,7 +101,7 @@ final class MemoryStoreTests: XCTestCase {
 
     func testSemanticMemoryStoreProtocolConformance() {
         let store: ProjectMemoryStore = SemanticMemoryStore(baseDirectory: tempDir)
-        store.addEntry(conversationId: "c1", userMessage: "Hello world", assistantContent: "Greetings")
+        store.addEntry(conversationId: "c1", userMessage: "Hello world", assistantContent: "Greetings", toolCallSummary: "")
         // Protocol methods should work regardless of embedding availability
         let unified = store.retrieveEntries(query: "Hello", limit: 5)
         // May be empty if NLEmbedding unavailable in CI

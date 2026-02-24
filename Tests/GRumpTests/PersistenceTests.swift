@@ -19,7 +19,7 @@ final class PersistenceTests: XCTestCase {
         let sd = SDMessage(from: msg)
         XCTAssertEqual(sd.role, "assistant")
         XCTAssertEqual(sd.content, "Swift is great")
-        XCTAssertNotNil(sd.toolCallsJSON)
+        XCTAssertNotNil(sd.toolCallsData)
     }
 
     func testSDConversationCodableRoundTrip() throws {
@@ -30,7 +30,7 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(decoded.conversationId, sd.conversationId)
     }
 
-    func testGRumpPersistenceStoreShared() {
+    @MainActor func testGRumpPersistenceStoreShared() {
         let store = GRumpPersistenceStore.shared
         XCTAssertNotNil(store)
     }

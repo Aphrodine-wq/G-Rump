@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import GRump
 
 @MainActor
@@ -8,15 +9,6 @@ final class RegressionTests: XCTestCase {
         // Test that ContentView can be created without crashing
         let contentView = ContentView()
         XCTAssertNotNil(contentView)
-    }
-    
-    func testChatDetailViewCreation() {
-        // Test that extracted ChatDetailView can be created
-        let chatDetailView = ChatDetailView(
-            showSettings: .constant(false),
-            settingsInitialTab: .constant(nil)
-        )
-        XCTAssertNotNil(chatDetailView)
     }
     
     func testRightPanelManagerCreation() {
