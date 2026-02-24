@@ -1,0 +1,1113 @@
+
+Showing All Issues
+
+Build target GRump_GRump with configuration Debug
+
+CompileAssetCatalogVariant thinned /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Products/Debug/GRump_GRump.bundle/Contents/Resources /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets (in target 'GRump_GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump
+    /Users/jameswalton/Desktop/Xcode.app/Contents/Developer/usr/bin/actool /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets --compile /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump_GRump.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump_GRump.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump_GRump.build/assetcatalog_generated_info.plist_thinned --enable-on-demand-resources NO --development-region en --target-device mac --minimum-deployment-target 14.0 --platform macosx
+
+/* com.apple.actool.document.warnings */
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][2x][][][][]: warning: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][1x][][][][]: warning: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][1x][][][][]: warning: AppIcon.appiconset/128.png is 256x256 but should be 128x128.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][2x][][][][]: warning: AppIcon.appiconset/64.png is 128x128 but should be 64x64.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][1x][][][][]: warning: AppIcon.appiconset/16.png is 32x32 but should be 16x16.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][2x][][][][]: warning: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][1x][][][][]: warning: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][2x][][][][]: warning: AppIcon.appiconset/1024.png is 2048x2048 but should be 1024x1024.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][2x][][][][]: warning: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][1x][][][][]: warning: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+/* com.apple.actool.compilation-results */
+/Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump_GRump.build/assetcatalog_generated_info.plist_thinned
+
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][2x][][][][]: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][1x][][][][]: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][1x][][][][]: AppIcon.appiconset/128.png is 256x256 but should be 128x128.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][2x][][][][]: AppIcon.appiconset/64.png is 128x128 but should be 64x64.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][1x][][][][]: AppIcon.appiconset/16.png is 32x32 but should be 16x16.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][2x][][][][]: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][1x][][][][]: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][2x][][][][]: AppIcon.appiconset/1024.png is 2048x2048 but should be 1024x1024.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][2x][][][][]: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][1x][][][][]: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+
+
+Build target GRump with configuration Debug
+
+GenerateAssetSymbols /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump
+    /Users/jameswalton/Desktop/Xcode.app/Contents/Developer/usr/bin/actool /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets --compile /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Products/Debug --output-format human-readable-text --notices --warnings --export-dependency-info /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/assetcatalog_dependencies --output-partial-info-plist /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/assetcatalog_generated_info.plist --enable-on-demand-resources NO --development-region en --target-device mac --minimum-deployment-target 14.0 --platform macosx --bundle-identifier g-rump.GRump --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+
+/* com.apple.actool.document.warnings */
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][2x][][][][]: warning: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][2x][][][][]: warning: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][1x][][][][]: warning: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][2x][][][][]: warning: AppIcon.appiconset/1024.png is 2048x2048 but should be 1024x1024.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][1x][][][][]: warning: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][2x][][][][]: warning: AppIcon.appiconset/64.png is 128x128 but should be 64x64.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][1x][][][][]: warning: AppIcon.appiconset/128.png is 256x256 but should be 128x128.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][2x][][][][]: warning: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][1x][][][][]: warning: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][1x][][][][]: warning: AppIcon.appiconset/16.png is 32x32 but should be 16x16.
+/* com.apple.actool.compilation-results */
+/Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][2x][][][][]: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][2x][][][][]: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][1x][][][][]: AppIcon.appiconset/512.png is 1024x1024 but should be 512x512.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][512x512][][][2x][][][][]: AppIcon.appiconset/1024.png is 2048x2048 but should be 1024x1024.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][256x256][][][1x][][][][]: AppIcon.appiconset/256.png is 512x512 but should be 256x256.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][2x][][][][]: AppIcon.appiconset/64.png is 128x128 but should be 64x64.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][128x128][][][1x][][][][]: AppIcon.appiconset/128.png is 256x256 but should be 128x128.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][2x][][][][]: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][32x32][][][1x][][][][]: AppIcon.appiconset/32.png is 64x64 but should be 32x32.
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Resources/Assets.xcassets:./AppIcon.appiconset/[][mac][16x16][][][1x][][][][]: AppIcon.appiconset/16.png is 32x32 but should be 16x16.
+
+SwiftCompile normal x86_64 Compiling\ NotificationService.swift,\ OnboardingView.swift,\ OpenRouterService.swift,\ PanelTab.swift,\ PanelTooltip.swift,\ ParallelAgentsPanelView.swift,\ PerformanceAdvisor.swift,\ PlatformService.swift,\ PrivacyDashboardView.swift,\ PrivacyManifestGenerator.swift,\ ProfileView.swift,\ ProjectConfig.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/NotificationService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/OnboardingView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/OpenRouterService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PanelTab.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PanelTooltip.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ParallelAgentsPanelView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PerformanceAdvisor.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PlatformService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PrivacyDashboardView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PrivacyManifestGenerator.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ProfileView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ProjectConfig.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/PrivacyManifestGenerator.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/PrivacyManifestGenerator.swift:171:18: warning: immutable value 'type' was never used; consider replacing with '_' or removing it
+            for (type, keywords) in trackingPatterns {
+                 ^~~~
+                 _
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/PrivacyManifestGenerator.swift:171:18: Immutable value 'type' was never used; consider replacing with '_' or removing it
+
+SwiftCompile normal x86_64 Compiling\ QuestionOptionGrid.swift,\ QuestionSuggestionView.swift,\ RightPanelSidebar.swift,\ SPMDashboardView.swift,\ SecureEnclaveService.swift,\ SemanticMemoryStore.swift,\ ServicesProvider.swift,\ SettingsView.swift,\ SimulatorDashboardView.swift,\ Skill.swift,\ SkillsView.swift,\ Soul.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/QuestionOptionGrid.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/QuestionSuggestionView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/RightPanelSidebar.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SPMDashboardView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SecureEnclaveService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SemanticMemoryStore.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ServicesProvider.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SettingsView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SimulatorDashboardView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Skill.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SkillsView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Soul.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SPMDashboardView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SPMDashboardView.swift:67:24: warning: no 'async' operations occur within 'await' expression
+            let deps = await Self.parseDependencies(dir: dir)
+                       ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SPMDashboardView.swift:68:27: warning: no 'async' operations occur within 'await' expression
+            let targets = await Self.parseTargets(dir: dir)
+                          ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SPMDashboardView.swift:67:24: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SPMDashboardView.swift:68:27: No 'async' operations occur within 'await' expression
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SettingsView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SettingsView.swift:339:38: warning: non-sendable result type '[[String : Any]]' cannot be sent from nonisolated context in call to static method 'fetchTools(serverId:transport:)'; this is an error in the Swift 6 language mode
+        let tools = await MCPService.fetchTools(serverId: server.id, transport: server.transport)
+                                     ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SettingsView.swift:339:38: Non-sendable result type '[[String : Any]]' cannot be sent from nonisolated context in call to static method 'fetchTools(serverId:transport:)'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SimulatorDashboardView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SimulatorDashboardView.swift:121:36: warning: reference to captured var 'parsed' in concurrently-executing code; this is an error in the Swift 6 language mode
+                    self.devices = parsed
+                                   ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SimulatorDashboardView.swift:155:43: warning: capture of 'image' with non-sendable type 'NSImage' in a '@Sendable' closure; this is an error in the Swift 6 language mode
+                    self.lastScreenshot = image
+                                          ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSImage.h:66:12: note: class 'NSImage' does not conform to the 'Sendable' protocol
+@interface NSImage : NSObject
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SimulatorDashboardView.swift:121:36: Reference to captured var 'parsed' in concurrently-executing code; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SimulatorDashboardView.swift:155:43: Capture of 'image' with non-sendable type 'NSImage' in a '@Sendable' closure; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 Compiling\ ToolDefinitions.swift,\ ToolDefs+FileOps.swift,\ ToolDefs+GitDevOps.swift,\ ToolDefs+ShellSystem.swift,\ ToolDefs+UtilsApple.swift,\ ToolExec+AppleNative.swift,\ ToolExec+FileOps.swift,\ ToolExec+GitDevOps.swift,\ ToolExec+ShellSystem.swift,\ ToolExec+Utils.swift,\ ToolExecutionHelpers.swift,\ TranslationService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefinitions.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+FileOps.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+GitDevOps.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+ShellSystem.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+UtilsApple.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+FileOps.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+GitDevOps.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+ShellSystem.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+Utils.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExecutionHelpers.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/TranslationService.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefinitions.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+FileOps.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+GitDevOps.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+ShellSystem.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolDefs+UtilsApple.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+FileOps.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+GitDevOps.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+ShellSystem.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+ShellSystem.swift:384:56: warning: non-sendable result type 'SCShareableContent' cannot be sent from nonisolated context in call to class method 'excludingDesktopWindows(_:onScreenWindowsOnly:)'; this is an error in the Swift 6 language mode
+            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+                                                       ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/ScreenCaptureKit.framework/Headers/SCShareableContent.h:140:12: note: class 'SCShareableContent' does not conform to the 'Sendable' protocol
+@interface SCShareableContent : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+ShellSystem.swift:5:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'ScreenCaptureKit'
+import ScreenCaptureKit
+^
+@preconcurrency 
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+ShellSystem.swift:384:56: Non-sendable result type 'SCShareableContent' cannot be sent from nonisolated context in call to class method 'excludingDesktopWindows(_:onScreenWindowsOnly:)'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+ShellSystem.swift:5:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'ScreenCaptureKit'
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+Utils.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExecutionHelpers.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExecutionHelpers.swift:47:21: warning: initialization of immutable value 'errData' was never used; consider replacing with assignment to '_' or removing it
+                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                ~~~~^~~~~~~
+                _
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExecutionHelpers.swift:47:21: Initialization of immutable value 'errData' was never used; consider replacing with assignment to '_' or removing it
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/TranslationService.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: warning: capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+                browser.searchForServices(ofType: serviceType, inDomain: domain)
+                ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSNetServices.h:201:12: note: class 'NetServiceBrowser' does not conform to the 'Sendable' protocol
+@interface NSNetServiceBrowser : NSObject {
+           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ToolExec+AppleNative.swift:730:17: Capture of 'browser' with non-sendable type 'NetServiceBrowser' in a '@Sendable' closure
+
+SwiftCompile normal x86_64 Compiling\ resource_bundle_accessor.swift,\ AIProviders.swift,\ AccessibilityAuditView.swift,\ ActivityStore.swift,\ ActivityView.swift,\ AgentOrchestrator.swift,\ AgentProgressRing.swift,\ AgentTimelineView.swift,\ AmbientCodeAwareness.swift,\ AmbientInsightsPopover.swift,\ AppIntents.swift,\ AppRootView.swift,\ AppStoreToolsView.swift /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/resource_bundle_accessor.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AIProviders.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AccessibilityAuditView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ActivityStore.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ActivityView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AgentOrchestrator.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AgentProgressRing.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AgentTimelineView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AmbientCodeAwareness.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AmbientInsightsPopover.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppIntents.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppRootView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppStoreToolsView.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AccessibilityAuditView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/AccessibilityAuditView.swift:81:26: warning: no 'async' operations occur within 'await' expression
+            let issues = await Self.scanSwiftFiles(dir: dir)
+                         ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/AccessibilityAuditView.swift:85:29: warning: no 'async' operations occur within 'await' expression
+                totalFiles: await Self.countSwiftFiles(dir: dir),
+                            ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/AccessibilityAuditView.swift:81:26: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/AccessibilityAuditView.swift:85:29: No 'async' operations occur within 'await' expression
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppStoreToolsView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppStoreToolsView.swift:69:27: warning: no 'async' operations occur within 'await' expression
+            let results = await Self.performChecks(dir: dir)
+                          ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppStoreToolsView.swift:69:27: No 'async' operations occur within 'await' expression
+
+SwiftCompile normal x86_64 Compiling\ ContinuityScanner.swift,\ ConversationDocument.swift,\ ConversationSidebar.swift,\ CoreMLInferenceService.swift,\ CoreMLModelRegistry.swift,\ DesignTokens.swift,\ DiffView.swift,\ EnhancedTypingIndicator.swift,\ ExecApprovals.swift,\ FPSOverlayView.swift,\ FileAttachmentView.swift,\ FocusFilterService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ConversationDocument.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ConversationSidebar.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLInferenceService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLModelRegistry.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/DesignTokens.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/DiffView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/EnhancedTypingIndicator.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ExecApprovals.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FPSOverlayView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FileAttachmentView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FocusFilterService.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ConversationDocument.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ConversationSidebar.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLInferenceService.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLInferenceService.swift:181:43: warning: non-sendable result type 'MLModel' cannot be sent from nonisolated context in call to class method 'load(contentsOf:configuration:)'; this is an error in the Swift 6 language mode
+            let model = try await MLModel.load(
+                                          ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/CoreML.framework/Headers/MLModel.h:28:12: note: class 'MLModel' does not conform to the 'Sendable' protocol
+@interface MLModel : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLInferenceService.swift:3:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'CoreML'
+import CoreML
+^
+@preconcurrency 
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLInferenceService.swift:181:43: Non-sendable result type 'MLModel' cannot be sent from nonisolated context in call to class method 'load(contentsOf:configuration:)'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLInferenceService.swift:3:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'CoreML'
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLModelRegistry.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLModelRegistry.swift:186:33: warning: result of call to 'run(resultType:body:)' is unused
+                await MainActor.run { self?.resumeData.removeValue(forKey: entryID) }
+                                ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLModelRegistry.swift:185:20: warning: value 'data' was defined but never used; consider replacing with boolean test
+            if let data = self?.resumeData[entryID] {
+               ~~~~^~~~~~~
+               (                                   ) != nil
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLModelRegistry.swift:186:33: Result of call to 'run(resultType:body:)' is unused
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/CoreMLModelRegistry.swift:185:20: Value 'data' was defined but never used; consider replacing with boolean test
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/DesignTokens.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/DiffView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/EnhancedTypingIndicator.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ExecApprovals.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FPSOverlayView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FileAttachmentView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FocusFilterService.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: warning: capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+            captureSession.startRunning()
+            ^
+/Users/jameswalton/Desktop/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/AVCaptureSession.h:165:12: note: class 'AVCaptureSession' does not conform to the 'Sendable' protocol
+@interface AVCaptureSession : NSObject
+           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: warning: add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+import AVFoundation
+^
+@preconcurrency 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: warning: conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+        guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                                 ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:94:13: Capture of 'captureSession' with non-sendable type 'AVCaptureSession' in a '@Sendable' closure
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:6:1: Add '@preconcurrency' to suppress 'Sendable'-related warnings from module 'AVFoundation'
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContinuityScanner.swift:144:50: Conditional downcast from '[VNRecognizedTextObservation]?' to '[VNRecognizedTextObservation]' does nothing
+
+SwiftCompile normal x86_64 Compiling\ FrameLoopService.swift,\ FrownyFaceLogo.swift,\ GRumpApp.swift,\ GRumpLogger.swift,\ GRumpWidgetViews.swift,\ GitPanelView.swift,\ HapticHelper.swift,\ InlineTerminalView.swift,\ KeychainStorage.swift,\ LSPService.swift,\ LayoutCustomizerView.swift,\ LiveActivityModels.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FrameLoopService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FrownyFaceLogo.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GRumpApp.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GRumpLogger.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GRumpWidgetViews.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GitPanelView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/HapticHelper.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/InlineTerminalView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/KeychainStorage.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/LSPService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/LayoutCustomizerView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/LiveActivityModels.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FrameLoopService.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/FrownyFaceLogo.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GRumpApp.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GRumpLogger.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GRumpWidgetViews.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/GitPanelView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/HapticHelper.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/InlineTerminalView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/KeychainStorage.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/LSPService.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/LayoutCustomizerView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/LiveActivityModels.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+<unknown>:0: warning: cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+Swift.KeyPath:1:14: note: generic class 'KeyPath' does not conform to the 'Sendable' protocol
+public class KeyPath<Root, Value> : PartialKeyPath<Root> {
+             ^
+
+Cannot form key path that captures non-sendable type 'KeyPath<AttributeScopes.SwiftUIAttributes, AttributeScopes.SwiftUIAttributes.FontAttribute>'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 Compiling\ LocalizationPanel.swift,\ LogViewerPanel.swift,\ ProfilingPanel.swift,\ ProjectNavigatorView.swift,\ RightPanelManager.swift,\ SchemaEditorPanel.swift,\ SwiftUIPreviewPanel.swift,\ AppearanceSettingsView.swift,\ Settings+ProviderViews.swift,\ Settings+TabViews.swift,\ SettingsStore.swift,\ SkillsSettingsStorage.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LogViewerPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProfilingPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/RightPanelManager.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/AppearanceSettingsView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/Settings+ProviderViews.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/Settings+TabViews.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/SettingsStore.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/SkillsSettingsStorage.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift:62:47: warning: no 'async' operations occur within 'await' expression
+            let (catalog, entries, locales) = await Self.findAndParse(dir: dir)
+                                              ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift:63:29: warning: no 'async' operations occur within 'await' expression
+            let hardcoded = await Self.scanForHardcodedStrings(dir: dir)
+                            ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift:148:13: warning: initialization of immutable value 'fm' was never used; consider replacing with assignment to '_' or removing it
+        let fm = FileManager.default
+        ~~~~^~
+        _
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift:62:47: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift:63:29: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LocalizationPanel.swift:148:13: Initialization of immutable value 'fm' was never used; consider replacing with assignment to '_' or removing it
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LogViewerPanel.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LogViewerPanel.swift:161:37: warning: reference to captured var 'reports' in concurrently-executing code; this is an error in the Swift 6 language mode
+                self.crashReports = reports
+                                    ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/LogViewerPanel.swift:161:37: Reference to captured var 'reports' in concurrently-executing code; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:98:25: warning: no 'async' operations occur within 'await' expression
+            let nodes = await Self.buildTree(at: dir, depth: 0, maxDepth: 8)
+                        ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:131:20: warning: main actor-isolated static property 'ignoredNames' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode
+            guard !ignoredNames.contains(name) && !name.hasPrefix(".") else { continue }
+                   ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:78:24: note: static property declared here
+    private static let ignoredNames: Set<String> = [
+                       ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:176:13: warning: 'FSEventStreamScheduleWithRunLoop' was deprecated in macOS 13.0: Use FSEventStreamSetDispatchQueue instead.
+            FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+            ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:98:25: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:131:20: Main actor-isolated static property 'ignoredNames' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/ProjectNavigatorView.swift:176:13: 'FSEventStreamScheduleWithRunLoop' was deprecated in macOS 13.0: Use FSEventStreamSetDispatchQueue instead.
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift:72:28: warning: no 'async' operations occur within 'await' expression
+            let entities = await Self.discoverEntities(in: dir)
+                           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift:212:13: warning: initialization of immutable value 'attrPattern' was never used; consider replacing with assignment to '_' or removing it
+        let attrPattern = #"<attribute name="(\w+)" optional="(YES|NO)" attributeType="(\w+)""#
+        ~~~~^~~~~~~~~~~
+        _
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift:213:13: warning: initialization of immutable value 'relPattern' was never used; consider replacing with assignment to '_' or removing it
+        let relPattern = #"<relationship name="(\w+)" .* destinationEntity="(\w+)""#
+        ~~~~^~~~~~~~~~
+        _
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift:72:28: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift:212:13: Initialization of immutable value 'attrPattern' was never used; consider replacing with assignment to '_' or removing it
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SchemaEditorPanel.swift:213:13: Initialization of immutable value 'relPattern' was never used; consider replacing with assignment to '_' or removing it
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:176:32: warning: reference to captured var 'previewFiles' in concurrently-executing code; this is an error in the Swift 6 language mode
+                if let first = previewFiles.first {
+                               ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:313:33: warning: non-sendable result type 'NSImage?' cannot be sent from main actor-isolated context in call to instance method 'findPreviewSnapshot(workDir:previewFile:fm:)'; this is an error in the Swift 6 language mode
+            let snapshotImage = findPreviewSnapshot(workDir: workDir, previewFile: previewFile, fm: fm)
+                                ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ~Copyable where Wrapped : ~Copyable {
+                    ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:317:24: warning: capture of 'snapshotImage' with non-sendable type 'NSImage?' in a '@Sendable' closure; this is an error in the Swift 6 language mode
+                if let snapshotImage {
+                       ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ~Copyable where Wrapped : ~Copyable {
+                    ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:241:31: warning: expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+            let projectType = detectProjectType(in: workDir, fm: fm)
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              await 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:241:31: note: calls to instance method 'detectProjectType(in:fm:)' from outside of its actor context are implicitly asynchronous
+            let projectType = detectProjectType(in: workDir, fm: fm)
+                              ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:337:18: note: main actor isolation inferred from conformance to protocol 'View'
+    private func detectProjectType(in dir: String, fm: FileManager) -> ProjectType {
+                 ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:254:37: warning: expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+                process.arguments = [
+                                    ^
+                                    await 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:256:32: note: calls to instance method 'defaultScheme(in:fm:)' from outside of its actor context are implicitly asynchronous
+                    "-scheme", defaultScheme(in: workDir, fm: fm),
+                               ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:353:18: note: main actor isolation inferred from conformance to protocol 'View'
+    private func defaultScheme(in dir: String, fm: FileManager) -> String {
+                 ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:263:37: warning: expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+                process.arguments = [
+                                    ^
+                                    await 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:265:32: note: calls to instance method 'defaultScheme(in:fm:)' from outside of its actor context are implicitly asynchronous
+                    "-scheme", defaultScheme(in: workDir, fm: fm),
+                               ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:353:18: note: main actor isolation inferred from conformance to protocol 'View'
+    private func defaultScheme(in dir: String, fm: FileManager) -> String {
+                 ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:302:36: warning: expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+                let errorSummary = extractBuildErrors(from: combined)
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                   await 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:302:36: note: calls to instance method 'extractBuildErrors(from:)' from outside of its actor context are implicitly asynchronous
+                let errorSummary = extractBuildErrors(from: combined)
+                                   ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:358:18: note: main actor isolation inferred from conformance to protocol 'View'
+    private func extractBuildErrors(from output: String) -> String {
+                 ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:313:33: warning: expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+            let snapshotImage = findPreviewSnapshot(workDir: workDir, previewFile: previewFile, fm: fm)
+                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                await 
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:313:33: note: calls to instance method 'findPreviewSnapshot(workDir:previewFile:fm:)' from outside of its actor context are implicitly asynchronous
+            let snapshotImage = findPreviewSnapshot(workDir: workDir, previewFile: previewFile, fm: fm)
+                                ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:373:18: note: main actor isolation inferred from conformance to protocol 'View'
+    private func findPreviewSnapshot(workDir: String, previewFile: String, fm: FileManager) -> NSImage? {
+                 ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:176:32: Reference to captured var 'previewFiles' in concurrently-executing code; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:313:33: Non-sendable result type 'NSImage?' cannot be sent from main actor-isolated context in call to instance method 'findPreviewSnapshot(workDir:previewFile:fm:)'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:317:24: Capture of 'snapshotImage' with non-sendable type 'NSImage?' in a '@Sendable' closure; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:241:31: Expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:254:37: Expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:263:37: Expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:302:36: Expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/SwiftUIPreviewPanel.swift:313:33: Expression is 'async' but is not marked with 'await'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 Compiling\ SoulSettingsView.swift,\ ToolsSettingsStorage.swift,\ ContentViewState.swift,\ GRumpVisionApp.swift,\ GazeInputService.swift,\ HandGestureController.swift,\ VoiceInputService.swift,\ WhatsNewView.swift,\ WorkflowPreset.swift,\ WritingToolsService.swift,\ XcodeProjectParser.swift,\ GeneratedAssetSymbols.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/SoulSettingsView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Settings/ToolsSettingsStorage.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/State/ContentViewState.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/VisionOS/GRumpVisionApp.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/VisionOS/GazeInputService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/VisionOS/HandGestureController.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/VoiceInputService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/WhatsNewView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/WorkflowPreset.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/WritingToolsService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/XcodeProjectParser.swift /Users/jameswalton/Library/Developer/Xcode/DerivedData/G-Rump-dkwjtvrpqtjktncjercnqqftipxy/Build/Intermediates.noindex/GRump.build/Debug/GRump.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/XcodeProjectParser.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/XcodeProjectParser.swift:93:26: warning: no 'async' operations occur within 'await' expression
+            let result = await Self.parseProject(dir: dir)
+                         ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/XcodeProjectParser.swift:93:26: No 'async' operations occur within 'await' expression
+
+SwiftCompile normal x86_64 Compiling\ AppleDocSearchService.swift,\ AppleIntelligenceService.swift,\ BrandColors.swift,\ BuildErrorParser.swift,\ ChatInputView.swift,\ ChatTopBarView.swift,\ ChatViewModel+Messages.swift,\ ChatViewModel+Streaming.swift,\ ChatViewModel+ToolExecution.swift,\ ChatViewModel+UIState.swift,\ ChatViewModel.swift,\ CodeBlockView.swift,\ ContentView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppleDocSearchService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/AppleIntelligenceService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/BrandColors.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/BuildErrorParser.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatInputView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatTopBarView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel+Messages.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel+Streaming.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel+ToolExecution.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel+UIState.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/CodeBlockView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContentView.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel.swift:453:42: warning: non-sendable result type '[[String : Any]]' cannot be sent from nonisolated context in call to static method 'fetchTools(serverId:transport:)'; this is an error in the Swift 6 language mode
+            let tools = await MCPService.fetchTools(serverId: cfg.id, transport: cfg.transport)
+                                         ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ChatViewModel.swift:453:42: Non-sendable result type '[[String : Any]]' cannot be sent from nonisolated context in call to static method 'fetchTools(serverId:transport:)'; this is an error in the Swift 6 language mode
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContentView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContentView.swift:1074:28: warning: no 'async' operations occur within 'await' expression
+                    Task { await viewModel.sendMessage() }
+                           ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/ContentView.swift:1074:28: No 'async' operations occur within 'await' expression
+
+SwiftCompile normal x86_64 Compiling\ SpecContextBar.swift,\ SpecQuestionsModal.swift,\ SplashScreenView.swift,\ SpotlightIndexer.swift,\ StatusBarView.swift,\ SuggestionEngine.swift,\ SwiftDataModels.swift,\ SymbolGraphService.swift,\ SyntaxHighlighter.swift,\ TestExplorerView.swift,\ ThemeManager.swift,\ ThreadedMessageView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpecContextBar.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpecQuestionsModal.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SplashScreenView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/StatusBarView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SuggestionEngine.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SwiftDataModels.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SymbolGraphService.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SyntaxHighlighter.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ThemeManager.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/ThreadedMessageView.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:72:13: warning: no calls to throwing functions occur within 'try' expression
+            try CSSearchableIndex.default().indexSearchableItems([item])
+            ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:73:11: warning: 'catch' block is unreachable because no errors are thrown in 'do' block
+        } catch {
+          ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:115:13: warning: no calls to throwing functions occur within 'try' expression
+            try CSSearchableIndex.default().indexSearchableItems(items)
+            ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:117:11: warning: 'catch' block is unreachable because no errors are thrown in 'do' block
+        } catch {
+          ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:72:13: No calls to throwing functions occur within 'try' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:73:11: 'catch' block is unreachable because no errors are thrown in 'do' block
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:115:13: No calls to throwing functions occur within 'try' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/SpotlightIndexer.swift:117:11: 'catch' block is unreachable because no errors are thrown in 'do' block
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/StatusBarView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/StatusBarView.swift:62:24: warning: value 'error' was defined but never used; consider replacing with boolean test
+                if let error = viewModel.errorMessage {
+                   ~~~~^~~~~~~~
+                                                      != nil
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/StatusBarView.swift:62:24: Value 'error' was defined but never used; consider replacing with boolean test
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:77:27: warning: no 'async' operations occur within 'await' expression
+            let targets = await Self.discoverTests(dir: dir)
+                          ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:90:31: warning: no 'async' operations occur within 'await' expression
+            let (output, _) = await Self.runSwiftTest(dir: dir, filter: nil)
+                              ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:91:27: warning: no 'async' operations occur within 'await' expression
+            let results = await Self.parseTestResults(output)
+                          ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:108:31: warning: no 'async' operations occur within 'await' expression
+            let (output, _) = await Self.runSwiftTest(dir: dir, filter: filter)
+                              ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:109:27: warning: no 'async' operations occur within 'await' expression
+            let results = await Self.parseTestResults(output)
+                          ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:123:31: warning: no 'async' operations occur within 'await' expression
+            let (output, _) = await Self.runSwiftTest(dir: dir, filter: filter)
+                              ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:124:27: warning: no 'async' operations occur within 'await' expression
+            let results = await Self.parseTestResults(output)
+                          ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:77:27: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:90:31: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:91:27: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:108:31: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:109:27: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:123:31: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/TestExplorerView.swift:124:27: No 'async' operations occur within 'await' expression
+
+SwiftCompile normal x86_64 Compiling\ ChatAreaView.swift,\ EmptyStateViews.swift,\ KeyboardShortcutHandler.swift,\ MessageViews.swift,\ MainLayoutView.swift,\ PanelLayoutView.swift,\ SidebarLayoutView.swift,\ ToolbarView.swift,\ KeyboardShortcutOverlayView.swift,\ ModalManagerView.swift,\ AppleDocSearchPanel.swift,\ AssetManagerPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Chat/ChatAreaView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Chat/EmptyStateViews.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Chat/KeyboardShortcutHandler.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Chat/MessageViews.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Layout/MainLayoutView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Layout/PanelLayoutView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Layout/SidebarLayoutView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Layout/ToolbarView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Overlays/KeyboardShortcutOverlayView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Overlays/ModalManagerView.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AppleDocSearchPanel.swift /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift (in target 'GRump' from project 'GRump')
+
+SwiftCompile normal x86_64 /Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift (in target 'GRump' from project 'GRump')
+    cd /Users/jameswalton/Desktop/G-Rump/.swiftpm/xcode
+    
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift:60:28: warning: no 'async' operations occur within 'await' expression
+            let catalogs = await Self.findCatalogs(in: dir)
+                           ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift:63:25: warning: no 'async' operations occur within 'await' expression
+                items = await Self.parseCatalog(at: first)
+                        ^
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift:80:25: warning: no 'async' operations occur within 'await' expression
+            let items = await Self.parseCatalog(at: path)
+                        ^
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift:60:28: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift:63:25: No 'async' operations occur within 'await' expression
+
+/Users/jameswalton/Desktop/G-Rump/Sources/GRump/Views/Panels/AssetManagerPanel.swift:80:25: No 'async' operations occur within 'await' expression
+
+
+
+Build succeeded    2/24/26, 10:50 AM    0.3 seconds

@@ -10,29 +10,32 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+
 jobs:
   critical-tests:
     name: Critical Tool Tests
     runs-on: macos-14
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-
-      - name: Cache SPM
+      - name: Cache SPM dependencies
         uses: actions/cache@v4
         with:
-          path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', 'Package.swift') }}
-          restore-keys: ${{ runner.os }}-spm-
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-v2-${{ hashFiles('Package.resolved', 'Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-v2-
 
-      - name: Build Tests
-        run: swift build --build-tests -j 4
+      - name: Resolve packages
+        run: swift package resolve
 
-      - name: Run Tests
-        run: swift test --skip-build --parallel
+      - name: Build & run tests
+        run: swift test --parallel -j $(sysctl -n hw.ncpu)
 
   lint:
     name: Code Quality
@@ -85,18 +88,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-
-      - name: Cache SPM
+      - name: Cache SPM dependencies
         uses: actions/cache@v4
         with:
-          path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', 'Package.swift') }}
-          restore-keys: ${{ runner.os }}-spm-
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-v2-${{ hashFiles('Package.resolved', 'Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-v2-
 
       - name: Build Release
-        run: swift build -c release -j 4
+        run: swift build -c release -j $(sysctl -n hw.ncpu)
 
       - name: Package .app bundle
         run: make app
