@@ -28,7 +28,7 @@ final class ToolDispatchTests: XCTestCase {
                     await viewModel.executeToolCall(name: toolName, arguments: "{}")
                 }
                 group.addTask {
-                    try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 s
+                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 s
                     return nil // sentinel for "timed out"
                 }
                 // First to finish wins
@@ -60,7 +60,7 @@ final class ToolDispatchTests: XCTestCase {
                     await viewModel.executeToolCall(name: toolName, arguments: "{}")
                 }
                 group.addTask {
-                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 s
                     return nil
                 }
                 let first = await group.next() ?? nil
