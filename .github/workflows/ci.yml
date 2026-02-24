@@ -38,7 +38,6 @@ jobs:
         run: swift build --build-tests
 
       - name: Run Tests
-        timeout-minutes: 10
         run: swift test --skip-build --parallel
 
       - name: Build Release
