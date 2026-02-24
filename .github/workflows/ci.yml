@@ -14,7 +14,7 @@ jobs:
   build:
     name: Build & Test (macOS)
     runs-on: macos-14
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -34,8 +34,12 @@ jobs:
       - name: Build (Server)
         run: swift build --target GRumpServer -c debug
 
+      - name: Build Tests
+        run: swift build --build-tests
+
       - name: Run Tests
-        run: swift test --parallel
+        timeout-minutes: 10
+        run: swift test --skip-build --parallel
 
       - name: Build Release
         run: swift build -c release
