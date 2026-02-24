@@ -4,8 +4,11 @@ import XCTest
 @MainActor
 final class ToolDispatchTests: XCTestCase {
 
+    /// Validates that every tool listed in ToolDefinitions routes to a handler
+    /// (i.e. doesn't hit the "is not recognized" default case).
+    /// Each tool call is given a 5-second timeout so tools that block on
+    /// network/hardware/permissions can't hang the entire test suite.
     func testAllToolDefinitionsHaveExecutors() async throws {
-        // Get all tool definitions
         let allTools = ToolDefinitions.toolsForCurrentPlatform
         let toolNames: [String] = allTools.compactMap { tool -> String? in
             guard let function = tool["function"] as? [String: Any],
@@ -15,28 +18,59 @@ final class ToolDispatchTests: XCTestCase {
 
         XCTAssertFalse(toolNames.isEmpty, "Should have tools defined")
 
-        // Verify each tool is recognized by the dispatcher (not "not recognized")
         let viewModel = ChatViewModel()
         for toolName in toolNames {
-            let result = await viewModel.executeToolCall(name: toolName, arguments: "{}")
-            XCTAssertFalse(result.contains("is not recognized"),
-                          "Missing executor for tool: \(toolName)")
+            // Race the tool call against a 5-second deadline.
+            // We only care whether the dispatcher recognises the name;
+            // a timeout means the tool *was* dispatched (just slow/blocking).
+            let result: String = await withTaskGroup(of: String?.self) { group in
+                group.addTask {
+                    await viewModel.executeToolCall(name: toolName, arguments: "{}")
+                }
+                group.addTask {
+                    try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 s
+                    return nil // sentinel for "timed out"
+                }
+                // First to finish wins
+                let first = await group.next() ?? nil
+                group.cancelAll()
+                return first ?? "__timeout__"
+            }
+            // A timeout means the tool dispatched (good). Only fail on "not recognized".
+            if result != "__timeout__" {
+                XCTAssertFalse(result.contains("is not recognized"),
+                              "Missing executor for tool: \(toolName)")
+            }
         }
     }
 
+    /// Same idea for critical tools: verify dispatch, don't actually wait
+    /// for real execution to complete.
     func testCriticalToolExecutorsExist() async throws {
         let viewModel = ChatViewModel()
 
-        // Test critical tools using their actual snake_case names from ToolDefinitions
         let criticalTools = [
             "read_file", "write_file", "edit_file", "list_directory",
             "search_files", "grep_search", "run_command", "web_search"
         ]
 
         for toolName in criticalTools {
-            let result = await viewModel.executeToolCall(name: toolName, arguments: "{}")
-            XCTAssertFalse(result.contains("is not recognized"),
-                          "Missing critical tool executor: \(toolName)")
+            let result: String = await withTaskGroup(of: String?.self) { group in
+                group.addTask {
+                    await viewModel.executeToolCall(name: toolName, arguments: "{}")
+                }
+                group.addTask {
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                    return nil
+                }
+                let first = await group.next() ?? nil
+                group.cancelAll()
+                return first ?? "__timeout__"
+            }
+            if result != "__timeout__" {
+                XCTAssertFalse(result.contains("is not recognized"),
+                              "Missing critical tool executor: \(toolName)")
+            }
         }
     }
 
@@ -62,3 +96,4 @@ final class ToolDispatchTests: XCTestCase {
         }
     }
 }
+
