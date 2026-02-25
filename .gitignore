@@ -32,3 +32,9 @@ backend/node_modules/
 *~
 .vscode/
 .idea/
+DevIDKey.key
+DevID.pem
+DevID.p12
+*.certSigningRequest
+DevIDKey.p12
+*.p12
