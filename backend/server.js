@@ -4,7 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { getDb, initDatabase, TIERS } from './db.js';
-import { signToken, authMiddleware, verifyGoogleIdToken, getOrCreateUserByGoogle, replenishCreditsIfNeeded, refreshToken } from './auth.js';
+import { signToken, authMiddleware, verifyGoogleIdToken, getOrCreateUserByGoogle, replenishCreditsIfNeeded, refreshToken, hashPassword, verifyPassword, getOrCreateUserByEmail } from './auth.js';
+import { getUserByEmail } from './db.js';
 import { proxyChat } from './proxy.js';
 import { createCheckoutSession, createPortalSession, handleStripeWebhook, getUsageAnalytics } from './stripe.js';
 
@@ -131,6 +132,114 @@ app.post('/api/auth/google', async (req, res) => {
     }
     console.error('Google auth error:', err);
     return res.status(500).json({ error: 'Sign-in failed. Try again.' });
+  }
+});
+
+// MARK: - Email Auth
+
+app.post('/api/auth/signup', async (req, res) => {
+  const { email, password, displayName } = req.body || {};
+  if (!email || typeof email !== 'string') {
+    return apiError(res, 400, 'missing_email', 'Email is required');
+  }
+  if (!password || typeof password !== 'string') {
+    return apiError(res, 400, 'missing_password', 'Password is required');
+  }
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    return apiError(res, 400, 'invalid_email', 'Invalid email format');
+  }
+  // Validate password length
+  if (password.length < 8) {
+    return apiError(res, 400, 'weak_password', 'Password must be at least 8 characters');
+  }
+  try {
+    // Check if email already exists
+    const existing = await getUserByEmail(email.trim().toLowerCase());
+    if (existing) {
+      auditLog('signup_failed', { reason: 'email_exists', email: email.trim().toLowerCase(), ip: req.ip });
+      return apiError(res, 409, 'email_exists', 'An account with this email already exists. Please sign in.');
+    }
+    const passwordHash = await hashPassword(password);
+    const { user } = await getOrCreateUserByEmail(email.trim().toLowerCase(), passwordHash);
+    // Update display name if provided
+    if (displayName && typeof displayName === 'string' && displayName.trim()) {
+      const db = getDb();
+      await db.run('UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?', [displayName.trim(), Date.now(), user.id]);
+    }
+    const db = getDb();
+    await replenishCreditsIfNeeded(db, user.id, user.credits_balance, user.credits_replenished_at);
+    const updated = await db.get('SELECT credits_balance, credits_replenished_at, display_name, avatar_url FROM users WHERE id = ?', [user.id]);
+    const token = signToken({ userId: user.id });
+    auditLog('signup_success', { userId: user.id, email: email.trim().toLowerCase() });
+    const profile = updated ?? user;
+    return res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        tier: user.tier,
+        creditsBalance: updated?.credits_balance ?? user.credits_balance,
+        creditsReplenishedAt: updated?.credits_replenished_at ?? user.credits_replenished_at,
+        displayName: profile.display_name ?? displayName?.trim() ?? null,
+        avatarUrl: profile.avatar_url ?? null,
+      },
+      isNew: true,
+    });
+  } catch (err) {
+    auditLog('signup_failed', { reason: err.message, ip: req.ip });
+    console.error('Signup error:', err);
+    return apiError(res, 500, 'signup_failed', 'Sign-up failed. Try again.');
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || typeof email !== 'string') {
+    return apiError(res, 400, 'missing_email', 'Email is required');
+  }
+  if (!password || typeof password !== 'string') {
+    return apiError(res, 400, 'missing_password', 'Password is required');
+  }
+  try {
+    const user = await getUserByEmail(email.trim().toLowerCase());
+    if (!user) {
+      auditLog('login_failed', { reason: 'user_not_found', email: email.trim().toLowerCase(), ip: req.ip });
+      return apiError(res, 401, 'invalid_credentials', 'Invalid email or password');
+    }
+    if (!user.password_hash) {
+      auditLog('login_failed', { reason: 'no_password_set', email: email.trim().toLowerCase(), ip: req.ip });
+      return apiError(res, 401, 'invalid_credentials', 'This account uses Google Sign-In. Please sign in with Google.');
+    }
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) {
+      auditLog('login_failed', { reason: 'wrong_password', email: email.trim().toLowerCase(), ip: req.ip });
+      return apiError(res, 401, 'invalid_credentials', 'Invalid email or password');
+    }
+    const db = getDb();
+    await replenishCreditsIfNeeded(db, user.id, user.credits_balance, user.credits_replenished_at);
+    const updated = await db.get('SELECT credits_balance, credits_replenished_at, display_name, avatar_url FROM users WHERE id = ?', [user.id]);
+    const token = signToken({ userId: user.id });
+    auditLog('login_success', { userId: user.id, email: user.email });
+    const profile = updated ?? user;
+    return res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        tier: user.tier,
+        creditsBalance: updated?.credits_balance ?? user.credits_balance,
+        creditsReplenishedAt: updated?.credits_replenished_at ?? user.credits_replenished_at,
+        displayName: profile.display_name ?? null,
+        avatarUrl: profile.avatar_url ?? null,
+      },
+      isNew: false,
+    });
+  } catch (err) {
+    auditLog('login_failed', { reason: err.message, ip: req.ip });
+    console.error('Login error:', err);
+    return apiError(res, 500, 'login_failed', 'Sign-in failed. Try again.');
   }
 });
 

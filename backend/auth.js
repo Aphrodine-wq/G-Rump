@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
-import { randomUUID } from 'crypto';
-import { getDb, TIERS } from './db.js';
+import { randomUUID, scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
+import { getDb, TIERS, getUserByEmail, createEmailUser } from './db.js';
+
+const scryptAsync = promisify(scrypt);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = '7d';
@@ -108,6 +111,40 @@ export async function getOrCreateUserByGoogle(googleId, email) {
     'SELECT id, email, tier, credits_balance, credits_replenished_at, display_name, avatar_url FROM users WHERE id = ?',
     [id]
   );
+  return { user, isNew: true };
+}
+
+/**
+ * Hash a password using Node.js built-in crypto.scrypt.
+ * Returns a string of the form "salt:hash" (both hex-encoded).
+ */
+export async function hashPassword(password) {
+  const salt = randomBytes(32).toString('hex');
+  const derivedKey = await scryptAsync(password, salt, 64);
+  return `${salt}:${derivedKey.toString('hex')}`;
+}
+
+/**
+ * Verify a password against a stored hash (salt:hash format).
+ */
+export async function verifyPassword(password, storedHash) {
+  const [salt, hash] = storedHash.split(':');
+  if (!salt || !hash) return false;
+  const derivedKey = await scryptAsync(password, salt, 64);
+  const hashBuffer = Buffer.from(hash, 'hex');
+  return timingSafeEqual(derivedKey, hashBuffer);
+}
+
+/**
+ * Get or create a user by email for email/password auth.
+ * For sign-up: pass passwordHash. For login: use getUserByEmail + verifyPassword.
+ */
+export async function getOrCreateUserByEmail(email, passwordHash) {
+  const existing = await getUserByEmail(email);
+  if (existing) {
+    return { user: existing, isNew: false };
+  }
+  const user = await createEmailUser(email, passwordHash, null);
   return { user, isNew: true };
 }
 

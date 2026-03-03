@@ -27,7 +27,7 @@ if git rev-parse "$TAG" &>/dev/null; then
     echo "Tag $TAG already exists, using existing tag."
 else
     echo "Creating tag $TAG..."
-    git tag -a "$TAG" -m "G-Rump v1.0.0 — Initial Release"
+    git tag -a "$TAG" -m "G-Rump $TAG"
     git push origin "$TAG"
 fi
 
@@ -42,7 +42,7 @@ fi
 echo "Creating GitHub release..."
 gh release create "$TAG" \
     --repo "$REPO" \
-    --title "G-Rump v1.0.0 — Initial Release" \
+    --title "G-Rump $TAG" \
     --notes-file RELEASE_NOTES.md \
     $DMG_PATH
 

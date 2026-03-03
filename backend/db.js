@@ -100,6 +100,7 @@ export async function initDatabase() {
   await migrateProfileColumns(db);
   await migrateStripeColumns(db);
   await migrateCreditPurchasesTable(db);
+  await migrateEmailAuthColumns(db);
 }
 
 async function migrateProfileColumns(db) {
@@ -150,6 +151,60 @@ async function migrateCreditPurchasesTable(db) {
   await db.exec(`
     CREATE INDEX IF NOT EXISTS idx_credit_purchases_user ON credit_purchases(user_id);
   `);
+}
+
+async function migrateEmailAuthColumns(db) {
+  const columns = await db.all("PRAGMA table_info(users)");
+  const names = new Set(columns.map(c => c.name));
+  if (!names.has('password_hash')) {
+    await db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT');
+  }
+  if (!names.has('auth_provider')) {
+    await db.exec("ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'google'");
+  }
+  // google_id was originally NOT NULL — for email auth users it will be NULL.
+  // SQLite doesn't support ALTER COLUMN, but new rows can insert NULL if we
+  // accept the constraint at the application level (INSERT will work because
+  // the column already exists and the NOT NULL was on CREATE TABLE which only
+  // applies to rows at insertion time — SQLite doesn't enforce NOT NULL
+  // retroactively on ALTER-added columns, but the original column *was* in
+  // CREATE TABLE). We create a unique index on email for email-auth lookups.
+  // The existing idx_users_google_id unique index handles google_id lookups.
+  const indexes = await db.all("PRAGMA index_list(users)");
+  const indexNames = new Set(indexes.map(i => i.name));
+  if (!indexNames.has('idx_users_email_auth')) {
+    // Partial-unique: only enforce uniqueness for email-auth users
+    // (Google users may share email but have different google_id)
+    await db.exec("CREATE INDEX IF NOT EXISTS idx_users_email_auth ON users(email, auth_provider)");
+  }
+}
+
+export async function getUserByEmail(email) {
+  const db = getDb();
+  return db.get(
+    "SELECT id, email, tier, credits_balance, credits_replenished_at, display_name, avatar_url, password_hash, auth_provider FROM users WHERE email = ? AND auth_provider = 'email'",
+    [email]
+  );
+}
+
+export async function createEmailUser(email, passwordHash, displayName) {
+  const { randomUUID } = await import('crypto');
+  const db = getDb();
+  const id = randomUUID();
+  const now = Date.now();
+  const initialCredits = TIERS.free.creditsPerMonth;
+  // google_id column has NOT NULL constraint, so use a sentinel prefix for email-auth users
+  const placeholderGoogleId = `email:${id}`;
+  await db.run(
+    `INSERT INTO users (id, google_id, email, tier, credits_balance, credits_replenished_at, created_at, updated_at, password_hash, auth_provider, display_name)
+     VALUES (?, ?, ?, 'free', ?, ?, ?, ?, ?, 'email', ?)`,
+    [id, placeholderGoogleId, email, initialCredits, now, now, now, passwordHash, displayName || null]
+  );
+  const user = await db.get(
+    'SELECT id, email, tier, credits_balance, credits_replenished_at, display_name, avatar_url FROM users WHERE id = ?',
+    [id]
+  );
+  return user;
 }
 
 export const TIERS = {

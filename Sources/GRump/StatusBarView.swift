@@ -154,33 +154,46 @@ struct GitShortcutsPopover: View {
             Divider()
             
             GitShortcutButton(label: "Status", shortcut: "⌘⇧G S") {
-                runGitCommand("status")
+                runGitCommand(["status"])
             }
             GitShortcutButton(label: "Commit All", shortcut: "⌘⇧G C") {
-                runGitCommand("commit -a -m auto-commit")
+                runGitCommand(["commit", "-a", "-m", "auto-commit"])
             }
             GitShortcutButton(label: "Push", shortcut: "⌘⇧G P") {
-                runGitCommand("push")
+                runGitCommand(["push"])
             }
             GitShortcutButton(label: "Pull", shortcut: "⌘⇧G L") {
-                runGitCommand("pull")
+                runGitCommand(["pull"])
             }
             GitShortcutButton(label: "Log", shortcut: "⌘⇧G G") {
-                runGitCommand("log --oneline -10")
+                runGitCommand(["log", "--oneline", "-10"])
+            }
+
+            if showOutput {
+                Divider()
+                ScrollView {
+                    Text(gitOutput)
+                        .font(Typography.codeMicro)
+                        .foregroundColor(themeManager.palette.textPrimary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 150)
             }
         }
         .padding(Spacing.lg)
-        .frame(width: 180)
+        .frame(width: showOutput ? 320 : 180)
     }
     
     @State private var gitOutput: String = ""
+    @State private var showOutput: Bool = false
 
-    private func runGitCommand(_ args: String) {
+    private func runGitCommand(_ args: [String]) {
         #if os(macOS)
         Task {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
-            process.arguments = args.components(separatedBy: " ")
+            process.arguments = args
             process.currentDirectoryURL = URL(fileURLWithPath: workingDirectory)
             let stdoutPipe = Pipe()
             let stderrPipe = Pipe()
@@ -191,13 +204,16 @@ struct GitShortcutsPopover: View {
                 process.waitUntilExit()
                 let outData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
                 let errData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-                let output = (String(data: outData, encoding: .utf8) ?? "")
-                    + (String(data: errData, encoding: .utf8) ?? "")
-                GRumpLogger.general.info("Git: \(args) -> \(output.prefix(500))")
-                gitOutput = output
+                let stdout = String(data: outData, encoding: .utf8) ?? ""
+                let stderr = String(data: errData, encoding: .utf8) ?? ""
+                let output = stdout + stderr
+                GRumpLogger.general.info("Git: \(args.joined(separator: " ")) -> \(output.prefix(500))")
+                gitOutput = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                showOutput = !gitOutput.isEmpty
             } catch {
                 GRumpLogger.general.error("Git command failed: \(error.localizedDescription)")
                 gitOutput = "Error: \(error.localizedDescription)"
+                showOutput = true
             }
         }
         #endif

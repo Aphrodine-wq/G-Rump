@@ -128,7 +128,7 @@ struct CodeBlockView: View {
                             Text("\(idx + 1)")
                                 .font(Typography.codeScaled(scale: themeManager.contentSize.scaleFactor))
                                 .foregroundColor(lineNumColor)
-                                .frame(height: 18)
+                                .frame(height: 14 + Typography.userLineSpacing)
                         }
                     }
                     .padding(.leading, Spacing.xl)
@@ -145,7 +145,7 @@ struct CodeBlockView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(cachedLineTokens.enumerated()), id: \.offset) { idx, tokens in
                             highlightedLineView(tokens: tokens)
-                                .frame(height: 18)
+                                .frame(height: 14 + Typography.userLineSpacing)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
@@ -156,7 +156,7 @@ struct CodeBlockView: View {
                 }
                 .frame(minWidth: 0, alignment: .leading)
             }
-            .frame(maxHeight: min(CGFloat(codeLines.count) * 18 + 20, 400))
+            .frame(maxHeight: min(CGFloat(codeLines.count) * (14 + Typography.userLineSpacing) + 20, 400))
             .background(bgCode)
 
             // Apply/Reject footer bar (Cursor-style)

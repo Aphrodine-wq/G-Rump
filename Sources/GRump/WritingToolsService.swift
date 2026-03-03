@@ -33,11 +33,16 @@ final class WritingToolsService: ObservableObject {
     // MARK: - Availability Check
     
     private func checkWritingToolsAvailability() {
-        if #available(macOS 15.0, iOS 18.0, *) {
-            isWritingToolsAvailable = true
-        } else {
-            isWritingToolsAvailable = false
-        }
+        // Writing Tools uses OpenRouter for AI generation — available on all supported platforms.
+        // NaturalLanguage framework used for suggestions is available on macOS 14+ / iOS 17+.
+        let hasAPIKey = !(UserDefaults.standard.string(forKey: "openRouterAPIKey") ?? "").isEmpty
+        let hasModel = !(UserDefaults.standard.string(forKey: "SelectedModel") ?? "").isEmpty
+        isWritingToolsAvailable = hasAPIKey && hasModel
+    }
+
+    /// Re-check availability when API settings change (call from Settings).
+    func refreshAvailability() {
+        checkWritingToolsAvailability()
     }
     
     // MARK: - Text Generation

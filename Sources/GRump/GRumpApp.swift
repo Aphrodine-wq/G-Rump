@@ -89,14 +89,15 @@ struct GRumpApp: App {
                         await SwiftDataMigrator.migrateIfNeeded(context: modelContainer.mainContext)
                     }
                     #endif
+                    // Start connection monitoring (cross-platform)
+                    ConnectionMonitor.shared.start()
+
                     #if os(macOS)
                     Task.detached(priority: .utility) {
                         await MainActor.run {
                             GRumpServicesProvider.shared.register()
                         }
                     }
-                    // Start connection monitoring
-                    ConnectionMonitor.shared.start()
                     // Listen for update check requests from Settings
                     NotificationCenter.default.addObserver(forName: .init("GRumpCheckForUpdates"), object: nil, queue: .main) { [weak sparkleService] _ in
                         sparkleService?.checkForUpdates()

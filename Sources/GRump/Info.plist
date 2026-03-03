@@ -36,7 +36,16 @@
 	<string>Copyright © 2026 G-Rump. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<!-- Google OAuth CFBundleURLTypes: add CFBundleURLSchemes with reversed client ID when obtained -->
-
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.grump.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>grump</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

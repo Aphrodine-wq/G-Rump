@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 // MARK: - Platform User (account, tier, credits)
 
@@ -41,6 +42,64 @@ enum PlatformService {
 
     static func logout() {
         authToken = nil
+    }
+
+    /// Sign up with email and password. Stores JWT on success.
+    static func signUp(email: String, password: String, displayName: String?) async throws -> PlatformUser {
+        guard let url = URL(string: baseURL.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/api/auth/signup") else {
+            throw PlatformError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var body: [String: Any] = ["email": email, "password": password]
+        if let name = displayName, !name.isEmpty { body["displayName"] = name }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw PlatformError.networkError }
+
+        if http.statusCode == 409 {
+            throw PlatformError.apiError(statusCode: 409, message: "An account with this email already exists.")
+        }
+        guard (200...299).contains(http.statusCode) else {
+            let decoded = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let errObj = decoded?["error"] as? [String: Any]
+            let msg = errObj?["message"] as? String ?? "Sign-up failed"
+            throw PlatformError.apiError(statusCode: http.statusCode, message: msg)
+        }
+
+        let authResp = try JSONDecoder().decode(AuthResponse.self, from: data)
+        authToken = authResp.token
+        GRumpLogger.general.info("Email sign-up successful for \(email, privacy: .private)")
+        return authResp.user.toPlatformUser()
+    }
+
+    /// Sign in with email and password. Stores JWT on success.
+    static func signIn(email: String, password: String) async throws -> PlatformUser {
+        guard let url = URL(string: baseURL.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/api/auth/login") else {
+            throw PlatformError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["email": email, "password": password]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw PlatformError.networkError }
+
+        guard (200...299).contains(http.statusCode) else {
+            let decoded = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let errObj = decoded?["error"] as? [String: Any]
+            let msg = errObj?["message"] as? String ?? "Invalid email or password"
+            throw PlatformError.apiError(statusCode: http.statusCode, message: msg)
+        }
+
+        let authResp = try JSONDecoder().decode(AuthResponse.self, from: data)
+        authToken = authResp.token
+        GRumpLogger.general.info("Email sign-in successful for \(email, privacy: .private)")
+        return authResp.user.toPlatformUser()
     }
 
     // MARK: - Me (credits, tier)

@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 #if os(macOS)
 import AppKit
 #endif
@@ -15,6 +16,15 @@ struct OnboardingView: View {
     @State private var showAPIKeyField = false
     @State private var direction: Edge = .trailing
     @State private var selectedOnboardingProvider: AIProvider = .anthropic
+
+    // Email auth state
+    @State private var authEmail = ""
+    @State private var authPassword = ""
+    @State private var authDisplayName = ""
+    @State private var isSignUpMode = true
+    @State private var authInProgress = false
+    @State private var authError: String?
+    @State private var authSuccess = false
 
     private let totalSteps = 6
     @State private var selectedSecurityPreset: ExecSecurityPreset = .balanced
@@ -99,12 +109,46 @@ struct OnboardingView: View {
                     .foregroundColor(themeManager.palette.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Your autonomous AI coding agent.\nConnect a provider to get started.")
+                Text("Your autonomous AI coding agent.\nSign in or connect a provider to get started.")
                     .font(Typography.body)
                     .foregroundColor(themeManager.palette.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .frame(maxWidth: 480)
+            }
+
+            // MARK: Sign In / Sign Up section
+            if !authSuccess {
+                emailAuthSection
+            } else {
+                HStack(spacing: Spacing.md) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.accentGreen)
+                    Text("Signed in successfully")
+                        .font(Typography.bodySemibold)
+                        .foregroundColor(.accentGreen)
+                }
+                .padding(Spacing.lg)
+                .frame(maxWidth: 420)
+                .background(Color.accentGreen.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+            }
+
+            // Divider with "or continue as guest"
+            if !authSuccess {
+                HStack(spacing: Spacing.lg) {
+                    Rectangle()
+                        .fill(themeManager.palette.borderCrisp.opacity(0.3))
+                        .frame(height: 1)
+                    Text("or continue as guest")
+                        .font(Typography.captionSmall)
+                        .foregroundColor(themeManager.palette.textMuted)
+                        .layoutPriority(1)
+                    Rectangle()
+                        .fill(themeManager.palette.borderCrisp.opacity(0.3))
+                        .frame(height: 1)
+                }
+                .frame(maxWidth: 420)
             }
 
             VStack(spacing: Spacing.xl) {
@@ -187,6 +231,181 @@ struct OnboardingView: View {
         .padding(.horizontal, Spacing.huge)
         .frame(maxWidth: .infinity, minHeight: geo.size.height)
         }
+        }
+    }
+
+    // MARK: - Email Auth Section
+
+    private var emailAuthSection: some View {
+        VStack(spacing: Spacing.xl) {
+            // Sign In / Sign Up toggle
+            HStack(spacing: 0) {
+                Button {
+                    withAnimation(.easeInOut(duration: Anim.quick)) {
+                        isSignUpMode = true
+                        authError = nil
+                    }
+                } label: {
+                    Text("Sign Up")
+                        .font(Typography.bodySmallSemibold)
+                        .foregroundColor(isSignUpMode ? themeManager.palette.effectiveAccent : themeManager.palette.textMuted)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.lg)
+                        .background(isSignUpMode ? themeManager.palette.effectiveAccent.opacity(0.12) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    withAnimation(.easeInOut(duration: Anim.quick)) {
+                        isSignUpMode = false
+                        authError = nil
+                    }
+                } label: {
+                    Text("Sign In")
+                        .font(Typography.bodySmallSemibold)
+                        .foregroundColor(!isSignUpMode ? themeManager.palette.effectiveAccent : themeManager.palette.textMuted)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.lg)
+                        .background(!isSignUpMode ? themeManager.palette.effectiveAccent.opacity(0.12) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+            .background(themeManager.palette.bgInput)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                .stroke(themeManager.palette.borderCrisp.opacity(0.3), lineWidth: Border.thin))
+
+            // Display name field (sign up only)
+            if isSignUpMode {
+                TextField("Display name (optional)", text: $authDisplayName)
+                    .textFieldStyle(.plain)
+                    .font(Typography.bodySmall)
+                    .padding(Spacing.lg)
+                    .background(themeManager.palette.bgInput)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                        .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
+            // Email field
+            TextField("Email", text: $authEmail)
+                .textFieldStyle(.plain)
+                .font(Typography.bodySmall)
+                .textContentType(.emailAddress)
+                #if os(macOS)
+                .disableAutocorrection(true)
+                #else
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .keyboardType(.emailAddress)
+                #endif
+                .padding(Spacing.lg)
+                .background(themeManager.palette.bgInput)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                    .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+
+            // Password field
+            SecureField("Password (8+ characters)", text: $authPassword)
+                .textFieldStyle(.plain)
+                .font(Typography.bodySmall)
+                .textContentType(isSignUpMode ? .newPassword : .password)
+                .padding(Spacing.lg)
+                .background(themeManager.palette.bgInput)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                    .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+
+            // Error message
+            if let error = authError {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.red)
+                        .font(.system(size: 12))
+                    Text(error)
+                        .font(Typography.captionSmall)
+                        .foregroundColor(.red)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .transition(.opacity)
+            }
+
+            // Submit button
+            Button {
+                performEmailAuth()
+            } label: {
+                HStack(spacing: Spacing.md) {
+                    if authInProgress {
+                        ProgressView()
+                            .controlSize(.small)
+                            .tint(.white)
+                    }
+                    Text(isSignUpMode ? "Create Account" : "Sign In")
+                        .font(Typography.bodySemibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.lg)
+                .background(emailAuthButtonDisabled ? themeManager.palette.effectiveAccent.opacity(0.4) : themeManager.palette.effectiveAccent)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .disabled(emailAuthButtonDisabled)
+        }
+        .frame(maxWidth: 420)
+        .animation(.easeInOut(duration: Anim.quick), value: isSignUpMode)
+        .animation(.easeInOut(duration: Anim.quick), value: authError != nil)
+    }
+
+    private var emailAuthButtonDisabled: Bool {
+        authInProgress
+        || authEmail.trimmingCharacters(in: .whitespaces).isEmpty
+        || authPassword.isEmpty
+        || authPassword.count < 8
+    }
+
+    private func performEmailAuth() {
+        let email = authEmail.trimmingCharacters(in: .whitespaces)
+        let password = authPassword
+        guard !email.isEmpty, password.count >= 8 else { return }
+
+        authInProgress = true
+        authError = nil
+
+        Task {
+            do {
+                if isSignUpMode {
+                    let displayName = authDisplayName.trimmingCharacters(in: .whitespaces)
+                    let user = try await PlatformService.signUp(
+                        email: email,
+                        password: password,
+                        displayName: displayName.isEmpty ? nil : displayName
+                    )
+                    await MainActor.run {
+                        viewModel.platformUser = user
+                        authSuccess = true
+                        authInProgress = false
+                        GRumpLogger.general.info("Onboarding sign-up completed")
+                    }
+                } else {
+                    let user = try await PlatformService.signIn(email: email, password: password)
+                    await MainActor.run {
+                        viewModel.platformUser = user
+                        authSuccess = true
+                        authInProgress = false
+                        GRumpLogger.general.info("Onboarding sign-in completed")
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    authError = error.localizedDescription
+                    authInProgress = false
+                    GRumpLogger.general.error("Onboarding auth failed: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
