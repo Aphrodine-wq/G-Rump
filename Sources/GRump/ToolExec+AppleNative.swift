@@ -90,7 +90,8 @@ extension ChatViewModel {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
-            kSecValueData as String: data
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         if status == errSecSuccess {

@@ -258,6 +258,17 @@ final class MCPServerConnection: @unchecked Sendable {
 
         case "tools/list":
             guard let host = host else { return ["tools": []] }
+            // Require auth token for tool listing (prevents tool enumeration by unauthenticated clients)
+            let listToken = params?["auth_token"] as? String
+            let expectedListToken = await host.authToken
+            guard listToken == expectedListToken else {
+                return [
+                    "error": [
+                        "code": -32600,
+                        "message": "Authentication required. Provide 'auth_token' in params."
+                    ] as [String: Any]
+                ]
+            }
             let defs = host.toolDefinitions()
             let tools: [[String: Any]] = defs.map { def in
                 var tool: [String: Any] = ["name": def.name]
@@ -464,7 +475,9 @@ enum MCPToolDispatcher {
 
     /// Check that a resolved path is within the workspace root. Returns an error string if traversal detected.
     private static func checkPathTraversal(_ resolvedPath: String, workspaceRoot: String?) -> String? {
-        guard let root = workspaceRoot else { return nil }
+        guard let root = workspaceRoot, !root.isEmpty else {
+            return "Error: no workspace root configured — file access denied"
+        }
         let standardizedPath = URL(fileURLWithPath: resolvedPath).standardizedFileURL.path
         let standardizedRoot = URL(fileURLWithPath: root).standardizedFileURL.path
         guard standardizedPath.hasPrefix(standardizedRoot) else {

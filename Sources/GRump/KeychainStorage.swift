@@ -46,7 +46,10 @@ enum KeychainStorage {
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
         ]
-        let attributes: [String: Any] = [kSecValueData as String: data]
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        ]
         var status = SecItemAdd(query.merging(attributes) { $1 } as CFDictionary, nil)
         if status == errSecDuplicateItem {
             SecItemDelete(query as CFDictionary)
