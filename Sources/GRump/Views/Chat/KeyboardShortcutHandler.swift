@@ -30,6 +30,16 @@ struct KeyboardShortcutHandler: View {
             Button(action: { if viewModel.currentConversation != nil { viewModel.runExportMarkdownPanel(onlyCurrent: true) } }) { EmptyView() }
                 .keyboardShortcut("e", modifiers: .command)
 
+            // Chat-specific shortcuts
+            Button(action: { viewModel.retryLastMessage() }) { EmptyView() }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+            Button(action: {
+                NotificationCenter.default.post(name: .init("GRumpToggleConversationSearch"), object: nil)
+            }) { EmptyView() }
+                .keyboardShortcut("f", modifiers: .command)
+            Button(action: { viewModel.scrollToLastMessage() }) { EmptyView() }
+                .keyboardShortcut(.downArrow, modifiers: [.command])
+
             // Panel tab shortcuts (Ctrl+number)
             Button(action: { switchPanel(.chat) }) { EmptyView() }
                 .keyboardShortcut("1", modifiers: .control)

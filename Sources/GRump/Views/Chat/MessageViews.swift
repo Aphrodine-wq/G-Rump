@@ -25,6 +25,20 @@ struct MessageRow: View {
     @State private var isEditing = false
     @State private var editText = ""
     @State private var showAllTools = false
+    @State private var isCollapsed: Bool? = nil // nil = auto-detect on appear
+
+    /// Threshold for auto-collapsing long messages (line count)
+    private static let collapseThreshold = 150
+    /// How many lines to show when collapsed
+    private static let collapsedPreviewLines = 30
+
+    private var shouldAutoCollapse: Bool {
+        !isUser && message.content.components(separatedBy: "\n").count > Self.collapseThreshold
+    }
+
+    private var effectivelyCollapsed: Bool {
+        isCollapsed ?? shouldAutoCollapse
+    }
 
     var isUser: Bool { message.role == .user }
 
@@ -200,11 +214,64 @@ struct MessageRow: View {
                 .padding(.vertical, Spacing.sm)
             }
 
-            // Message content — flat, no bubble
+            // Message content — flat, no bubble (with auto-collapse for long messages)
             if !message.content.isEmpty {
-                MarkdownTextView(text: message.content)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
+                if effectivelyCollapsed {
+                    // Show truncated preview
+                    let previewText = message.content
+                        .split(separator: "\n", omittingEmptySubsequences: false)
+                        .prefix(Self.collapsedPreviewLines)
+                        .joined(separator: "\n")
+                    MarkdownTextView(text: previewText)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // Fade-out gradient + expand button
+                    VStack(spacing: Spacing.sm) {
+                        LinearGradient(
+                            colors: [themeManager.palette.bgDark.opacity(0), themeManager.palette.bgDark],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 40)
+
+                        Button(action: { withAnimation(.easeInOut(duration: Anim.quick)) { isCollapsed = false } }) {
+                            HStack(spacing: Spacing.md) {
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 9, weight: .bold))
+                                let totalLines = message.content.components(separatedBy: "\n").count
+                                Text("Show all \(totalLines) lines")
+                                    .font(Typography.captionSmallSemibold)
+                            }
+                            .foregroundColor(themeManager.palette.effectiveAccent)
+                            .padding(.horizontal, Spacing.xxl)
+                            .padding(.vertical, Spacing.md)
+                            .background(themeManager.palette.effectiveAccent.opacity(0.08))
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.top, -40) // overlap gradient with content
+                } else {
+                    MarkdownTextView(text: message.content)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // Collapse button for long messages that are expanded
+                    if shouldAutoCollapse {
+                        Button(action: { withAnimation(.easeInOut(duration: Anim.quick)) { isCollapsed = true } }) {
+                            HStack(spacing: Spacing.xs) {
+                                Image(systemName: "chevron.up")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text("Collapse")
+                                    .font(Typography.captionSmallMedium)
+                            }
+                            .foregroundColor(themeManager.palette.textMuted)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, Spacing.sm)
+                    }
+                }
             }
 
             // Inline question option grid (only for ask_user tool calls)
