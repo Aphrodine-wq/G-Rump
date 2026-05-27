@@ -36,7 +36,7 @@
             and ambient project awareness into a fast SwiftUI app built for Mac developers.
           </p>
           <div class="hero-actions" id="download">
-            <a class="button primary" href="https://github.com/Aphrodine-wq/G-Rump#quick-start" aria-label="Get started with G-Rump on GitHub">Get started</a>
+            <a class="button primary" href="#quick-start" aria-label="Jump to G-Rump quick start instructions">Get started</a>
             <a class="button secondary" href="https://github.com/Aphrodine-wq/G-Rump" aria-label="View the G-Rump repository on GitHub">View on GitHub</a>
           </div>
           <div class="hero-stats" aria-label="Product highlights">
@@ -103,13 +103,32 @@
         </ol>
       </section>
 
+      <section class="section quick-start" id="quick-start" aria-labelledby="quick-start-title">
+        <div class="section-heading">
+          <p class="eyebrow">Quick start</p>
+          <h2 id="quick-start-title">Build and run locally.</h2>
+        </div>
+        <div class="command-card">
+          <code>make run</code>
+          <span>Build the debug app and launch G-Rump.</span>
+        </div>
+        <div class="command-card">
+          <code>make app</code>
+          <span>Create a release .app bundle in the dist folder.</span>
+        </div>
+        <div class="command-card">
+          <code>swift test --parallel</code>
+          <span>Run the Swift test suite when your local Xcode SDK is available.</span>
+        </div>
+      </section>
+
       <section class="section platform" id="platform" aria-labelledby="platform-title">
         <div>
           <p class="eyebrow">Platform</p>
           <h2 id="platform-title">Built for serious macOS development.</h2>
           <p>
-            G-Rump is a Swift 5.9+ and SwiftUI application for macOS 14+ with a Node.js backend for authentication,
-            credits, billing, and OpenRouter proxying. It is distributed outside the Mac App Store to support
+            G-Rump is a Swift 5.9+ and SwiftUI application for macOS 14+ with a Node.js backend for authentication
+            and OpenRouter proxying. It is distributed outside the Mac App Store to support
             shell execution, language servers, and deep system integration.
           </p>
         </div>
