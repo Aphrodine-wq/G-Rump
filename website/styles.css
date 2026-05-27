@@ -9,6 +9,7 @@
   --accent-2: #55d6be;
   --line: rgba(255, 255, 255, 0.16);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  --product-card-min-height-mobile: 460px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -120,7 +121,7 @@ p { color: var(--muted); line-height: 1.7; }
 
 .button.primary { background: var(--text); color: #080a12; }
 .button.secondary { background: var(--panel); }
-.button:hover { transform: translateY(-1px); }
+.button:hover, .button:focus-visible { transform: translateY(-1px); }
 
 .hero-stats { gap: 16px; flex-wrap: wrap; }
 .hero-stats div {
@@ -208,7 +209,7 @@ p { color: var(--muted); line-height: 1.7; }
   .hero, .platform { grid-template-columns: 1fr; }
   .hero { min-height: auto; padding-top: 64px; }
   .feature-grid { grid-template-columns: 1fr; }
-  .product-card { min-height: 460px; }
+  .product-card { min-height: var(--product-card-min-height-mobile); }
 }
 
 @media (max-width: 560px) {
