@@ -3,6 +3,7 @@
   --bg: #080a12;
   --panel: rgba(255, 255, 255, 0.08);
   --panel-strong: rgba(255, 255, 255, 0.14);
+  --button-inset: rgba(255, 255, 255, 0.1);
   --text: #f7f7fb;
   --muted: #b7bed4;
   --accent: #9f7aea;
@@ -118,7 +119,7 @@ p { color: var(--muted); line-height: 1.7; }
   border-radius: 999px;
   border: 1px solid var(--line);
   font-weight: 800;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px var(--button-inset);
 }
 
 .button.primary { background: var(--text); color: #080a12; }
