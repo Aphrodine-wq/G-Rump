@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="G-Rump is a macOS-native AI coding agent with multi-model support, 100+ local tools, MCP integration, and ambient code awareness."
+    />
+    <title>G-Rump | Native AI Coding Agent for macOS</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="G-Rump home">
+          <span class="brand-mark">G</span>
+          <span>G-Rump</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#platform">Platform</a>
+          <a href="#download">Download</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section">
+        <div class="hero-copy">
+          <p class="eyebrow">Native macOS AI coding agent</p>
+          <h1>Ship faster with a private, tool-rich coding partner.</h1>
+          <p class="hero-text">
+            G-Rump brings multi-model AI, 100+ local development tools, MCP integrations,
+            and ambient project awareness into a fast SwiftUI app built for Mac developers.
+          </p>
+          <div class="hero-actions" id="download">
+            <a class="button primary" href="../README.md">Get started</a>
+            <a class="button secondary" href="https://github.com/Aphrodine-wq/G-Rump">View on GitHub</a>
+          </div>
+          <div class="hero-stats" aria-label="Product highlights">
+            <div><strong>100+</strong><span>local tools</span></div>
+            <div><strong>58</strong><span>MCP presets</span></div>
+            <div><strong>6</strong><span>agent modes</span></div>
+          </div>
+        </div>
+        <div class="product-card" aria-label="G-Rump product preview">
+          <div class="window-controls" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="sidebar-preview">
+            <div></div><div></div><div></div><div></div>
+          </div>
+          <div class="chat-preview">
+            <p class="prompt">Build mode</p>
+            <h2>Refactor the auth flow and run tests.</h2>
+            <div class="tool-row"><span>read_file</span><span>run_command</span><span>git_diff</span></div>
+            <div class="message ai">I found the affected files, applied the change, and verified the backend test suite.</div>
+            <div class="message user">Open a PR when validation passes.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section feature-grid" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <p class="eyebrow">Everything connected</p>
+          <h2 id="features-title">A coding agent that understands your Mac and your stack.</h2>
+        </div>
+        <article class="feature-card">
+          <h3>Multi-provider AI</h3>
+          <p>Use Anthropic, OpenAI, OpenRouter, Ollama, or on-device CoreML models with tier-aware access.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Local tool execution</h3>
+          <p>Run file, shell, git, Docker, browser, cloud deploy, Keychain, OCR, Spotlight, and Xcode tools.</p>
+        </article>
+        <article class="feature-card">
+          <h3>MCP client and server</h3>
+          <p>Connect to popular MCP servers, manage credentials in Keychain, and expose G-Rump tools over MCP.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Ambient code awareness</h3>
+          <p>Keep project context fresh with file watching, LSP diagnostics, proactive suggestions, and memory.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Flexible agent modes</h3>
+          <p>Switch between Chat, Plan, Build, Debate, Spec, and Parallel workflows for the task at hand.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Mac-native experience</h3>
+          <p>Use SwiftUI panels, global quick chat, themes, keyboard shortcuts, and packaging built for macOS.</p>
+        </article>
+      </section>
+
+      <section class="section workflow" id="workflow" aria-labelledby="workflow-title">
+        <div class="section-heading">
+          <p class="eyebrow">Developer workflow</p>
+          <h2 id="workflow-title">From idea to validated change.</h2>
+        </div>
+        <ol class="steps">
+          <li><span>01</span><div><h3>Plan with context</h3><p>Let G-Rump read project facts, active files, diagnostics, and custom skills before proposing work.</p></div></li>
+          <li><span>02</span><div><h3>Build with tools</h3><p>Approve safe tool calls, apply diffs, run commands, and coordinate parallel agents locally.</p></div></li>
+          <li><span>03</span><div><h3>Review and ship</h3><p>Inspect git changes, run tests, export conversations, and prepare release artifacts or DMGs.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="section platform" id="platform" aria-labelledby="platform-title">
+        <div>
+          <p class="eyebrow">Platform</p>
+          <h2 id="platform-title">Built for serious macOS development.</h2>
+          <p>
+            G-Rump is a Swift 5.9+ and SwiftUI application for macOS 14+ with a Node.js backend for auth,
+            credits, billing, and OpenRouter proxying. It is distributed outside the Mac App Store to support
+            shell execution, language servers, and deep system integration.
+          </p>
+        </div>
+        <div class="requirements">
+          <h3>Requirements</h3>
+          <ul>
+            <li>macOS 14 Sonoma or later</li>
+            <li>Swift 5.9+ for local builds</li>
+            <li>Optional API keys for preferred AI providers</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>G-Rump — AI coding agent for macOS.</p>
+      <a href="#top">Back to top</a>
+    </footer>
+  </body>
+</html>
