@@ -165,9 +165,8 @@ p { color: var(--muted); line-height: 1.7; }
 .message.ai { background: rgba(159, 122, 234, 0.22); }
 .message.user { margin-left: 42px; background: rgba(255, 255, 255, 0.1); color: var(--muted); }
 
-.section-heading { max-width: 760px; margin-bottom: 34px; }
+.section-heading { grid-column: 1 / -1; max-width: 760px; margin-bottom: 34px; }
 .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.section-heading { grid-column: 1 / -1; }
 .feature-card, .requirements, .steps li {
   border: 1px solid var(--line);
   border-radius: 24px;
