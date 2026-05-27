@@ -7,11 +7,11 @@
   --muted: #b7bed4;
   --accent: #9f7aea;
   --accent-2: #55d6be;
-  --line: rgba(255, 255, 255, 0.16);
+  --line: rgba(255, 255, 255, 0.28);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
   --product-card-min-height: 520px;
   --product-card-min-height-compact: 460px;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -118,6 +118,7 @@ p { color: var(--muted); line-height: 1.7; }
   border-radius: 999px;
   border: 1px solid var(--line);
   font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .button.primary { background: var(--text); color: #080a12; }
