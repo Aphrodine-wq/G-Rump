@@ -18,7 +18,9 @@ jobs:
   critical-tests:
     name: Critical Tool Tests
     runs-on: macos-14
-    timeout-minutes: 15
+    # Cold build of the full app (~54K LOC, StrictConcurrency=complete) + ~700 tests
+    # can exceed 15m on a fresh runner; the SPM cache warms subsequent runs.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
