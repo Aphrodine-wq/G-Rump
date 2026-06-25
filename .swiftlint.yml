@@ -1,0 +1,49 @@
+# SwiftLint configuration for G-Rump.
+# Calibrated for a large, mature SwiftUI codebase: correctness/clarity rules stay on,
+# purely opinionated style + size-metric rules are relaxed or disabled.
+
+included:
+  - Sources/GRump
+
+excluded:
+  - .build
+  - _wip-quarantine
+  - Tests
+
+disabled_rules:
+  # Opinionated style — not correctness.
+  - multiple_closures_with_trailing_closure
+  - trailing_comma
+  - todo
+  - for_where                    # `for { if }` is fine; cosmetic
+  - redundant_string_enum_value  # explicit raw values kept as documentation
+  # Size metrics — this codebase has intentionally large view models / tool files.
+  - file_length
+  - type_body_length
+  - function_body_length
+  - cyclomatic_complexity
+  - nesting
+  - large_tuple
+  - function_parameter_count
+
+line_length:
+  warning: 600
+  error: 1000
+  ignores_urls: true
+  ignores_comments: true
+
+identifier_name:
+  min_length:
+    warning: 1
+    error: 1
+  max_length:
+    warning: 80
+    error: 100
+  allowed_symbols: ["_"]
+
+type_name:
+  max_length:
+    warning: 60
+    error: 80
+
+reporter: "github-actions-logging"

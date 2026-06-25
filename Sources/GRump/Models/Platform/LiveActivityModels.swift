@@ -304,6 +304,7 @@ final class LiveActivityManager: ObservableObject {
     }
 
     private func deliverNotification(title: String, body: String, identifier: String) {
+        guard GRumpRuntime.notificationsAvailable else { return }
         // Only deliver when app is not frontmost
         guard !NSApplication.shared.isActive else { return }
         let content = UNMutableNotificationContent()

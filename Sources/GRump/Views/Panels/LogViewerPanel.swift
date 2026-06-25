@@ -175,11 +175,7 @@ final class LogService: ObservableObject {
             guard !trimmed.isEmpty else { return nil }
 
             let level: LogEntry.LogLevel
-            if trimmed.contains("Error") || trimmed.contains("<Error>") { level = .error }
-            else if trimmed.contains("Fault") || trimmed.contains("<Fault>") { level = .fault }
-            else if trimmed.contains("Notice") || trimmed.contains("<Notice>") { level = .notice }
-            else if trimmed.contains("Debug") || trimmed.contains("<Debug>") { level = .debug }
-            else { level = .info }
+            if trimmed.contains("Error") || trimmed.contains("<Error>") { level = .error } else if trimmed.contains("Fault") || trimmed.contains("<Fault>") { level = .fault } else if trimmed.contains("Notice") || trimmed.contains("<Notice>") { level = .notice } else if trimmed.contains("Debug") || trimmed.contains("<Debug>") { level = .debug } else { level = .info }
 
             return LogEntry(
                 timestamp: Date(), level: level,

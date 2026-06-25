@@ -6,27 +6,27 @@ struct AgentProgressRing: View {
     @EnvironmentObject var themeManager: ThemeManager
     var step: Int?
     var maxStep: Int?
-    
+
     @State private var rotationAngle: Double = 0
-    
+
     private var progress: Double {
         guard let step = step, let max = maxStep, max > 0 else { return 0 }
         return min(Double(step) / Double(max), 1.0)
     }
-    
+
     private var isIndeterminate: Bool {
         step == nil || maxStep == nil || maxStep == 0
     }
-    
+
     private let ringSize: CGFloat = 22
     private let lineWidth: CGFloat = 2.5
-    
+
     var body: some View {
         ZStack {
             // Background track
             Circle()
                 .stroke(themeManager.palette.effectiveAccent.opacity(0.15), lineWidth: lineWidth)
-            
+
             if isIndeterminate {
                 // Spinning indeterminate ring
                 Circle()

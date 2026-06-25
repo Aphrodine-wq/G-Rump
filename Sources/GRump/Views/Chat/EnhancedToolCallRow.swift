@@ -6,7 +6,7 @@ struct EnhancedToolCallRow: View {
     let tool: ToolCallStatus
     let themeManager: ThemeManager
     @State private var animatedProgress: Double = 0
-    
+
     private var statusColor: Color {
         switch tool.status {
         case .pending: return .orange
@@ -16,7 +16,7 @@ struct EnhancedToolCallRow: View {
         case .cancelled: return .gray
         }
     }
-    
+
     private var statusIcon: String {
         switch tool.status {
         case .pending: return "clock"
@@ -26,7 +26,7 @@ struct EnhancedToolCallRow: View {
         case .cancelled: return "stop.circle.fill"
         }
     }
-    
+
     private var elapsedTime: String {
         guard let startTime = tool.startTime else { return "" }
         let endTime = tool.endTime ?? Date()
@@ -39,7 +39,7 @@ struct EnhancedToolCallRow: View {
             return "\(Int(duration / 60))m \(Int(duration.truncatingRemainder(dividingBy: 60)))s"
         }
     }
-    
+
     var body: some View {
         VStack(spacing: Spacing.sm) {
             HStack(spacing: Spacing.lg) {
@@ -48,7 +48,7 @@ struct EnhancedToolCallRow: View {
                     Circle()
                         .stroke(statusColor.opacity(0.3), lineWidth: 2)
                         .frame(width: 20, height: 20)
-                    
+
                     if tool.status == .running {
                         ProgressView()
                             .controlSize(.mini)
@@ -59,31 +59,31 @@ struct EnhancedToolCallRow: View {
                             .foregroundColor(statusColor)
                     }
                 }
-                
+
                 // Tool info
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Image(systemName: toolIcon(tool.name))
                             .font(Typography.captionSmallSemibold)
                             .foregroundColor(themeManager.palette.effectiveAccentLightVariant)
-                        
+
                         Text(toolDisplayName(tool.name))
                             .font(Typography.captionSmallSemibold)
                             .foregroundColor(.textPrimary)
-                        
+
                         Spacer()
-                        
+
                         Text(elapsedTime)
                             .font(Typography.micro)
                             .foregroundColor(.textMuted)
                     }
-                    
+
                     if let currentStep = tool.currentStep {
                         HStack {
                             Text(currentStep)
                                 .font(Typography.micro)
                                 .foregroundColor(statusColor)
-                            
+
                             if tool.totalSteps > 1 {
                                 Text("(\(tool.currentStepNumber)/\(tool.totalSteps))")
                                     .font(Typography.micro)
@@ -93,20 +93,20 @@ struct EnhancedToolCallRow: View {
                     }
                 }
             }
-            
+
             // Progress bar for running tools
             if tool.status == .running && tool.totalSteps > 1 {
                 HStack(spacing: Spacing.sm) {
                     ProgressView(value: animatedProgress, total: 1.0)
                         .progressViewStyle(LinearProgressViewStyle(tint: statusColor))
                         .scaleEffect(y: 0.5)
-                    
+
                     Text("\(Int(animatedProgress * 100))%")
                         .font(Typography.micro)
                         .foregroundColor(.textMuted)
                 }
             }
-            
+
             // Tool arguments (collapsible)
             if !tool.arguments.isEmpty {
                 Text(toolArgSummary(tool.arguments))
@@ -134,7 +134,7 @@ struct EnhancedToolCallRow: View {
             }
         }
     }
-    
+
     private func toolIcon(_ name: String) -> String {
         switch name {
         case "read_file", "batch_read_files": return "doc.text"
@@ -165,17 +165,17 @@ struct EnhancedToolCallRow: View {
         default: return "wrench.and.screwdriver"
         }
     }
-    
+
     private func toolDisplayName(_ name: String) -> String {
         name.replacingOccurrences(of: "_", with: " ").capitalized
     }
-    
+
     private func toolArgSummary(_ args: String) -> String {
         guard let data = args.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return args
         }
-        
+
         var parts: [String] = []
         if let path = json["path"] as? String {
             parts.append("path: \(URL(fileURLWithPath: path).lastPathComponent)")
@@ -186,7 +186,7 @@ struct EnhancedToolCallRow: View {
         if let query = json["query"] as? String {
             parts.append("query: \(String(query.prefix(30)))")
         }
-        
+
         return parts.isEmpty ? args : parts.joined(separator: " • ")
     }
 }

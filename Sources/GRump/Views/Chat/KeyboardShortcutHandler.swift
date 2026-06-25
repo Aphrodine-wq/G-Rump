@@ -9,7 +9,7 @@ struct KeyboardShortcutHandler: View {
     @Binding var settingsInitialTab: SettingsTab?
     @Binding var selectedPanelRaw: String
     @Binding var rightPanelCollapsed: Bool
-    
+
     var body: some View {
         Group {
             Button(action: { viewModel.createNewConversation() }) { EmptyView() }
@@ -64,7 +64,7 @@ struct KeyboardShortcutHandler: View {
         .frame(width: 0, height: 0)
         .opacity(0)
     }
-    
+
     private func switchPanel(_ tab: PanelTab) {
         withAnimation(.easeInOut(duration: Anim.quick)) {
             if selectedPanelRaw == tab.rawValue && !rightPanelCollapsed {

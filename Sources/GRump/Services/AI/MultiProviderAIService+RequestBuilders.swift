@@ -143,7 +143,7 @@ extension MultiProviderAIService {
             "contents": contents,
             "generationConfig": [
                 "temperature": 0.7,
-                "maxOutputTokens": maxOutputTokens,
+                "maxOutputTokens": maxOutputTokens
             ]
         ]
         if let sys = systemInstruction {
@@ -264,13 +264,7 @@ enum JSONValue: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(String.self) { self = .string(value) }
-        else if let value = try? container.decode(Double.self) { self = .number(value) }
-        else if let value = try? container.decode(Bool.self) { self = .bool(value) }
-        else if let value = try? container.decode([String: JSONValue].self) { self = .object(value) }
-        else if let value = try? container.decode([JSONValue].self) { self = .array(value) }
-        else if container.decodeNil() { self = .null }
-        else { throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported JSON value") }
+        if let value = try? container.decode(String.self) { self = .string(value) } else if let value = try? container.decode(Double.self) { self = .number(value) } else if let value = try? container.decode(Bool.self) { self = .bool(value) } else if let value = try? container.decode([String: JSONValue].self) { self = .object(value) } else if let value = try? container.decode([JSONValue].self) { self = .array(value) } else if container.decodeNil() { self = .null } else { throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported JSON value") }
     }
 
     func encode(to encoder: Encoder) throws {

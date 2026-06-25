@@ -10,36 +10,34 @@ struct MarkdownTextView: View {
     @EnvironmentObject var themeManager: ThemeManager
     let text: String
     let onCodeBlockTap: ((String) -> Void)?
-    
+
     // MARK: - Progressive Rendering State
-    
+
     @State private(set) var renderedBlocks: [Block] = []
     @State private var pendingText: String = ""
     @State private var isStreaming: Bool = false
     @State private var renderTask: Task<Void, Never>?
     @State private var lastRenderedLength: Int = 0
-    
+
     /// Incremental parsing state — tracks how far we've parsed to avoid re-parsing the whole text
     @State private var lastParsedOffset: Int = 0
     @State private var stableBlockCount: Int = 0
-    
+
     /// Cached parsed blocks; debounced to avoid parse-per-keystroke during streaming.
     @State private var cachedBlocks: [Block] = []
     @State private var debounceTask: Task<Void, Never>?
     /// Debounce task for streaming incremental parse.
     @State private var streamDebounceTask: Task<Void, Never>?
-    
+
     /// Animation configuration
     @State private var animationDuration: Double = 0.15
     @State private var chunkSize: Int = 100
-    
 
-    
     private var debounceNs: UInt64 {
         let ms = UserDefaults.standard.object(forKey: "StreamDebounceMs") as? Int ?? 50
         return UInt64(max(0, ms)) * 1_000_000
     }
-    
+
     init(text: String, themeManager: ThemeManager? = nil, onCodeBlockTap: ((String) -> Void)? = nil) {
         self.text = text
         self.onCodeBlockTap = onCodeBlockTap
@@ -58,7 +56,6 @@ struct MarkdownTextView: View {
                     ))
                     .animation(.easeOut(duration: animationDuration), value: renderedBlocks.count)
             }
-            
 
         }
         .onAppear {
@@ -190,19 +187,19 @@ struct MarkdownTextView: View {
 
         return result
     }
-    
+
     // MARK: - Progressive Rendering
-    
+
     private func startProgressiveRendering() {
         renderTask?.cancel()
         renderTask = Task {
             await renderProgressively()
         }
     }
-    
+
     private func detectStreamingChange(_ newText: String) {
         let isIncreasing = newText.count > lastRenderedLength
-        
+
         if !isIncreasing {
             // Text shrunk (edit/undo) — trim blocks and full re-parse
             isStreaming = false
@@ -212,10 +209,10 @@ struct MarkdownTextView: View {
             lastRenderedLength = newText.count
             return
         }
-        
+
         let delta = newText.count - lastRenderedLength
         lastRenderedLength = newText.count
-        
+
         if delta > 0 {
             isStreaming = true
             // Debounce: coalesce rapid stream deltas into 16ms batches (~60fps)
@@ -230,7 +227,7 @@ struct MarkdownTextView: View {
             }
         }
     }
-    
+
     /// Incremental append-only parse: re-parses only from the last "stable" block boundary.
     /// During streaming, the last block is often incomplete (e.g., a paragraph still being typed).
     /// We keep all blocks except the last one as stable, and only re-parse from there.
@@ -240,20 +237,20 @@ struct MarkdownTextView: View {
             // Find the offset where stable blocks end
             let currentBlocks = await MainActor.run { renderedBlocks }
             let stableCount = max(0, currentBlocks.count - 1) // Last block may be incomplete
-            
+
             // Compute character offset of stable blocks
             var stableOffset = 0
             for i in 0..<stableCount {
                 stableOffset += Self.blockLengthStatic(currentBlocks[i])
             }
-            
+
             // Parse only the tail portion (from stable offset onward)
             let tailStart = fullText.index(fullText.startIndex, offsetBy: min(stableOffset, fullText.count))
             let tailText = String(fullText[tailStart...])
             let tailBlocks = Self.parseBlocksStatic(tailText)
-            
+
             guard !Task.isCancelled else { return }
-            
+
             await MainActor.run {
                 // Replace blocks from stableCount onward with newly parsed tail blocks
                 var merged = Array(currentBlocks.prefix(stableCount))
@@ -264,18 +261,18 @@ struct MarkdownTextView: View {
             }
         }
     }
-    
+
     @MainActor
     private func renderProgressively() async {
         let fullText = text
-        
+
         // For initial render, parse on background thread
         let blocks = await Task.detached(priority: .userInitiated) {
             Self.parseBlocksStatic(fullText)
         }.value
-        
+
         guard !Task.isCancelled else { return }
-        
+
         renderedBlocks = blocks
         cachedBlocks = blocks
         lastParsedOffset = fullText.count
@@ -283,7 +280,7 @@ struct MarkdownTextView: View {
         isStreaming = false
         pendingText = ""
     }
-    
+
     private func blockLength(_ block: Block) -> Int {
         Self.blockLengthStatic(block)
     }

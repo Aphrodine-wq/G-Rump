@@ -21,23 +21,23 @@ struct SettingsView: View {
     /// Platform account (when signed in). Pass viewModel.platformUser.
     var platformUser: PlatformUser?
     /// Call after login/signup so viewModel refreshes platform user.
-    var onPlatformLoginSuccess: (() async -> Void)? = nil
+    var onPlatformLoginSuccess: (() async -> Void)?
     /// Call when user logs out.
-    var onPlatformLogout: (() -> Void)? = nil
+    var onPlatformLogout: (() -> Void)?
     /// When set, the sheet will select this tab when it appears (e.g. open to Model from chat toolbar).
-    var initialTab: SettingsTab? = nil
+    var initialTab: SettingsTab?
     /// Export/import actions (macOS). When nil, Data section shows unavailable message.
-    var onExportJSON: (() -> Void)? = nil
-    var onExportMarkdown: (() -> Void)? = nil
-    var onImport: (() -> Void)? = nil
+    var onExportJSON: (() -> Void)?
+    var onExportMarkdown: (() -> Void)?
+    var onImport: (() -> Void)?
     /// Workflow presets: apply and clear.
-    var onApplyPreset: ((WorkflowPreset) -> Void)? = nil
-    var onClearPreset: (() -> Void)? = nil
-    var appliedPresetName: String? = nil
+    var onApplyPreset: ((WorkflowPreset) -> Void)?
+    var onClearPreset: (() -> Void)?
+    var appliedPresetName: String?
     /// Commands run/denied via system_run this session (Security tab).
     var systemRunHistory: [SystemRunHistoryEntry] = []
     /// When set, About section shows "Restart onboarding" button. Called when user taps it.
-    var onRestartOnboarding: (() -> Void)? = nil
+    var onRestartOnboarding: (() -> Void)?
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State var apiKeyVisible = false
@@ -122,8 +122,7 @@ struct SettingsView: View {
                             isExpanded: Binding(
                                 get: { expandedCategories.contains(category.label) },
                                 set: { newVal in
-                                    if newVal { expandedCategories.insert(category.label) }
-                                    else { expandedCategories.remove(category.label) }
+                                    if newVal { expandedCategories.insert(category.label) } else { expandedCategories.remove(category.label) }
                                 }
                             )
                         ) {

@@ -298,7 +298,7 @@ struct MCPServerPreset: Identifiable {
         MCPServerPreset(id: "resend", name: "Resend", description: "Modern email sending API", icon: "envelope.badge"),
         MCPServerPreset(id: "github-actions", name: "GitHub Actions", description: "CI/CD workflow management on GitHub", icon: "gearshape.2"),
         MCPServerPreset(id: "grafana", name: "Grafana", description: "Observability dashboards and alerting", icon: "chart.xyaxis.line"),
-        MCPServerPreset(id: "weaviate", name: "Weaviate", description: "Vector database for AI-native search", icon: "cube.transparent"),
+        MCPServerPreset(id: "weaviate", name: "Weaviate", description: "Vector database for AI-native search", icon: "cube.transparent")
     ]
 }
 

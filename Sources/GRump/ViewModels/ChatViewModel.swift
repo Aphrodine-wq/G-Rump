@@ -23,7 +23,6 @@ import UIKit
 #endif
 import UserNotifications
 
-
 @MainActor
 class ChatViewModel: ObservableObject {
     @Published var conversations: [Conversation] = []
@@ -47,8 +46,8 @@ class ChatViewModel: ObservableObject {
         didSet { activityStore.setPersistencePath(workingDirectory.isEmpty ? nil : "\(workingDirectory)/.grump/activity.json") }
     }
     /// When non-nil, the agent is in a multi-step run; UI can show "Step currentAgentStep of currentAgentStepMax".
-    @Published var currentAgentStep: Int? = nil
-    @Published var currentAgentStepMax: Int? = nil
+    @Published var currentAgentStep: Int?
+    @Published var currentAgentStepMax: Int?
     /// When true, the agent was paused (not stopped). User can resume.
     @Published var isPaused: Bool = false
 
@@ -60,7 +59,7 @@ class ChatViewModel: ObservableObject {
     /// Active when agentMode == .parallel. Shows per-sub-agent streaming state.
     @Published var parallelAgents: [ParallelAgentState] = []
     /// The orchestration plan message shown before agents start.
-    @Published var orchestrationPlan: String? = nil
+    @Published var orchestrationPlan: String?
     /// The final synthesized response from the orchestrator.
     @Published var synthesisingContent: String = ""
 
@@ -94,7 +93,7 @@ class ChatViewModel: ObservableObject {
     /// Active when agentMode == .speculative. Shows per-branch state.
     @Published var speculativeBranches: [SpeculativeBranchState] = []
     /// Index of the winning branch after evaluation.
-    @Published var speculativeWinnerIndex: Int? = nil
+    @Published var speculativeWinnerIndex: Int?
 
     /// Preserved partial response content when a stream error occurs.
     @Published var streamErrorPartialContent: String?
@@ -116,7 +115,7 @@ class ChatViewModel: ObservableObject {
 
     // Legacy properties for backward compatibility
     @Published var apiKey: String {
-        didSet { 
+        didSet {
             KeychainStorage.set(account: "OpenRouterAPIKey", value: apiKey)
             // Update OpenRouter configuration
             if let config = aiService.modelRegistry.getProviderConfig(for: .openRouter) {
@@ -133,7 +132,7 @@ class ChatViewModel: ObservableObject {
     @Published private(set) var localOllamaDetected: Bool = false
     @Published private(set) var localOllamaReady: Bool = false
     @Published var selectedModel: AIModel {
-        didSet { 
+        didSet {
             guard oldValue != selectedModel else { return }
             UserDefaults.standard.set(selectedModel.rawValue, forKey: "SelectedModel")
             // Update AI service to use equivalent enhanced model
@@ -163,7 +162,7 @@ class ChatViewModel: ObservableObject {
 
     // New multi-provider system
     @Published var aiService = MultiProviderAIService()
-    
+
     let openRouterService = OpenRouterService()
     let activityStore = ActivityStore()
     internal var streamTask: Task<Void, Never>?
@@ -192,23 +191,23 @@ class ChatViewModel: ObservableObject {
             // Convert back to legacy AIModel for compatibility
             return AIModel(rawValue: enhancedModel.modelID) ?? selectedModel
         }
-        
+
         // Fallback to legacy system
         let candidate = projectConfig?.model.flatMap { AIModel(rawValue: $0) } ?? selectedModel
         let allowed = AIModel.modelsForTier(platformTier)
         return allowed.contains(candidate) ? candidate : AIModel.defaultForTier(platformTier)
     }
-    
+
     /// Enhanced model currently selected
     var currentEnhancedModel: EnhancedAIModel? {
         return aiService.currentModel
     }
-    
+
     /// Current AI provider
     var currentAIProvider: AIProvider {
         return aiService.currentProvider
     }
-    
+
     /// Whether the current AI provider is configured
     var isAIProviderConfigured: Bool {
         return aiService.isConfigured
@@ -246,7 +245,7 @@ class ChatViewModel: ObservableObject {
     init() {
         // Initialize AI service
         self.aiService = MultiProviderAIService()
-        
+
         // Load legacy API key
         if let key = KeychainStorage.get(account: "OpenRouterAPIKey") {
             self.apiKey = key
@@ -257,7 +256,7 @@ class ChatViewModel: ObservableObject {
         } else {
             self.apiKey = ""
         }
-        
+
         // Load legacy model selection
         let savedModel = UserDefaults.standard.string(forKey: "SelectedModel") ?? AIModel.claudeSonnet4.rawValue
         let migratedModel = Self.migrateLegacyModelID(savedModel)
@@ -294,7 +293,7 @@ class ChatViewModel: ObservableObject {
 
         // Set up AI service observers
         aiService.$currentProvider
-            .sink { [weak self] provider in
+            .sink { [weak self] _ in
                 // Update legacy selectedModel when provider changes
                 if let enhancedModel = self?.aiService.currentModel {
                     // Try to find equivalent legacy model
@@ -304,7 +303,7 @@ class ChatViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
-        
+
         aiService.$currentModel
             .sink { [weak self] enhancedModel in
                 // Update legacy selectedModel when model changes
@@ -418,7 +417,6 @@ class ChatViewModel: ObservableObject {
         }
     }
 
-    
     /// Project-level config loaded from .grump/config.json or grump.json when working directory is set.
     @Published var projectConfig: ProjectConfig?
 
@@ -432,7 +430,6 @@ class ChatViewModel: ObservableObject {
     /// Commands run or denied via system_run this session (for Security history view).
     @Published var systemRunHistory: [SystemRunHistoryEntry] = []
 
-        
     // MARK: - Conversation Threads & Branches
 
     var conversationThreads: [MessageThread] {
@@ -474,4 +471,3 @@ class ChatViewModel: ObservableObject {
     var lastUserIntent: AppleIntelligenceService.UserIntent = .general
 
 }
-

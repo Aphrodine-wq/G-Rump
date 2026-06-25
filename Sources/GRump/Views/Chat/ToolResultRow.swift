@@ -10,8 +10,8 @@ import UIKit
 struct ToolResultRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     let message: Message
-    var toolName: String? = nil
-    var argSummary: String? = nil
+    var toolName: String?
+    var argSummary: String?
     @State private var isExpanded = false
     @State private var copiedResult = false
 

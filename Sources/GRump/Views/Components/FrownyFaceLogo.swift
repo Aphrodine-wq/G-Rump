@@ -124,8 +124,8 @@ struct PulsingBorder: ViewModifier {
 struct FrownyFaceLogo: View {
     @EnvironmentObject var themeManager: ThemeManager
     var size: CGFloat = 40
-    var eyeColor: Color? = nil
-    var frownColor: Color? = nil
+    var eyeColor: Color?
+    var frownColor: Color?
     var showFrown: Bool = true
     var frownProgress: CGFloat = 1.0
     var mood: LogoMood = .neutral

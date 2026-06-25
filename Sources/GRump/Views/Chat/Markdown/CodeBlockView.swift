@@ -9,12 +9,12 @@ struct CodeBlockView: View {
     @EnvironmentObject var themeManager: ThemeManager
     let language: String
     let code: String
-    var filePath: String? = nil
-    var blockId: String? = nil
+    var filePath: String?
+    var blockId: String?
     @State private var copied = false
     @State private var applied = false
     @State private var rejected = false
-    @State private var applyError: String? = nil
+    @State private var applyError: String?
     @State private var cachedLineTokens: [[SyntaxHighlighter.Token]] = []
     @Environment(\.colorScheme) private var colorScheme
 
@@ -143,7 +143,7 @@ struct CodeBlockView: View {
 
                     // Code text (syntax-highlighted) — uses cached tokens to avoid per-render highlighting
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(cachedLineTokens.enumerated()), id: \.offset) { idx, tokens in
+                        ForEach(Array(cachedLineTokens.enumerated()), id: \.offset) { _, tokens in
                             highlightedLineView(tokens: tokens)
                                 .frame(height: 14 + Typography.userLineSpacing)
                                 .frame(maxWidth: .infinity, alignment: .leading)

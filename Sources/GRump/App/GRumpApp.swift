@@ -36,6 +36,7 @@ struct GRumpApp: App {
         } catch {
             // Graceful fallback — app still launches; persistence degrades to JSON.
             // The error is surfaced in-app rather than crashing.
+            // swiftlint:disable:next force_try
             modelContainer = try! ModelContainer(for: Schema([]), configurations: [])
             _swiftDataError = State(initialValue: "[SwiftData] \(error.localizedDescription)")
         }

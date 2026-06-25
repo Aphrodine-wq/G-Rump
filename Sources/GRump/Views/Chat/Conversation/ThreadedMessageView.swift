@@ -11,43 +11,43 @@ struct ThreadedMessageView: View {
     let onCreateThread: (UUID) -> Void
     let onCreateBranch: (UUID, String) -> Void
     let onSelectThread: (UUID?) -> Void
-    
+
     @State private var showThreadOptions = false
     @State private var showBranchDialog = false
     @State private var branchName = ""
-    
+
     private var hasChildren: Bool {
         !message.children.isEmpty
     }
-    
+
     private var isThreaded: Bool {
         message.threadId != nil
     }
-    
+
     private var threadColor: Color {
         guard let threadId = message.threadId,
               let thread = viewModel.currentConversation?.threads.first(where: { $0.id == threadId }),
               let colorString = thread.color else {
             return themeManager.palette.effectiveAccent
         }
-        
+
         return Color(hex: colorString) ?? themeManager.palette.effectiveAccent
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Thread indicator and controls
             if hasChildren || isThreaded {
                 threadIndicator
             }
-            
+
             // Message content
             MessageContentView(
                 message: message,
                 themeManager: themeManager,
                 viewModel: viewModel
             )
-            
+
             // Child messages (if expanded)
             if isExpanded && hasChildren {
                 childMessagesView
@@ -68,7 +68,7 @@ struct ThreadedMessageView: View {
             branchCreationDialog
         }
     }
-    
+
     private var threadIndicator: some View {
         HStack(spacing: Spacing.sm) {
             if hasChildren {
@@ -79,13 +79,13 @@ struct ThreadedMessageView: View {
                 }
                 .buttonStyle(.plain)
             }
-            
+
             if isThreaded {
                 HStack(spacing: Spacing.xs) {
                     Circle()
                         .fill(threadColor)
                         .frame(width: 8, height: 8)
-                    
+
                     if let threadId = message.threadId,
                        let thread = viewModel.currentConversation?.threads.first(where: { $0.id == threadId }) {
                         Text(thread.name ?? "Thread")
@@ -98,9 +98,9 @@ struct ThreadedMessageView: View {
                 .background(threadColor.opacity(0.1))
                 .cornerRadius(Radius.xs)
             }
-            
+
             Spacer()
-            
+
             Button(action: { showThreadOptions = true }) {
                 Image(systemName: "ellipsis")
                     .font(Typography.captionSmall)
@@ -110,7 +110,7 @@ struct ThreadedMessageView: View {
         }
         .padding(.horizontal, Spacing.md)
     }
-    
+
     private var childMessagesView: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             ForEach(childMessages, id: \.id) { childMessage in
@@ -120,7 +120,7 @@ struct ThreadedMessageView: View {
                         .fill(threadColor.opacity(0.3))
                         .frame(width: 2)
                         .padding(.leading, Spacing.md)
-                    
+
                     // Child message
                     ThreadedMessageView(
                         viewModel: viewModel,
@@ -137,24 +137,24 @@ struct ThreadedMessageView: View {
         }
         .padding(.leading, Spacing.md)
     }
-    
+
     private var threadLineIndicator: some View {
         Rectangle()
             .fill(threadColor.opacity(0.3))
             .frame(width: 3)
             .padding(.leading, Spacing.xs)
     }
-    
+
     private var threadContextMenu: some View {
         Group {
             Button(action: { onCreateThread(message.id) }) {
                 Label("Create Thread", systemImage: "bubble.left.and.bubble.right")
             }
-            
+
             Button(action: { showBranchDialog = true }) {
                 Label("Create Branch", systemImage: "arrow.branch")
             }
-            
+
             if isThreaded {
                 Button(action: { onSelectThread(nil) }) {
                     Label("Show All Messages", systemImage: "list.bullet")
@@ -162,7 +162,7 @@ struct ThreadedMessageView: View {
             }
         }
     }
-    
+
     private var branchCreationDialog: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: Spacing.lg) {
@@ -170,22 +170,22 @@ struct ThreadedMessageView: View {
                     Text("Create Branch")
                         .font(Typography.heading2)
                         .foregroundColor(.textPrimary)
-                    
+
                     Text("Create a new conversation branch from this message")
                         .font(Typography.body)
                         .foregroundColor(.textMuted)
                 }
-                
+
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Branch Name")
                         .font(Typography.captionSemibold)
                         .foregroundColor(.textPrimary)
-                    
+
                     TextField("e.g., Alternative approach", text: $branchName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .font(Typography.body)
                 }
-                
+
                 Spacer()
             }
             .padding()
@@ -197,7 +197,7 @@ struct ThreadedMessageView: View {
                         branchName = ""
                     }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
                         if !branchName.isEmpty {
@@ -211,10 +211,10 @@ struct ThreadedMessageView: View {
             }
         }
     }
-    
+
     private var childMessages: [Message] {
         guard let conversation = viewModel.currentConversation else { return [] }
-        
+
         return conversation.messages.filter { message.children.contains($0.id) }
             .sorted { $0.timestamp < $1.timestamp }
     }
@@ -225,14 +225,14 @@ struct ThreadedMessageView: View {
 struct ThreadNavigationView: View {
     @ObservedObject var viewModel: ChatViewModel
     @EnvironmentObject var themeManager: ThemeManager
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Threads & Branches")
                 .font(Typography.heading2)
                 .foregroundColor(.textPrimary)
                 .padding(.horizontal)
-            
+
             if let conversation = viewModel.currentConversation {
                 // Threads section
                 if !conversation.threads.isEmpty {
@@ -241,7 +241,7 @@ struct ThreadNavigationView: View {
                             .font(Typography.captionSemibold)
                             .foregroundColor(.textMuted)
                             .padding(.horizontal)
-                        
+
                         ForEach(conversation.threads) { thread in
                             ThreadRow(
                                 thread: thread,
@@ -251,7 +251,7 @@ struct ThreadNavigationView: View {
                         }
                     }
                 }
-                
+
                 // Branches section
                 if !conversation.branches.isEmpty {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -259,14 +259,14 @@ struct ThreadNavigationView: View {
                             .font(Typography.captionSemibold)
                             .foregroundColor(.textMuted)
                             .padding(.horizontal)
-                        
+
                         ForEach(conversation.branches) { branch in
                             BranchRow(branch: branch)
                         }
                     }
                 }
             }
-            
+
             Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -280,27 +280,27 @@ struct ThreadRow: View {
     let isActive: Bool
     let onSelect: () -> Void
     @EnvironmentObject var themeManager: ThemeManager
-    
+
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: Spacing.sm) {
                 Circle()
                     .fill(Color(hex: thread.color ?? "#007AFF") ?? themeManager.palette.effectiveAccent)
                     .frame(width: 8, height: 8)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(thread.name ?? "Thread")
                         .font(Typography.captionSemibold)
                         .foregroundColor(.textPrimary)
                         .lineLimit(1)
-                    
+
                     Text("Created \(thread.createdAt, style: .relative) ago")
                         .font(Typography.micro)
                         .foregroundColor(.textMuted)
                 }
-                
+
                 Spacer()
-                
+
                 if isActive {
                     Image(systemName: "checkmark.circle.fill")
                         .font(Typography.captionSmall)
@@ -323,24 +323,24 @@ struct ThreadRow: View {
 struct BranchRow: View {
     let branch: MessageBranch
     @EnvironmentObject var themeManager: ThemeManager
-    
+
     var body: some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: "arrow.branch")
                 .font(Typography.captionSmall)
                 .foregroundColor(.textMuted)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(branch.name)
                     .font(Typography.captionSemibold)
                     .foregroundColor(.textPrimary)
                     .lineLimit(1)
-                
+
                 Text("Created \(branch.createdAt, style: .relative) ago")
                     .font(Typography.micro)
                     .foregroundColor(.textMuted)
             }
-            
+
             Spacer()
         }
         .padding(.horizontal, Spacing.md)
@@ -354,7 +354,7 @@ struct MessageContentView: View {
     let message: Message
     let themeManager: ThemeManager
     let viewModel: ChatViewModel
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Message header
@@ -362,19 +362,19 @@ struct MessageContentView: View {
                 Text(message.role == .user ? "You" : "Assistant")
                     .font(Typography.captionSemibold)
                     .foregroundColor(message.role == .user ? .textPrimary : themeManager.palette.effectiveAccent)
-                
+
                 Spacer()
-                
+
                 Text(message.timestamp, style: .time)
                     .font(Typography.micro)
                     .foregroundColor(.textMuted)
             }
-            
+
             // Message content
             MarkdownTextView(
                 text: message.content,
                 themeManager: themeManager,
-                onCodeBlockTap: { code in
+                onCodeBlockTap: { _ in
                     // Handle code block tap
                 }
             )
@@ -402,12 +402,12 @@ extension Color {
         default:
             return nil
         }
-        
+
         self.init(
             .sRGB,
             red: Double(r) / 255,
             green: Double(g) / 255,
-            blue:  Double(b) / 255,
+            blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
     }

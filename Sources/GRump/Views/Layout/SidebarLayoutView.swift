@@ -5,14 +5,14 @@ struct SidebarLayoutView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var layoutOptions: LayoutOptions
     @AppStorage("SidebarCollapsed") private var sidebarCollapsed = false
-    
+
     let viewModel: ChatViewModel
     @Binding var showSettings: Bool
     @Binding var showProfile: Bool
     let onOpenFolder: () -> Void
-    
+
     private var isZenMode: Bool { layoutOptions.zenMode }
-    
+
     var body: some View {
         Group {
             if !layoutOptions.primarySidebarVisible || isZenMode {
@@ -25,9 +25,9 @@ struct SidebarLayoutView: View {
             }
         }
     }
-    
+
     // MARK: - Collapsed Sidebar Icon Strip
-    
+
     private var collapsedSidebarStrip: some View {
         VStack(spacing: 0) {
             // Logo / expand button

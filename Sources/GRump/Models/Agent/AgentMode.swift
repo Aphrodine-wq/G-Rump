@@ -59,7 +59,7 @@ enum AgentMode: String, CaseIterable, Identifiable, Codable {
         case .speculative: return "Explores 2-3 competing approaches in parallel and picks the winner."
         }
     }
-    
+
     /// Per-mode accent color for minimal visual differentiation.
     var modeAccentColor: Color {
         switch self {

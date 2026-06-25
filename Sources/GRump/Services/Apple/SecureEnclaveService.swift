@@ -13,22 +13,22 @@ import LocalAuthentication
 
 @MainActor
 final class SecureEnclaveService: ObservableObject {
-    
+
     static let shared = SecureEnclaveService()
-    
+
     @Published var isAvailable: Bool = false
     @Published var biometricTypeDescription: String = "none"
-    
-    // swiftlint:disable:next force_unwrapping — ASCII literal, guaranteed valid UTF-8
-    private let keyTag = "com.grump.secureEnclave.key".data(using: .utf8)!
+
+    // ASCII literal, guaranteed valid UTF-8.
+    private let keyTag = Data("com.grump.secureEnclave.key".utf8)
     private let accessGroup = "com.grump.security"
-    
+
     private init() {
         checkAvailability()
     }
-    
+
     // MARK: - Availability Check
-    
+
     private func checkAvailability() {
         // Check if Secure Enclave is available
         var error: Unmanaged<CFError>?
@@ -43,7 +43,7 @@ final class SecureEnclaveService: ObservableObject {
             isAvailable = false
             return
         }
-        
+
         // Clean up test key - delete from keychain
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassKey,
@@ -51,7 +51,7 @@ final class SecureEnclaveService: ObservableObject {
         ]
         SecItemDelete(deleteQuery as CFDictionary)
         isAvailable = true
-        
+
         // Check biometric type
         #if canImport(LocalAuthentication)
         let context = LAContext()
@@ -64,9 +64,9 @@ final class SecureEnclaveService: ObservableObject {
         }
         #endif
     }
-    
+
     // MARK: - Key Management
-    
+
     /// Create or retrieve the Secure Enclave key pair
     private func getOrCreateKeyPair() throws -> SecKey {
         let query: [String: Any] = [
@@ -75,15 +75,16 @@ final class SecureEnclaveService: ObservableObject {
             kSecAttrKeySizeInBits as String: 256,
             kSecReturnRef as String: true
         ]
-        
+
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
-        
+
         if status == errSecSuccess {
             guard let item = item, CFGetTypeID(item) == SecKeyGetTypeID() else {
                 throw SecureEnclaveError.keyAccessFailed(status)
             }
             // Safe: CFTypeID verified above
+            // swiftlint:disable:next force_cast
             return (item as! SecKey)
         } else if status == errSecItemNotFound {
             // Create new key pair
@@ -92,7 +93,7 @@ final class SecureEnclaveService: ObservableObject {
             throw SecureEnclaveError.keyAccessFailed(status)
         }
     }
-    
+
     /// Create a new Secure Enclave key pair
     private func createKeyPair() throws -> SecKey {
         let attributes: [String: Any] = [
@@ -119,7 +120,7 @@ final class SecureEnclaveService: ObservableObject {
                 kSecAttrApplicationTag as String: keyTag
             ]
         ]
-        
+
         var error: Unmanaged<CFError>?
         guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
             if let error = error {
@@ -127,19 +128,19 @@ final class SecureEnclaveService: ObservableObject {
             }
             throw SecureEnclaveError.keyGenerationFailed
         }
-        
+
         return privateKey
     }
-    
+
     // MARK: - Data Encryption/Decryption
-    
+
     /// Encrypt data using Secure Enclave
     func encrypt(_ data: Data, reason: String = "Authenticate to encrypt data") throws -> Data {
         let privateKey = try getOrCreateKeyPair()
         guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
             throw SecureEnclaveError.keyAccessFailed(errSecInternalError)
         }
-        
+
         var error: Unmanaged<CFError>?
         guard let encryptedData = SecKeyCreateEncryptedData(
             publicKey,
@@ -150,16 +151,16 @@ final class SecureEnclaveService: ObservableObject {
             let underlying = error?.takeRetainedValue() as Error? ?? SecureEnclaveError.keyAccessFailed(errSecInternalError)
             throw SecureEnclaveError.encryptionFailed(underlying)
         }
-        
+
         return encryptedData as Data
     }
-    
+
     /// Decrypt data using Secure Enclave with biometric authentication
     func decrypt(_ encryptedData: Data, reason: String = "Authenticate to decrypt data") async throws -> Data {
         return try await withCheckedThrowingContinuation { continuation in
             let context = LAContext()
             context.localizedReason = reason
-            
+
             let privateKey: SecKey
             do {
                 privateKey = try getOrCreateKeyPair()
@@ -167,7 +168,7 @@ final class SecureEnclaveService: ObservableObject {
                 continuation.resume(throwing: error)
                 return
             }
-            
+
             var cfError: Unmanaged<CFError>?
             guard let decryptedData = SecKeyCreateDecryptedData(
                 privateKey,
@@ -179,20 +180,20 @@ final class SecureEnclaveService: ObservableObject {
                 continuation.resume(throwing: SecureEnclaveError.decryptionFailed(underlying))
                 return
             }
-            
+
             continuation.resume(returning: decryptedData as Data)
         }
     }
-    
+
     // MARK: - Credential Storage
-    
+
     /// Store API key securely
     func storeAPIKey(_ key: String, for service: String) async throws {
         guard let keyData = key.data(using: .utf8) else {
             throw SecureEnclaveError.storageFailed(errSecParam)
         }
         let encryptedKey = try encrypt(keyData)
-        
+
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: service,
@@ -200,16 +201,16 @@ final class SecureEnclaveService: ObservableObject {
             kSecAttrAccessGroup as String: accessGroup,
             kSecValueData as String: encryptedKey
         ]
-        
+
         // Delete existing if any
         SecItemDelete(query as CFDictionary)
-        
+
         let status = SecItemAdd(query as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw SecureEnclaveError.storageFailed(status)
         }
     }
-    
+
     /// Retrieve API key securely
     func retrieveAPIKey(for service: String) async throws -> String {
         let query: [String: Any] = [
@@ -219,21 +220,21 @@ final class SecureEnclaveService: ObservableObject {
             kSecAttrAccessGroup as String: accessGroup,
             kSecReturnData as String: true
         ]
-        
+
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
-        
+
         guard status == errSecSuccess, let encryptedData = item as? Data else {
             throw SecureEnclaveError.notFound
         }
-        
+
         let decryptedData = try await decrypt(encryptedData, reason: "Authenticate to access \(service) API key")
         guard let result = String(data: decryptedData, encoding: .utf8) else {
             throw SecureEnclaveError.decryptionFailed(SecureEnclaveError.notFound)
         }
         return result
     }
-    
+
     /// Delete stored API key
     func deleteAPIKey(for service: String) throws {
         let query: [String: Any] = [
@@ -242,19 +243,19 @@ final class SecureEnclaveService: ObservableObject {
             kSecAttrService as String: "com.grump.apikeys",
             kSecAttrAccessGroup as String: accessGroup
         ]
-        
+
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw SecureEnclaveError.storageFailed(status)
         }
     }
-    
+
     // MARK: - Zero-Knowledge Proofs
-    
+
     /// Generate a cryptographic proof of data processing without revealing the data
     func generateProcessingProof(for dataHash: Data) throws -> Data {
         let privateKey = try getOrCreateKeyPair()
-        
+
         var error: Unmanaged<CFError>?
         guard let signature = SecKeyCreateSignature(
             privateKey,
@@ -265,16 +266,16 @@ final class SecureEnclaveService: ObservableObject {
             let underlying = error?.takeRetainedValue() as Error? ?? SecureEnclaveError.keyAccessFailed(errSecInternalError)
             throw SecureEnclaveError.signatureFailed(underlying)
         }
-        
+
         return signature as Data
     }
-    
+
     /// Verify a processing proof
     func verifyProcessingProof(_ proof: Data, for dataHash: Data) -> Bool {
         do {
             let privateKey = try getOrCreateKeyPair()
             guard let publicKey = SecKeyCopyPublicKey(privateKey) else { return false }
-            
+
             var error: Unmanaged<CFError>?
             let result = SecKeyVerifySignature(
                 publicKey,
@@ -283,7 +284,7 @@ final class SecureEnclaveService: ObservableObject {
                 proof as CFData,
                 &error
             )
-            
+
             return result
         } catch {
             return false
@@ -301,7 +302,7 @@ enum SecureEnclaveError: LocalizedError {
     case notFound
     case signatureFailed(Error)
     case keyGenerationFailed
-    
+
     var errorDescription: String? {
         switch self {
         case .keyAccessFailed(let status):
@@ -325,20 +326,20 @@ enum SecureEnclaveError: LocalizedError {
 // MARK: - Convenience Extensions
 
 extension SecureEnclaveService {
-    
+
     /// Store multiple credentials in a batch
     func storeCredentials(_ credentials: [String: String]) async throws {
         for (service, key) in credentials {
             try await storeAPIKey(key, for: service)
         }
     }
-    
+
     /// Generate a secure random token
     func generateSecureToken() -> String {
         let bytes = (0..<32).map { _ in UInt8.random(in: .min ... .max) }
         return Data(bytes).base64EncodedString()
     }
-    
+
     /// Check if biometrics are enrolled and available
     var isBiometricsAvailable: Bool {
         return biometricTypeDescription != "none" && isAvailable

@@ -7,17 +7,17 @@ struct MainLayoutView: View {
     @AppStorage("SelectedPanel") private var selectedPanelRaw: String = PanelTab.chat.rawValue
     @AppStorage("RightPanelCollapsed") private var rightPanelCollapsed = true
     @AppStorage("SidebarCollapsed") private var sidebarCollapsed = false
-    
+
     let primarySidebarContent: AnyView
     let chatArea: AnyView
     var onShowLayoutCustomizer: () -> Void = {}
-    
+
     private var selectedPanel: PanelTab {
-        get { PanelTab(rawValue: selectedPanelRaw) ?? .chat }
+        PanelTab(rawValue: selectedPanelRaw) ?? .chat
     }
-    
+
     private var isZenMode: Bool { layoutOptions.zenMode }
-    
+
     var body: some View {
         HStack(spacing: 0) {
             // Left sidebar (if position == .left)

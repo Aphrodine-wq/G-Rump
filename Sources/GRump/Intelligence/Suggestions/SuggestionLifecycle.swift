@@ -64,10 +64,7 @@ struct UrgencyLevel: Sendable, Equatable, Comparable {
 
     init(score: Int) {
         self.score = max(0, min(100, score))
-        if self.score >= 80 { self.tier = .critical }
-        else if self.score >= 60 { self.tier = .high }
-        else if self.score >= 40 { self.tier = .medium }
-        else { self.tier = .low }
+        if self.score >= 80 { self.tier = .critical } else if self.score >= 60 { self.tier = .high } else if self.score >= 40 { self.tier = .medium } else { self.tier = .low }
     }
 
     func adjusted(by multiplier: Float) -> UrgencyLevel {

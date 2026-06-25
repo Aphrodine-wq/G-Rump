@@ -22,7 +22,7 @@ extension ContentView {
             AgentTimelineView(
                 toolCalls: viewModel.activeToolCalls,
                 messages: viewModel.filteredMessages,
-                onSelectMessage: { messageId in
+                onSelectMessage: { _ in
                     state.showTimeline = false
                 }
             )
@@ -247,7 +247,7 @@ extension ContentView {
             .padding(.horizontal, Spacing.huge)
             .padding(.top, Spacing.xl)
             .padding(.bottom, Spacing.xxl)
-            
+
             // Status bar at the bottom
             if state.layoutOptions.statusBarVisible && !state.isZenMode {
                 StatusBarView(viewModel: viewModel)
@@ -329,7 +329,7 @@ extension ContentView {
         let runningCount = tools.filter { $0.status == .running }.count
         let completedCount = tools.filter { $0.status == .completed }.count
         let failedCount = tools.filter { $0.status == .failed }.count
-        
+
         return VStack(spacing: 0) {
             if tools.count > 1 {
                 Button(action: { withAnimation(.easeInOut(duration: Anim.quick)) { state.toolCallsBarExpanded.toggle() } }) {
@@ -339,7 +339,7 @@ extension ContentView {
                             Circle()
                                 .stroke(themeManager.palette.borderCrisp.opacity(0.3), lineWidth: 2)
                                 .frame(width: 24, height: 24)
-                            
+
                             Circle()
                                 .trim(from: 0, to: CGFloat(completedCount + failedCount) / CGFloat(tools.count))
                                 .stroke(
@@ -350,12 +350,12 @@ extension ContentView {
                                 .rotationEffect(.degrees(-90))
                                 .animation(.easeInOut(duration: 0.3), value: completedCount + failedCount)
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text("\(tools.count) tool\(tools.count == 1 ? "" : "s")")
                                 .font(Typography.captionSmallSemibold)
                                 .foregroundColor(.textPrimary)
-                            
+
                             HStack(spacing: Spacing.xs) {
                                 if runningCount > 0 {
                                     Label("\(runningCount) running", systemImage: "arrow.triangle.2.circlepath")
@@ -374,7 +374,7 @@ extension ContentView {
                                 }
                             }
                         }
-                        
+
                         Spacer()
                         Image(systemName: state.toolCallsBarExpanded ? "chevron.down" : "chevron.right")
                             .font(Typography.captionSmall)
@@ -386,7 +386,7 @@ extension ContentView {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Toggle tool calls detail, \(tools.count) tools, \(runningCount) running, \(completedCount) done")
             }
-            
+
             if state.toolCallsBarExpanded || tools.count <= 1 {
                 ForEach(tools) { tool in
                     EnhancedToolCallRow(tool: tool, themeManager: themeManager)

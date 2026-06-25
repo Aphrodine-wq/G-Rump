@@ -65,7 +65,7 @@ enum WorkflowPresetsStorage {
                 modelRawValue: AIModel.claudeOpus46.rawValue,
                 systemPrompt: GRumpDefaults.defaultSystemPrompt + "\n\nExtended autonomous run: work through the full task end-to-end without stopping. Use all available steps. Complete complex, multi-step changes before responding. Verify builds and tests before finishing.",
                 maxAgentSteps: 150
-            ),
+            )
         ]
     }
 }

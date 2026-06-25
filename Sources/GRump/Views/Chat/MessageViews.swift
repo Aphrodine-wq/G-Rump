@@ -21,11 +21,11 @@ struct MessageRow: View {
     var agentMode: AgentMode = .standard
     @State private var showCopyConfirm = false
     @State private var isHovered = false
-    @State private var reaction: MessageReaction? = nil
+    @State private var reaction: MessageReaction?
     @State private var isEditing = false
     @State private var editText = ""
     @State private var showAllTools = false
-    @State private var isCollapsed: Bool? = nil // nil = auto-detect on appear
+    @State private var isCollapsed: Bool? // nil = auto-detect on appear
     @ObservedObject private var speech = SpeechOutputService.shared
 
     /// Live brain config (cached read) for the TTS affordance.

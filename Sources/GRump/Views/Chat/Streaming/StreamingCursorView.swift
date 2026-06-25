@@ -9,12 +9,12 @@ import SwiftUI
 struct StreamingCursorView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @State private var opacity: Double = 0.9
-    
+
     /// Height matches the current line height of body text.
     var lineHeight: CGFloat = 18
     /// Width of the cursor line — 1.5px is thinner than standard, matching Claude.
     var cursorWidth: CGFloat = 1.5
-    
+
     var body: some View {
         RoundedRectangle(cornerRadius: cursorWidth / 2, style: .continuous)
             .fill(themeManager.palette.effectiveAccent)
@@ -37,9 +37,9 @@ struct StreamingCursorView: View {
 struct StreamingStatusLine: View {
     @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var metrics: StreamMetrics
-    
+
     @State private var shimmerOffset: CGFloat = -120
-    
+
     var body: some View {
         HStack(spacing: Spacing.md) {
             // Pulsing dot
@@ -47,13 +47,13 @@ struct StreamingStatusLine: View {
                 .fill(themeManager.palette.effectiveAccent)
                 .frame(width: 6, height: 6)
                 .modifier(PulseModifier())
-            
+
             // Status text with shimmer
             statusText
                 .font(Typography.captionSmallMedium)
                 .foregroundColor(themeManager.palette.textMuted)
                 .overlay(shimmerOverlay)
-            
+
             Spacer()
         }
         .padding(.horizontal, Spacing.huge)
@@ -64,7 +64,7 @@ struct StreamingStatusLine: View {
             }
         }
     }
-    
+
     private var statusText: some View {
         Group {
             switch metrics.phase {
@@ -130,7 +130,7 @@ struct StreamingStatusLine: View {
         if secs < 60 { return "\(secs)s" }
         return "\(secs / 60)m \(secs % 60)s"
     }
-    
+
     private var shimmerOverlay: some View {
         LinearGradient(
             colors: [
@@ -151,7 +151,7 @@ struct StreamingStatusLine: View {
 struct PulseModifier: ViewModifier {
     @State private var scale: CGFloat = 1.0
     @State private var opacity: Double = 1.0
-    
+
     func body(content: Content) -> some View {
         content
             .scaleEffect(scale)
@@ -178,7 +178,7 @@ struct PremiumStreamingRow: View {
     let content: String
     var agentMode: AgentMode = .standard
     @ObservedObject var metrics: StreamMetrics
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Inline label matching MessageRow style
@@ -236,7 +236,6 @@ struct PremiumStreamingRow: View {
             removal: .opacity
         ))
     }
-    
+
     private var modeMood: LogoMood { agentMode.logoMood }
 }
-

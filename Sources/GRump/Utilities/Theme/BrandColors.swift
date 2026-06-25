@@ -9,23 +9,23 @@ extension Color {
     // Primary purple palette — vivid violet
     static let brandPurple       = Color(red: 0.561, green: 0.337, blue: 1.000)   // #8F56FF
     static let brandPurpleDark   = Color(red: 0.404, green: 0.196, blue: 0.847)   // #6732D8
-    
+
     static var brandPurpleLight: Color {
         #if os(macOS)
         return Color(nsColor: NSColor(name: nil, dynamicProvider: { appearance in
-            appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua 
-                ? NSColor(red: 0.741, green: 0.612, blue: 1.000, alpha: 1) 
+            appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+                ? NSColor(red: 0.741, green: 0.612, blue: 1.000, alpha: 1)
                 : NSColor(red: 0.404, green: 0.196, blue: 0.847, alpha: 1) // Use dark purple in light mode
         }))
         #else
         return Color(uiColor: UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(red: 0.741, green: 0.612, blue: 1.000, alpha: 1) 
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor(red: 0.741, green: 0.612, blue: 1.000, alpha: 1)
                 : UIColor(red: 0.404, green: 0.196, blue: 0.847, alpha: 1)
         })
         #endif
     }
-    
+
     // Adaptive opacity for subtle purple
     static var brandPurpleSubtle: Color {
         Color.brandPurple.opacity(0.12)

@@ -236,10 +236,10 @@ struct BuildErrorsView: View {
     private func fixError(_ error: BuildError) {
         let prompt = """
         Fix this build error in \(error.file) at line \(error.line):
-        
+
         Error: \(error.message)
         \(error.fixitSuggestion.map { "Suggested fix: \($0)" } ?? "")
-        
+
         Read the file, apply the minimal fix, and verify it compiles.
         """
         viewModel.userInput = prompt

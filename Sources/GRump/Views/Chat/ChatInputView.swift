@@ -12,9 +12,9 @@ struct ChatInputView: View {
     var isLoading: Bool
     var onSend: () -> Void
     var focus: FocusState<Bool>.Binding
-    var onStop: (() -> Void)? = nil
-    var onFileAttached: (([URL]) -> Void)? = nil
-    
+    var onStop: (() -> Void)?
+    var onFileAttached: (([URL]) -> Void)?
+
     @AppStorage("ReturnToSend") private var returnToSend = false
     @AppStorage("HasSentFirstMessage") private var hasSentFirstMessage = false
     private let minHeight: CGFloat = 28
@@ -32,7 +32,7 @@ struct ChatInputView: View {
             if !attachedFiles.isEmpty {
                 attachedFilesView
             }
-            
+
             // Floating minimal input bar
             HStack(spacing: Spacing.md) {
                 // Plus button for attachments
@@ -50,7 +50,7 @@ struct ChatInputView: View {
                     attachmentPopoverContent
                 }
                 #endif
-                
+
                 // Text input
                 #if os(macOS)
                 NativeTextInputContainer(
@@ -105,7 +105,7 @@ struct ChatInputView: View {
                             .padding(.horizontal, Spacing.md)
                             .allowsHitTesting(false)
                     }
-                    
+
                     TextEditor(text: $text)
                         .font(Typography.body)
                         .foregroundColor(themeManager.palette.textPrimary)
@@ -131,7 +131,7 @@ struct ChatInputView: View {
                 }
                 .contentShape(Rectangle())
                 #endif
-                
+
                 // Mic button for voice
                 #if os(macOS)
                 Button(action: { voiceService.toggleRecording() }) {
@@ -157,7 +157,7 @@ struct ChatInputView: View {
                     }
                 }
                 #endif
-                
+
                 // Send/Stop button
                 sendStopButton
             }
@@ -173,7 +173,7 @@ struct ChatInputView: View {
             )
             .shadow(color: themeManager.palette.bgDark.opacity(0.3), radius: 8, y: 4)
             .animation(.easeInOut(duration: Anim.standard), value: focus.wrappedValue)
-            
+
             // Send hint (hidden after first message)
             if !hasSentFirstMessage {
                 Text(returnToSend ? "Return to send  ·  ⇧ Return for new line" : "⌘ Return to send  ·  Return for new line")
@@ -184,9 +184,9 @@ struct ChatInputView: View {
         .padding(.horizontal, Spacing.xxl)
         .padding(.bottom, Spacing.xl)
     }
-    
+
     // MARK: - Attachment Popover
-    
+
     #if os(macOS)
     private var attachmentPopoverContent: some View {
         HStack(spacing: Spacing.xxl) {
@@ -228,7 +228,7 @@ struct ChatInputView: View {
         .padding(.horizontal, Spacing.xxl)
         .padding(.vertical, Spacing.xxl)
     }
-    
+
     private func attachmentOption(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: Spacing.md) {
@@ -247,14 +247,14 @@ struct ChatInputView: View {
         }
         .buttonStyle(.plain)
     }
-    
+
     private func captureScreenshot() {
         Task {
             do {
                 let tempDir = FileManager.default.temporaryDirectory
                 let filename = "screenshot_\(Int(Date().timeIntervalSince1970)).png"
                 let fileURL = tempDir.appendingPathComponent(filename)
-                
+
                 if let cgImage = CGDisplayCreateImage(CGMainDisplayID()) {
                     let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
                     if let pngData = bitmapRep.representation(using: .png, properties: [:]) {
@@ -270,7 +270,7 @@ struct ChatInputView: View {
             }
         }
     }
-    
+
     private func openFilePicker() {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
@@ -283,7 +283,7 @@ struct ChatInputView: View {
             }
         }
     }
-    
+
     private func openImagePicker() {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
@@ -321,9 +321,9 @@ struct ChatInputView: View {
     }
 
     #endif
-    
+
     // MARK: - Send / Stop Button
-    
+
     @ViewBuilder
     private var sendStopButton: some View {
         if isLoading {
@@ -361,20 +361,20 @@ struct ChatInputView: View {
             .accessibilityLabel("Send message")
         }
     }
-    
+
     private func sendAndTrack() {
         hasSentFirstMessage = true
         onSend()
         focus.wrappedValue = true
     }
-    
+
     // MARK: - Attached Files View
-    
+
     @ViewBuilder
     private var attachedFilesView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Spacing.sm) {
-                ForEach(Array(attachedFiles.enumerated()), id: \.offset) { index, fileURL in
+                ForEach(Array(attachedFiles.enumerated()), id: \.offset) { _, fileURL in
                     FileAttachmentView(
                         fileURL: fileURL,
                         onRemove: { removeAttachment(fileURL) }
@@ -388,9 +388,9 @@ struct ChatInputView: View {
     private var canSend: Bool {
         !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isLoading
     }
-    
+
     // MARK: - File Handling
-    
+
     private func handleFileDrop(providers: [NSItemProvider], location: CGPoint) {
         Task {
             await handleFiles(from: providers)
@@ -402,7 +402,7 @@ struct ChatInputView: View {
             await handleFiles(from: providers)
         }
     }
-    
+
     @MainActor
     private func handleFiles(from providers: [NSItemProvider]) async {
         var newFiles: [URL] = []
@@ -433,7 +433,7 @@ struct ChatInputView: View {
         attachedFiles.append(contentsOf: newFiles)
         onFileAttached?(attachedFiles)
     }
-    
+
     private func removeAttachment(_ url: URL) {
         attachedFiles.removeAll { $0 == url }
         onFileAttached?(attachedFiles)

@@ -308,6 +308,7 @@ extension ChatViewModel {
         if !allowNotifications {
             return
         }
+        guard GRumpRuntime.notificationsAvailable else { return }
         let center = UNUserNotificationCenter.current()
         let soundEnabled = UserDefaults.standard.object(forKey: "NotificationSoundEnabled") as? Bool ?? true
         let options: UNAuthorizationOptions = soundEnabled ? [.alert, .sound] : [.alert]
@@ -471,7 +472,7 @@ extension ChatViewModel {
             return "Error: could not get key window for screen capture."
         }
         let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
-        let image = renderer.image { ctx in
+        let image = renderer.image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
         }
         guard let pngData = image.pngData() else {

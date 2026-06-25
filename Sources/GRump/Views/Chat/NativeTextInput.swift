@@ -206,8 +206,8 @@ struct NativeTextInputContainer: View {
     var minHeight: CGFloat = 44
     var maxHeight: CGFloat = 200
     var isFirstResponder: Bool = false
-    var onReturnKey: ((NSEvent) -> Bool)? = nil
-    var onDrop: (([NSItemProvider]) -> Bool)? = nil
+    var onReturnKey: ((NSEvent) -> Bool)?
+    var onDrop: (([NSItemProvider]) -> Bool)?
 
     var body: some View {
         ZStack(alignment: .leading) {

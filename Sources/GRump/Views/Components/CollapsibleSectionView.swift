@@ -6,9 +6,9 @@ struct CollapsibleSectionView: View {
     @EnvironmentObject var themeManager: ThemeManager
     let summary: String
     let content: String
-    
+
     @State private var isExpanded: Bool = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header — clickable toggle
@@ -22,11 +22,11 @@ struct CollapsibleSectionView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(themeManager.palette.effectiveAccent)
                         .frame(width: 14)
-                    
+
                     Text(summary)
                         .font(Typography.bodySmallSemibold)
                         .foregroundColor(themeManager.palette.textPrimary)
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal, Spacing.xxl)
@@ -35,12 +35,12 @@ struct CollapsibleSectionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isExpanded ? "Collapse \(summary)" : "Expand \(summary)")
-            
+
             // Expandable content
             if isExpanded {
                 Divider()
                     .padding(.horizontal, Spacing.lg)
-                
+
                 MarkdownTextView(text: content, onCodeBlockTap: nil)
                     .padding(.horizontal, Spacing.xxl)
                     .padding(.vertical, Spacing.lg)

@@ -50,9 +50,9 @@ final class GRumpNotificationService: NSObject, ObservableObject {
     private var center: UNUserNotificationCenter?
 
     private override init() {
-        // UNUserNotificationCenter.current() crashes in command-line / SPM builds
-        // that lack a proper app bundle. Guard with bundleIdentifier check.
-        if Bundle.main.bundleIdentifier != nil {
+        // UNUserNotificationCenter.current() traps under the XCTest / SPM command-line
+        // runner (no app registration), even when a bundle identifier is present.
+        if GRumpRuntime.notificationsAvailable {
             self.center = UNUserNotificationCenter.current()
         } else {
             self.center = nil
@@ -93,7 +93,7 @@ final class GRumpNotificationService: NSObject, ObservableObject {
 
     private func registerCategories() {
         guard let center = center else { return }
-        
+
         let viewAction = UNNotificationAction(
             identifier: GRumpNotificationAction.viewResult,
             title: "View Result",

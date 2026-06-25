@@ -23,11 +23,11 @@ struct BranchStrategy: Identifiable, Sendable {
     var fullPrompt: String {
         """
         You are exploring APPROACH \(branchIndex + 1): "\(name)".
-        
+
         Strategy: \(approach)
-        
+
         \(systemPromptOverride)
-        
+
         Implement this approach fully. Be concrete and complete.
         Do NOT mention other approaches or alternatives — commit fully to this strategy.
         """
@@ -96,7 +96,7 @@ enum StrategyGenerator {
             return [
                 BranchStrategy(id: "s1", name: "Protocol-Oriented", approach: "Use protocols and protocol extensions for maximum flexibility and testability. Favor composition over inheritance.", systemPromptOverride: "Design using Swift protocol-oriented programming patterns.", branchIndex: 0),
                 BranchStrategy(id: "s2", name: "Value-Type Driven", approach: "Use structs and enums as the primary building blocks. Minimize classes. Leverage value semantics for thread safety.", systemPromptOverride: "Design using value types (structs/enums) as the foundation.", branchIndex: 1),
-                BranchStrategy(id: "s3", name: "Actor-Based", approach: "Use Swift actors and structured concurrency as the core architecture. Isolate state with actor boundaries.", systemPromptOverride: "Design using Swift actors and structured concurrency.", branchIndex: 2),
+                BranchStrategy(id: "s3", name: "Actor-Based", approach: "Use Swift actors and structured concurrency as the core architecture. Isolate state with actor boundaries.", systemPromptOverride: "Design using Swift actors and structured concurrency.", branchIndex: 2)
             ]
         }
 
@@ -104,7 +104,7 @@ enum StrategyGenerator {
         if containsAny(lower, ["data", "store", "persist", "database", "cache", "model"]) {
             return [
                 BranchStrategy(id: "s1", name: "SwiftData", approach: "Use SwiftData with @Model macros for persistence. Leverage automatic CloudKit sync.", systemPromptOverride: "Implement using SwiftData framework.", branchIndex: 0),
-                BranchStrategy(id: "s2", name: "SQLite Direct", approach: "Use SQLite directly for maximum control and performance. Write raw SQL with type-safe wrappers.", systemPromptOverride: "Implement using direct SQLite with type-safe Swift wrappers.", branchIndex: 1),
+                BranchStrategy(id: "s2", name: "SQLite Direct", approach: "Use SQLite directly for maximum control and performance. Write raw SQL with type-safe wrappers.", systemPromptOverride: "Implement using direct SQLite with type-safe Swift wrappers.", branchIndex: 1)
             ]
         }
 
@@ -112,7 +112,7 @@ enum StrategyGenerator {
         if containsAny(lower, ["ui", "view", "screen", "interface", "layout", "component"]) {
             return [
                 BranchStrategy(id: "s1", name: "Declarative Composition", approach: "Build from small, reusable view components. Each view does one thing. Compose larger views from these atoms.", systemPromptOverride: "Build using atomic, composable SwiftUI views.", branchIndex: 0),
-                BranchStrategy(id: "s2", name: "State-Machine Driven", approach: "Model the UI as a state machine. Each screen state is an enum case. Transitions are explicit and testable.", systemPromptOverride: "Build the UI around an explicit state machine with enum-based states.", branchIndex: 1),
+                BranchStrategy(id: "s2", name: "State-Machine Driven", approach: "Model the UI as a state machine. Each screen state is an enum case. Transitions are explicit and testable.", systemPromptOverride: "Build the UI around an explicit state machine with enum-based states.", branchIndex: 1)
             ]
         }
 
@@ -121,14 +121,14 @@ enum StrategyGenerator {
             return [
                 BranchStrategy(id: "s1", name: "Algorithmic", approach: "Focus on algorithmic improvements: better data structures, reduced complexity, smarter caching.", systemPromptOverride: "Optimize through algorithmic improvements and better data structures.", branchIndex: 0),
                 BranchStrategy(id: "s2", name: "Concurrency", approach: "Focus on parallelism: use TaskGroup, async sequences, and concurrent processing to utilize all cores.", systemPromptOverride: "Optimize through concurrency and parallel processing.", branchIndex: 1),
-                BranchStrategy(id: "s3", name: "Memory/IO", approach: "Focus on memory and I/O: reduce allocations, use memory-mapped files, batch operations, lazy loading.", systemPromptOverride: "Optimize through memory efficiency and I/O optimization.", branchIndex: 2),
+                BranchStrategy(id: "s3", name: "Memory/IO", approach: "Focus on memory and I/O: reduce allocations, use memory-mapped files, batch operations, lazy loading.", systemPromptOverride: "Optimize through memory efficiency and I/O optimization.", branchIndex: 2)
             ]
         }
 
         // Default: two general approaches
         return [
             BranchStrategy(id: "s1", name: "Direct Implementation", approach: "Take the most straightforward path. Minimal abstraction. Get it working correctly first, then refine.", systemPromptOverride: "Implement directly and pragmatically. Prioritize correctness over elegance.", branchIndex: 0),
-            BranchStrategy(id: "s2", name: "Extensible Design", approach: "Build with extensibility in mind. Use dependency injection, protocols, and clean separation of concerns.", systemPromptOverride: "Implement with extensibility and clean architecture. Use protocols and dependency injection.", branchIndex: 1),
+            BranchStrategy(id: "s2", name: "Extensible Design", approach: "Build with extensibility in mind. Use dependency injection, protocols, and clean separation of concerns.", systemPromptOverride: "Implement with extensibility and clean architecture. Use protocols and dependency injection.", branchIndex: 1)
         ]
     }
 

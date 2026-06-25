@@ -189,7 +189,7 @@ struct SyntaxHighlighter {
         }
 
         // Suffixes like f, d, L, etc.
-        if let suffix = remaining.first, (suffix == "f" || suffix == "d" || suffix == "L" || suffix == "l") {
+        if let suffix = remaining.first, suffix == "f" || suffix == "d" || suffix == "L" || suffix == "l" {
             result.append(suffix)
             remaining = remaining[remaining.index(after: remaining.startIndex)...]
         }
@@ -256,7 +256,7 @@ struct SyntaxHighlighter {
         case "ruby", "rb": return .ruby
         case "sql", "mysql", "postgresql", "postgres", "sqlite": return .sql
         case "yaml", "yml", "toml": return .yaml
-        case "html", "xml", "svg", "jsx": return .html
+        case "html", "xml", "svg": return .html
         case "css", "scss", "sass", "less": return .css
         case "dockerfile", "docker": return .dockerfile
         default: return .unknown

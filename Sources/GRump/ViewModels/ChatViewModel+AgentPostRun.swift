@@ -82,7 +82,7 @@ extension ChatViewModel {
         }
 
         // --- Confidence Assessment for next run ---
-        let _ = confidenceCalibration.assess(
+        _ = confidenceCalibration.assess(
             recentToolResults: lastToolResults,
             lspDiagnostics: lspDiagnostics,
             targetFiles: currentRunCodeChanges.map(\.filePath),

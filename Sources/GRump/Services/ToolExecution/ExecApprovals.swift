@@ -118,7 +118,7 @@ enum ExecSecurityPreset: String, CaseIterable, Identifiable {
         ExecAllowlistEntry(pattern: "/usr/bin/sw_vers", source: "preset-balanced"),
         ExecAllowlistEntry(pattern: "/usr/sbin/sysctl", source: "preset-balanced"),
         ExecAllowlistEntry(pattern: "/usr/bin/uname", source: "preset-balanced"),
-        ExecAllowlistEntry(pattern: "/usr/bin/mdfind", source: "preset-balanced"),
+        ExecAllowlistEntry(pattern: "/usr/bin/mdfind", source: "preset-balanced")
     ]
 
     private static let permissiveAllowlist: [ExecAllowlistEntry] = balancedAllowlist + [
@@ -131,7 +131,7 @@ enum ExecSecurityPreset: String, CaseIterable, Identifiable {
         ExecAllowlistEntry(pattern: "/bin/mkdir", source: "preset-permissive"),
         ExecAllowlistEntry(pattern: "/usr/bin/touch", source: "preset-permissive"),
         ExecAllowlistEntry(pattern: "/bin/cp", source: "preset-permissive"),
-        ExecAllowlistEntry(pattern: "/bin/mv", source: "preset-permissive"),
+        ExecAllowlistEntry(pattern: "/bin/mv", source: "preset-permissive")
     ]
 }
 

@@ -120,7 +120,7 @@ struct Skill: Identifiable, Equatable {
         ".dockerfile": ["docker", "devops"],
         ".graphql": ["graphql", "api"],
         ".sql": ["database", "sql"],
-        ".cs": ["unity", "csharp"],
+        ".cs": ["unity", "csharp"]
     ]
 }
 
@@ -299,7 +299,7 @@ struct SkillPack: Identifiable, Codable, Equatable {
             description: "Competitive intel, market analysis, product strategy, cost optimization",
             skillBaseIds: ["competitive-intel", "competitive-analysis", "product-strategy", "cost-optimization", "technical-dd"],
             icon: "binoculars"
-        ),
+        )
     ]
 }
 

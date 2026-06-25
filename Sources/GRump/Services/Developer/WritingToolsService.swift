@@ -16,22 +16,22 @@ import AppKit
 
 @MainActor
 final class WritingToolsService: ObservableObject {
-    
+
     static let shared = WritingToolsService()
-    
+
     @Published var isWritingToolsAvailable = false
     @Published var isProcessing = false
     @Published var suggestions: [WritingSuggestion] = []
     @Published var currentContext: WritingContext?
-    
+
     private let nlpService = AppleIntelligenceService.shared
-    
+
     private init() {
         checkWritingToolsAvailability()
     }
-    
+
     // MARK: - Availability Check
-    
+
     private func checkWritingToolsAvailability() {
         // Writing Tools uses OpenRouter for AI generation — available on all supported platforms.
         // NaturalLanguage framework used for suggestions is available on macOS 14+ / iOS 17+.
@@ -44,143 +44,143 @@ final class WritingToolsService: ObservableObject {
     func refreshAvailability() {
         checkWritingToolsAvailability()
     }
-    
+
     // MARK: - Text Generation
-    
+
     /// Generate commit message based on changes
     func generateCommitMessage(for changes: [WritingGitChange], style: CommitMessageStyle = .conventional) async throws -> String {
         guard isWritingToolsAvailable else {
             throw WritingToolsError.notAvailable
         }
-        
+
         isProcessing = true
         defer { isProcessing = false }
-        
+
         // Analyze changes
         let changeSummary = analyzeChanges(changes)
-        
+
         // Generate commit message
         let prompt = createCommitMessagePrompt(changes: changeSummary, style: style)
         let suggestion = try await generateText(prompt: prompt, context: .commitMessage)
-        
+
         return suggestion.text
     }
-    
+
     /// Generate documentation for code
     func generateDocumentation(for code: String, language: String, type: DocumentationType) async throws -> String {
         guard isWritingToolsAvailable else {
             throw WritingToolsError.notAvailable
         }
-        
+
         isProcessing = true
         defer { isProcessing = false }
-        
+
         // Analyze code structure
         let codeAnalysis = try await nlpService.analyzeCodeStructure(code, language: language)
-        
+
         // Generate documentation
         let prompt = createDocumentationPrompt(code: code, analysis: codeAnalysis, type: type)
         let suggestion = try await generateText(prompt: prompt, context: .documentation)
-        
+
         return suggestion.text
     }
-    
+
     /// Generate or improve code comments
     func generateComments(for code: String, language: String, style: CommentStyle = .docString) async throws -> String {
         guard isWritingToolsAvailable else {
             throw WritingToolsError.notAvailable
         }
-        
+
         isProcessing = true
         defer { isProcessing = false }
-        
+
         // Analyze code
         let codeAnalysis = try await nlpService.analyzeCodeStructure(code, language: language)
-        
+
         // Generate comments
         let prompt = createCommentsPrompt(code: code, analysis: codeAnalysis, style: style)
         let suggestion = try await generateText(prompt: prompt, context: .codeComments)
-        
+
         return suggestion.text
     }
-    
+
     /// Improve existing text
     func improveText(_ text: String, improvement: TextImprovement) async throws -> String {
         guard isWritingToolsAvailable else {
             throw WritingToolsError.notAvailable
         }
-        
+
         isProcessing = true
         defer { isProcessing = false }
-        
+
         let prompt = createImprovementPrompt(text: text, improvement: improvement)
         let suggestion = try await generateText(prompt: prompt, context: .textImprovement)
-        
+
         return suggestion.text
     }
-    
+
     /// Generate release notes
     func generateReleaseNotes(for version: String, changes: [String]) async throws -> String {
         guard isWritingToolsAvailable else {
             throw WritingToolsError.notAvailable
         }
-        
+
         isProcessing = true
         defer { isProcessing = false }
-        
+
         let prompt = createReleaseNotesPrompt(version: version, changes: changes)
         let suggestion = try await generateText(prompt: prompt, context: .releaseNotes)
-        
+
         return suggestion.text
     }
-    
+
     /// Generate API documentation
     func generateAPIDocumentation(for endpoint: APIEndpoint) async throws -> String {
         guard isWritingToolsAvailable else {
             throw WritingToolsError.notAvailable
         }
-        
+
         isProcessing = true
         defer { isProcessing = false }
-        
+
         let prompt = createAPIDocumentationPrompt(endpoint: endpoint)
         let suggestion = try await generateText(prompt: prompt, context: .apiDocumentation)
-        
+
         return suggestion.text
     }
-    
+
     // MARK: - Smart Suggestions
-    
+
     /// Get real-time writing suggestions as user types
     func getSuggestions(for text: String, context: WritingContext) async -> [WritingSuggestion] {
         guard isWritingToolsAvailable else { return [] }
-        
+
         // Analyze text and context
         _ = await analyzeTextContext(text, context: context)
-        
+
         // Generate suggestions based on analysis
         var suggestions: [WritingSuggestion] = []
-        
+
         // Grammar and style suggestions
         if let grammarSuggestions = await getGrammarSuggestions(text) {
             suggestions.append(contentsOf: grammarSuggestions)
         }
-        
+
         // Completion suggestions
         if let completionSuggestions = await getCompletionSuggestions(text, context: context) {
             suggestions.append(contentsOf: completionSuggestions)
         }
-        
+
         // Tone and style adjustments
         if let toneSuggestions = await getToneSuggestions(text, context: context) {
             suggestions.append(contentsOf: toneSuggestions)
         }
-        
+
         return suggestions
     }
-    
+
     // MARK: - Private Implementation
-    
+
     private func generateText(prompt: String, context: WritingContext) async throws -> WritingSuggestion {
         // Read API key and model from the same AppStorage the chat system uses
         let apiKey = UserDefaults.standard.string(forKey: "openRouterAPIKey") ?? ""
@@ -224,10 +224,10 @@ final class WritingToolsService: ObservableObject {
             timestamp: Date()
         )
     }
-    
+
     private func analyzeChanges(_ changes: [WritingGitChange]) -> String {
         var summary = ""
-        
+
         for change in changes {
             summary += "File: \(change.filePath)\n"
             summary += "Type: \(change.type)\n"
@@ -239,36 +239,36 @@ final class WritingToolsService: ObservableObject {
             }
             summary += "\n"
         }
-        
+
         return summary
     }
-    
+
     private func createCommitMessagePrompt(changes: String, style: CommitMessageStyle) -> String {
         switch style {
         case .conventional:
             return """
             Generate a conventional commit message for these changes:
-            
+
             \(changes)
-            
+
             Format: <type>(<scope>): <description>
-            
+
             Types: feat, fix, docs, style, refactor, test, chore
             """
         case .simple:
             return """
             Generate a simple, clear commit message for these changes:
-            
+
             \(changes)
-            
+
             Keep it under 50 characters for the first line.
             """
         case .detailed:
             return """
             Generate a detailed commit message for these changes:
-            
+
             \(changes)
-            
+
             Include:
             - Clear title
             - Detailed description
@@ -276,69 +276,69 @@ final class WritingToolsService: ObservableObject {
             """
         }
     }
-    
+
     private func createDocumentationPrompt(code: String, analysis: CodeAnalysis, type: DocumentationType) -> String {
         switch type {
         case .readme:
             return """
             Generate a README.md for this code:
-            
+
             Language: \(analysis.language)
             Purpose: \(analysis.purpose ?? "Unknown")
-            
+
             Code:
             \(code)
-            
+
             Include installation, usage, and examples.
             """
         case .api:
             return """
             Generate API documentation for this code:
-            
+
             \(code)
-            
+
             Include parameters, return values, and examples.
             """
         case .inline:
             return """
             Generate inline documentation for this code:
-            
+
             \(code)
-            
+
             Add appropriate doc comments.
             """
         }
     }
-    
+
     private func createCommentsPrompt(code: String, analysis: CodeAnalysis, style: CommentStyle) -> String {
         switch style {
         case .docString:
             return """
             Add docstring comments to this code:
-            
+
             \(code)
-            
+
             Use standard docstring format for the language.
             """
         case .inline:
             return """
             Add inline comments to explain this code:
-            
+
             \(code)
-            
+
             Focus on complex logic and business rules.
             """
         case .summary:
             return """
             Add summary comments to major sections:
-            
+
             \(code)
-            
+
             Keep comments concise and clear.
             """
         }
     }
-    
+
     private func createImprovementPrompt(text: String, improvement: TextImprovement) -> String {
         switch improvement {
         case .grammar:
@@ -353,33 +353,33 @@ final class WritingToolsService: ObservableObject {
             return "Adjust tone to be more professional: \(text)"
         }
     }
-    
+
     private func createReleaseNotesPrompt(version: String, changes: [String]) -> String {
         return """
         Generate release notes for version \(version) with these changes:
-        
+
         \(changes.joined(separator: "\n"))
-        
+
         Format with sections: New Features, Improvements, Bug Fixes.
         """
     }
-    
+
     private func createAPIDocumentationPrompt(endpoint: APIEndpoint) -> String {
         return """
         Generate API documentation for:
-        
+
         Method: \(endpoint.method)
         Path: \(endpoint.path)
         Parameters: \(endpoint.parameters.map { "\($0.name): \($0.type)" }.joined(separator: ", "))
-        
+
         Response: \(endpoint.responseType ?? "Unknown")
-        
+
         Include examples and error codes.
         """
     }
-    
+
     // MARK: - Suggestion Helpers
-    
+
     private func analyzeTextContext(_ text: String, context: WritingContext) async -> TextContextAnalysis {
         // Analyze text context for better suggestions
         return TextContextAnalysis(
@@ -389,7 +389,7 @@ final class WritingToolsService: ObservableObject {
             domain: context.domain
         )
     }
-    
+
     private func getGrammarSuggestions(_ text: String) async -> [WritingSuggestion]? {
         #if os(macOS)
         let tagger = NLTagger(tagSchemes: [.lexicalClass])
@@ -419,7 +419,7 @@ final class WritingToolsService: ObservableObject {
         return nil
         #endif
     }
-    
+
     private func getCompletionSuggestions(_ text: String, context: WritingContext) async -> [WritingSuggestion]? {
         #if canImport(NaturalLanguage)
         guard !text.isEmpty else { return nil }
@@ -448,7 +448,7 @@ final class WritingToolsService: ObservableObject {
         return nil
         #endif
     }
-    
+
     private func getToneSuggestions(_ text: String, context: WritingContext) async -> [WritingSuggestion]? {
         #if canImport(NaturalLanguage)
         let tagger = NLTagger(tagSchemes: [.sentimentScore])
@@ -478,7 +478,7 @@ final class WritingToolsService: ObservableObject {
         return nil
         #endif
     }
-    
+
     private func detectLanguage(_ text: String) -> String {
         #if canImport(NaturalLanguage)
         let recognizer = NLLanguageRecognizer()
@@ -488,7 +488,7 @@ final class WritingToolsService: ObservableObject {
         return "en"
         #endif
     }
-    
+
     private func detectTone(_ text: String) async -> String {
         #if canImport(NaturalLanguage)
         let tagger = NLTagger(tagSchemes: [.sentimentScore])
@@ -505,7 +505,7 @@ final class WritingToolsService: ObservableObject {
         return "neutral"
         #endif
     }
-    
+
     private func calculateComplexity(_ text: String) -> Double {
         let words = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
         let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?")).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -533,7 +533,7 @@ struct WritingContext: Codable {
     let domain: String
     let language: String
     let audience: Audience
-    
+
     static let commitMessage = WritingContext(type: .commitMessage, domain: "development", language: "en", audience: .developers)
     static let documentation = WritingContext(type: .documentation, domain: "technical", language: "en", audience: .users)
     static let codeComments = WritingContext(type: .codeComments, domain: "development", language: "en", audience: .developers)
@@ -651,7 +651,7 @@ enum WritingToolsError: LocalizedError {
     case notAvailable
     case processingFailed(String)
     case contextNotSupported
-    
+
     var errorDescription: String? {
         switch self {
         case .notAvailable:

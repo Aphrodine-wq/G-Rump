@@ -25,7 +25,7 @@ struct ProjectConfig: Codable, Equatable {
         // Try .grump/config.json first, then grump.json
         let candidates: [String] = [
             (dir as NSString).appendingPathComponent(".grump/config.json"),
-            (dir as NSString).appendingPathComponent("grump.json"),
+            (dir as NSString).appendingPathComponent("grump.json")
         ]
         for path in candidates {
             guard fm.fileExists(atPath: path),

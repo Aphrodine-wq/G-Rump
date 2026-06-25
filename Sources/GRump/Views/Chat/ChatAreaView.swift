@@ -10,13 +10,13 @@ struct ChatAreaView: View {
     @Binding var showSettings: Bool
     @Binding var settingsInitialTab: SettingsTab?
     var onPromptSelected: (String) -> Void = { _ in }
-    
+
     var body: some View {
         chatContentArea
     }
-    
+
     // MARK: - Chat Content Area
-    
+
     @ViewBuilder
     private var chatContentArea: some View {
         if !viewModel.canUseAI {
@@ -29,7 +29,7 @@ struct ChatAreaView: View {
             AgentTimelineView(
                 toolCalls: viewModel.activeToolCalls,
                 messages: viewModel.filteredMessages,
-                onSelectMessage: { messageId in
+                onSelectMessage: { _ in
                     showTimeline = false
                 }
             )
@@ -37,9 +37,9 @@ struct ChatAreaView: View {
             MessageListView()
         }
     }
-    
+
     // MARK: - Empty States
-    
+
     private var onboardingEmptyState: some View {
         EmptyStateViews.onboardingEmptyState(
             themeManager: themeManager,
@@ -47,14 +47,14 @@ struct ChatAreaView: View {
             settingsInitialTab: $settingsInitialTab
         )
     }
-    
+
     private var noSelectionEmptyState: some View {
         EmptyStateViews.noSelectionEmptyState(
             viewModel: viewModel,
             themeManager: themeManager
         )
     }
-    
+
     private var emptyStateView: some View {
         EmptyStateViews.emptyStateView(
             themeManager: themeManager,

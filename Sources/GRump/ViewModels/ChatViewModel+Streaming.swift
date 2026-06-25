@@ -77,7 +77,7 @@ extension ChatViewModel {
         }
         startStreaming(task: trimmed)
     }
-    
+
     /// Start streaming with appropriate agent mode
     private func startStreaming(task: String) {
         isLoading = true
@@ -115,7 +115,7 @@ extension ChatViewModel {
             isLoading = false
         }
     }
-    
+
     /// Stop the current generation
     func stopGeneration() {
         streamTask?.cancel()
@@ -145,7 +145,7 @@ extension ChatViewModel {
             isLoading = false
         }
     }
-    
+
     /// Restart streaming with current conversation state
     func restartStreaming() {
         orchestrationPlan = nil

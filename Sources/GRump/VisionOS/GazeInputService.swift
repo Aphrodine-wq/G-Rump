@@ -14,34 +14,34 @@ import RealityKit
 
 @MainActor
 final class GazeInputService: ObservableObject {
-    
-    @Published var gazePosition: SIMD3<Float>? = nil
-    @Published var gazeTarget: Entity? = nil
+
+    @Published var gazePosition: SIMD3<Float>?
+    @Published var gazeTarget: Entity?
     @Published var isGazeTrackingAvailable = false
     @Published var gazeConfidence: Float = 0.0
     @Published var dwellProgress: Float = 0.0
     @Published var isDwelling = false
-    
+
     private var dwellTimer: Timer?
-    
+
     private let dwellThreshold: TimeInterval = 1.5
     private let confidenceThreshold: Float = 0.7
-    
+
     init() {}
-    
+
     // MARK: - Dwell Selection
-    
+
     func resetDwellTimer() {
         dwellTimer?.invalidate()
         dwellTimer = nil
         dwellProgress = 0.0
         isDwelling = false
     }
-    
+
     func enableGazeCursor() {
         NotificationCenter.default.post(name: .gazeTargetChanged, object: nil)
     }
-    
+
     func disableGazeCursor() {
         NotificationCenter.default.post(name: .gazeSelectionPerformed, object: nil)
     }
@@ -52,12 +52,12 @@ final class GazeInputService: ObservableObject {
 // macOS/iOS stub
 @MainActor
 final class GazeInputService: ObservableObject {
-    @Published var gazePosition: SIMD3<Float>? = nil
+    @Published var gazePosition: SIMD3<Float>?
     @Published var isGazeTrackingAvailable = false
     @Published var gazeConfidence: Float = 0.0
     @Published var dwellProgress: Float = 0.0
     @Published var isDwelling = false
-    
+
     init() {}
     func enableGazeCursor() {}
     func disableGazeCursor() {}

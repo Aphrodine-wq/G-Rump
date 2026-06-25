@@ -375,7 +375,7 @@ final class AmbientCodeAwarenessService: ObservableObject {
             ("api_key", "Hardcoded API key detected"),
             ("apiKey", "Hardcoded API key detected"),
             ("secret", "Hardcoded secret detected"),
-            ("private_key", "Hardcoded private key detected"),
+            ("private_key", "Hardcoded private key detected")
         ]
 
         for (lineIndex, line) in lines.enumerated() {
@@ -423,7 +423,7 @@ final class AmbientCodeAwarenessService: ObservableObject {
             "\(nameWithoutExt)Test.\(ext)",
             "\(nameWithoutExt).test.\(ext)",
             "\(nameWithoutExt).spec.\(ext)",
-            "test_\(nameWithoutExt).\(ext)",
+            "test_\(nameWithoutExt).\(ext)"
         ]
 
         let fm = FileManager.default
