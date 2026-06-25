@@ -40,6 +40,9 @@ class ChatViewModel: ObservableObject {
     /// True while the model is in its "thinking" phase (before visible output begins).
     @Published var isThinking: Bool = false
     @Published var activeToolCalls: [ToolCallStatus] = []
+    /// True while the autonomous daemon is driving this view model. When set, every
+    /// mutating tool additionally requires an explicit user approval (approve-every-write).
+    var isDaemonRunActive: Bool = false
     @Published var workingDirectory: String = "" {
         didSet { activityStore.setPersistencePath(workingDirectory.isEmpty ? nil : "\(workingDirectory)/.grump/activity.json") }
     }

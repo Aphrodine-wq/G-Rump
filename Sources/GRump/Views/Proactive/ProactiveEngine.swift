@@ -413,6 +413,18 @@ final class ProactiveEngine: ObservableObject {
             return .success
         }
 
+        // Autonomous daemon cycle: every 60s (self-gates on BrainConfig.daemonEnabled).
+        await cronScheduler.addJob(id: "daemon-cycle", label: "Autonomous Daemon", schedule: .interval(60)) {
+            await AutonomousLoop.shared.tick()
+            return .success
+        }
+
+        // Daemon immune self-heal: hourly.
+        await cronScheduler.addJob(id: "daemon-immune", label: "Daemon Immune Check", schedule: .interval(3600)) {
+            await AutonomousLoop.shared.immuneTick()
+            return .success
+        }
+
         logger.info("Cron jobs registered")
     }
 

@@ -15,4 +15,5 @@ enum GRumpLogger {
     static let migration  = Logger(subsystem: "com.grump.app", category: "migration")
     static let memory     = Logger(subsystem: "com.grump.app", category: "memory")
     static let proactive  = Logger(subsystem: "com.grump.app", category: "proactive")
+    static let brain      = Logger(subsystem: "com.grump.app", category: "brain")
 }

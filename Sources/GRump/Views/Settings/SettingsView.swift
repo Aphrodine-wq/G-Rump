@@ -317,6 +317,8 @@ struct SettingsView: View {
                 skillsSettingsSection
             case .soul:
                 SoulSettingsView(workingDirectory: workingDirectory)
+            case .brain:
+                BrainSettingsView(workingDirectory: workingDirectory)
             case .data:
                 dataSection
             case .memory:

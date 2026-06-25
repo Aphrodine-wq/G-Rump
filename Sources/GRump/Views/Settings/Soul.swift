@@ -164,11 +164,34 @@ enum SoulStorage {
         return try? String(contentsOf: path, encoding: .utf8)
     }
 
-    /// Seed the default global SOUL.md if none exists.
+    /// Seed a neutral global SOUL.md if none exists.
+    /// Ships generic and user-definable — no opinionated persona baked into the product.
+    /// Users can switch to the "Standard" template (the original opinionated persona) or
+    /// any other in Settings → Soul.
     static func seedDefaultSoulIfNeeded() {
         guard !soulExists(scope: .global) else { return }
-        _ = saveSoul(content: defaultSoulContent, scope: .global)
+        _ = saveSoul(content: neutralSoulContent, scope: .global)
     }
+
+    /// Neutral, generic seed persona. The product default.
+    static let neutralSoulContent = """
+    ---
+    name: Assistant
+    version: 1
+    ---
+
+    # Identity
+
+    You are a capable AI coding agent. Define your own voice, values, and rules here —
+    this file is yours to shape. Edit it in Settings → Soul, or pick a template to start.
+
+    # Rules
+
+    - Be clear and direct. Get to the point.
+    - Write tests for non-trivial logic.
+    - Never hardcode secrets; use environment variables or the Keychain.
+    - Match the conventions of the surrounding code.
+    """
 
     // MARK: - Default Soul
 

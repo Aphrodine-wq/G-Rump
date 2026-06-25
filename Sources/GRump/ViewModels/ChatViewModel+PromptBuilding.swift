@@ -74,6 +74,13 @@ extension ChatViewModel {
         return soulBlock + basePrompt
     }
 
+    /// Prepends MIND.md identity content as the outermost foundation layer (before Soul).
+    func prependMindContent(to basePrompt: String) -> String {
+        guard let mind = MindStorage.loadMind(workingDirectory: workingDirectory) else { return basePrompt }
+        let mindBlock = "\n\n--- Mind: \(mind.name) ---\n" + mind.body + "\n\n--- End of mind ---\n\n"
+        return mindBlock + basePrompt
+    }
+
     /// Prepends enabled skill instructions to the base prompt.
     /// Combines explicitly enabled skills + context-aware auto-suggested skills (score > 0.7).
     func prependSkillsContent(to basePrompt: String) -> String {

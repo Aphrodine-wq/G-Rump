@@ -147,6 +147,12 @@ extension ChatViewModel {
         let cwd = (args["cwd"] as? String).map { ($0 as NSString).expandingTildeInPath }
         let timeoutSeconds = args["timeout_seconds"] as? Int ?? 60
         let resolvedPath = resolveExecutablePath(from: command, cwd: cwd)
+
+        // Conscience gate runs first — short-circuits before the approval flow.
+        if let refusal = await conscienceRefusal(toolName: "system_run", arguments: command) {
+            return refusal
+        }
+
         var config = ExecApprovalsStorage.load()
         let allowed: Bool
         switch config.security {

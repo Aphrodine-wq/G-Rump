@@ -113,6 +113,16 @@ extension ChatViewModel {
 
         // Periodic consolidation check
         await store.consolidateIfNeeded(tier: .project)
+
+        // Vault brain write-back: human-readable daily notes + decision notes + backlinks.
+        if BrainConfigStore.shared.load().vaultEnabled {
+            await VaultWriteBack.shared.record(
+                userMessage: lastUser.content,
+                assistantContent: lastAssistant.content,
+                workingDirectory: workingDirectory,
+                graph: graph
+            )
+        }
     }
 
     // MARK: - Conversation Lifecycle
