@@ -175,7 +175,12 @@ enum ExecApprovalsStorage {
     /// Returns true if the resolved binary path matches the glob pattern.
     /// Pattern may be a full path or a glob (e.g. "/opt/homebrew/bin/*").
     static func path(_ resolvedPath: String, matchesPattern pattern: String) -> Bool {
+        // Security: never match empty/whitespace paths or anything containing a traversal
+        // sequence — a `..` could normalize into an allowed directory and escape the gate.
+        guard !resolvedPath.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        guard !resolvedPath.contains("..") else { return false }
         let path = (resolvedPath as NSString).standardizingPath
+        guard !path.isEmpty else { return false }
         let patternNorm = (pattern as NSString).standardizingPath
         if !patternNorm.contains("*") {
             return path == patternNorm

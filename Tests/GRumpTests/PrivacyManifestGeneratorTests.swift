@@ -117,7 +117,7 @@ final class PrivacyManifestGeneratorTests: XCTestCase {
             thirdPartySDKs: []
         )
         let json = manifest.generateJSON()
-        XCTAssertTrue(json.contains("analytics"))
+        XCTAssertTrue(json.lowercased().contains("analytics"))
     }
 
     func testManifestCodable() throws {

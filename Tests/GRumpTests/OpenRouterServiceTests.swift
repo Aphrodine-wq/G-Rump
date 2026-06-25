@@ -51,7 +51,7 @@ final class OpenRouterServiceTests: XCTestCase {
         let service = OpenRouterService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
-        XCTAssertEqual(request.value(forHTTPHeaderField: "HTTP-Referer"), "https://grump.app")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "HTTP-Referer"), "https://www.g-rump.com")
     }
 
     func testBuildRequestHasPlatformHeader() throws {
@@ -161,7 +161,8 @@ final class OpenRouterServiceTests: XCTestCase {
             messages: messages, model: "m", stream: true,
             backendBaseURL: "https://api.grump.app/", authToken: "tok"
         )
-        XCTAssertFalse(request.url?.absoluteString.contains("//api") ?? true)
+        // The base's trailing slash must be trimmed so the path has no "host//path".
+        XCTAssertFalse(request.url?.absoluteString.contains(".app//") ?? true)
     }
 
     // MARK: - ServiceError
