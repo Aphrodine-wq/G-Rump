@@ -1,7 +1,7 @@
 {
-  "name": "grump-platform",
-  "version": "1.0.0",
-  "description": "G-Rump commercial platform: auth, credits, OpenRouter proxy",
+  "name": "grump-qwen-backend",
+  "version": "2.0.0",
+  "description": "G-Rump minimal Qwen backend: stateless proxy to Qwen on Alibaba Cloud (DashScope)",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -9,19 +9,11 @@
     "dev": "node --watch server.js",
     "test": "node --test tests/*.test.js"
   },
-  "devDependencies": {
-    "better-sqlite3": "^11.0.0"
-  },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
-    "google-auth-library": "^9.14.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
-    "helmet": "^8.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "stripe": "^17.4.0",
-    "uuid": "^10.0.0"
+    "helmet": "^8.0.0"
   }
 }
