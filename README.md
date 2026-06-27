@@ -162,6 +162,19 @@ GitHub Actions pipeline runs on push/PR to `main`:
 - **Screen Recording** -- System Settings > Privacy & Security > Screen Recording
 - **Accessibility** -- System Settings > Privacy & Security > Accessibility (for global hotkey)
 
+## Testing & evaluation
+
+**You don't need a Mac to verify G-Rump runs on Qwen.** With a Qwen key on any OS:
+
+```bash
+node scripts/judge-verify.mjs   # proves chat + multi-turn tool calling + embeddings on Qwen
+node scripts/agent-eval.mjs     # scores Qwen on a 4-task agent battery (real tool loop, mock repo)
+```
+
+On macOS, the full automated suites: `swift test -j 12` (1,437 checks incl. the
+cognitive-memory eval) and `cd backend && npm test`. Full methodology and a
+no-Mac testing path are in [docs/EVALS.md](./docs/EVALS.md).
+
 ## License
 
 MIT -- see [LICENSE](./LICENSE).

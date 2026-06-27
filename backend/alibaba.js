@@ -54,5 +54,3 @@ export async function qwenEmbeddings(input, model = DEFAULT_EMBED_MODEL) {
   });
   return resp;
 }
-
-export const ALIBABA = { baseURL: QWEN_BASE_URL, embedModel: DEFAULT_EMBED_MODEL };
