@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-G-Rump is an AI coding agent macOS/iOS app written in Swift (SwiftUI) with a Node.js backend. It provides chat-based AI assistance with 100+ local file system, shell, git, and system control tools, using OpenRouter for model access. Multi-provider support includes Anthropic, OpenAI, Ollama, OpenRouter, and on-device CoreML.
+G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI) with a Node.js backend, built entirely on **Qwen** (Alibaba Qwen Cloud / DashScope, OpenAI-compatible). It provides chat-based AI assistance with 100+ local file system, shell, git, and system control tools, a persistent cognitive memory (Track 1: MemoryAgent), and an approval-gated autonomous daemon. Models: Qwen Coder Plus (default), Qwen Max, Qwen Plus, Qwen Turbo.
 
 ## Build & Run Commands
 
@@ -62,7 +62,7 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 **Entry point**: `GRumpApp.swift` → `ContentView.swift` (main chat UI with sidebar). `AppDelegate.swift` enforces single-instance to prevent SQLite lock freezes.
 
 **ChatViewModel** is the central state manager, split into extensions:
-- `ChatViewModel+Streaming.swift` — OpenRouter streaming responses
+- `ChatViewModel+Streaming.swift` — Qwen (DashScope) streaming responses
 - `ChatViewModel+ToolExecution.swift` — Tool dispatch, parallel execution, retry logic
 - `ChatViewModel+Memory.swift` — Activity tracking, memory store
 - `ChatViewModel+Messages.swift` — Message management
@@ -100,8 +100,8 @@ AI personality via `~/.grump/SOUL.md` (global) and `.grump/SOUL.md` (project, ov
 
 ### Key Services
 
-- `OpenRouterService` — Chat completion streaming (direct or via backend proxy)
-- `MultiProviderAIService` — Multi-model support with tier-based access
+- `OpenRouterService` — Qwen chat completion streaming (DashScope; direct or via the Alibaba backend proxy). Carries the tool-call-complete request body.
+- `MultiProviderAIService` — Qwen model selection/registry (single provider)
 - `LSPService` — Language Server Protocol / SourceKit-LSP integration
 - `ExecApprovals` — Security approval workflow for shell commands
 - `ConnectionMonitor` — `NWPathMonitor` + periodic health checks to `openrouter.ai` (30s interval). Exposes `.connected`/`.degraded`/`.disconnected` status.
@@ -124,11 +124,10 @@ SwiftData `@Model` macros do not expand under `swift build`. This is by design.
 
 ### Backend Structure (`backend/`)
 
-Express server with 4 core modules:
-- `server.js` — Entry point, middleware, routes
-- `auth.js` — Google Sign-In (IdToken → JWT), user creation
-- `db.js` — SQLite (users, credits, tiers: Free/Pro/Team)
-- `proxy.js` — OpenRouter proxying with credit deduction
+Minimal stateless Qwen proxy (deploys on Alibaba Cloud):
+- `server.js` — Express entry: `/api/health`, `/api/v1/chat/completions` (SSE passthrough, tool calls preserved), `/api/v1/embeddings`; optional `APP_API_KEY` bearer gate
+- `alibaba.js` — the single Alibaba Cloud / Qwen (DashScope) call site
+- `Dockerfile` + `README-DEPLOY.md` — container + Alibaba ECS / Function Compute runbook
 
 ## Key Conventions
 
