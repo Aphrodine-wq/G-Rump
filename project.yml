@@ -69,16 +69,6 @@ targets:
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: YES
 
-  GRumpServer:
-    type: tool
-    platform: macOS
-    sources:
-      - path: Sources/GRumpServer
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.grump.server
-        MACOSX_DEPLOYMENT_TARGET: "14.0"
-
   GRumpTests:
     type: bundle.unit-test
     platform: macOS

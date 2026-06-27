@@ -13,9 +13,6 @@ let package = Package(
         .executable(
             name: "GRump",
             targets: ["GRump"]),
-        .executable(
-            name: "GRumpServer",
-            targets: ["GRumpServer"]),
     ],
     dependencies: [
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
@@ -33,10 +30,6 @@ let package = Package(
                 .enableExperimentalFeature("StrictConcurrency=complete"),
                 .define("GRUMP_SPM_BUILD"),
             ]),
-        .executableTarget(
-            name: "GRumpServer",
-            dependencies: [],
-            path: "Sources/GRumpServer"),
         .testTarget(
             name: "GRumpTests",
             dependencies: ["GRump"],
