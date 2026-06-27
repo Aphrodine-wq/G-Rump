@@ -46,23 +46,23 @@ enum WorkflowPresetsStorage {
         [
             WorkflowPreset(
                 name: "Refactor mode",
-                modelRawValue: AIModel.claudeOpus46.rawValue,
+                modelRawValue: AIModel.qwenCoderPlus.rawValue,
                 systemPrompt: GRumpDefaults.defaultSystemPrompt + "\n\nFocus on refactoring: improve structure, reduce duplication, and maintain behavior. Prefer edit_file over write_file. Run tests after changes."
             ),
             WorkflowPreset(
                 name: "Debug assistant",
-                modelRawValue: AIModel.gemini31Pro.rawValue,
+                modelRawValue: AIModel.qwenCoderPlus.rawValue,
                 systemPrompt: GRumpDefaults.defaultSystemPrompt + "\n\nFocus on debugging: analyze error messages, trace execution, and propose minimal fixes. Use run_command to reproduce and verify."
             ),
             WorkflowPreset(
                 name: "Read-only research",
-                modelRawValue: AIModel.deepseekChat.rawValue,
+                modelRawValue: AIModel.qwenPlus.rawValue,
                 systemPrompt: GRumpDefaults.defaultSystemPrompt + "\n\nRead-only mode: only use read_file, list_directory, grep_search, web_search, read_url. Do not modify files or run commands.",
                 toolAllowlist: ["read_file", "batch_read_files", "list_directory", "tree_view", "search_files", "grep_search", "file_info", "path_exists", "count_lines", "view_code_outline", "web_search", "read_url", "clipboard_read", "get_env"]
             ),
             WorkflowPreset(
                 name: "Extended run",
-                modelRawValue: AIModel.claudeOpus46.rawValue,
+                modelRawValue: AIModel.qwenMax.rawValue,
                 systemPrompt: GRumpDefaults.defaultSystemPrompt + "\n\nExtended autonomous run: work through the full task end-to-end without stopping. Use all available steps. Complete complex, multi-step changes before responding. Verify builds and tests before finishing.",
                 maxAgentSteps: 150
             )

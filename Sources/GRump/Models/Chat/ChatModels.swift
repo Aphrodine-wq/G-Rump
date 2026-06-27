@@ -242,154 +242,84 @@ struct ParallelAgentState: Identifiable, Sendable {
     var result: String?
 }
 
-// MARK: - Available Models (OpenRouter)
+// MARK: - Available Models (Qwen Cloud / Alibaba DashScope)
+// rawValue == the exact DashScope model id sent on the wire.
 
 enum AIModel: String, CaseIterable, Identifiable {
-    // Pro-only: Paying users (Pro/Team) see these
-    case claudeOpus46      = "anthropic/claude-opus-4.6"
-    case gemini31Pro       = "google/gemini-3.1-pro"
-    case claudeSonnet46    = "anthropic/claude-sonnet-4.6"
-    case codex53           = "openai/codex-5.3"
-    case kimiK25           = "moonshotai/kimi-k2.5"
-
-    // Fast + Smart (Free tier users)
-    case claudeSonnet4     = "anthropic/claude-sonnet-4"
-    case gemini31Flash     = "google/gemini-3.1-flash"
-    case deepseekChat      = "deepseek/deepseek-chat-v3-0324:free"
-
-    // Free — best open-source coding models (2026)
-    case qwen3Coder        = "qwen/qwen3-coder:free"
-    case deepseekR1        = "deepseek/deepseek-r1-0528:free"
-    case gptOss120b        = "openai/gpt-oss-120b:free"
-    case trinityLarge      = "arcee-ai/trinity-large-preview:free"
-    case step35Flash       = "stepfun/step-3.5-flash:free"
-    case llama33           = "meta-llama/llama-3.3-70b-instruct:free"
-    case glm45Air          = "z-ai/glm-4.5-air:free"
+    case qwenCoderPlus = "qwen-coder-plus"   // default — agentic coding
+    case qwenMax       = "qwen-max"          // flagship reasoning / planning
+    case qwenPlus      = "qwen-plus"         // balanced
+    case qwenTurbo     = "qwen-turbo"        // fast / cheap
 
     var id: String { rawValue }
 
-    var requiresPaidTier: Bool {
-        switch self {
-        case .claudeOpus46, .gemini31Pro, .claudeSonnet46, .codex53, .kimiK25: return true
-        case .claudeSonnet4: return false
-        default: return false
-        }
-    }
+    // No billing tiers in the Qwen build — every model is available.
+    var requiresPaidTier: Bool { false }
 
     var displayName: String {
         switch self {
-        case .claudeOpus46:     return "Claude Opus 4.6"
-        case .gemini31Pro:      return "Gemini 3.1 Pro"
-        case .claudeSonnet46:   return "Claude Sonnet 4.6"
-        case .codex53:          return "Codex 5.3"
-        case .kimiK25:          return "Kimi K2.5"
-        case .claudeSonnet4:    return "Claude Sonnet 4"
-        case .gemini31Flash:    return "Gemini 3.1 Flash"
-        case .deepseekChat:     return "DeepSeek V3"
-        case .qwen3Coder:       return "Qwen3 Coder 480B"
-        case .deepseekR1:       return "DeepSeek R1"
-        case .gptOss120b:       return "GPT-OSS 120B"
-        case .trinityLarge:     return "Trinity Large 400B"
-        case .step35Flash:      return "Step 3.5 Flash"
-        case .llama33:          return "Llama 3.3 70B"
-        case .glm45Air:         return "GLM 4.5 Air"
+        case .qwenCoderPlus: return "Qwen Coder Plus"
+        case .qwenMax:       return "Qwen Max"
+        case .qwenPlus:      return "Qwen Plus"
+        case .qwenTurbo:     return "Qwen Turbo"
         }
     }
 
     var description: String {
         switch self {
-        case .claudeOpus46:     return "Flagship frontier model — complex coding, agents, long context"
-        case .gemini31Pro:      return "Flagship reasoning, complex coding, 1M context"
-        case .claudeSonnet46:   return "Frontier Sonnet — coding, agents, professional work"
-        case .codex53:          return "OpenAI's latest coding model — agentic, multi-file, deep reasoning"
-        case .kimiK25:          return "Strong reasoning and visual coding, top tool use"
-        case .claudeSonnet4:    return "Balanced coding and reasoning, excellent tool use"
-        case .gemini31Flash:    return "Speed king — fast iteration, great for drafting"
-        case .deepseekChat:     return "Strong coder, free DeepSeek V3"
-        case .qwen3Coder:       return "Best free coding model, 480B MoE, agentic tool use"
-        case .deepseekR1:       return "Open-source reasoning on par with o1, 164K context"
-        case .gptOss120b:       return "OpenAI open-weight MoE, native tool use & reasoning"
-        case .trinityLarge:     return "400B MoE, trained for agentic coding (Cline/OpenCode)"
-        case .step35Flash:      return "196B MoE, blazing fast at 256K context"
-        case .llama33:          return "Meta's best open-weight 70B, multilingual coding"
-        case .glm45Air:         return "Agent-first model with thinking mode, tool use"
+        case .qwenCoderPlus: return "Agentic coding model — multi-file edits, strong tool use"
+        case .qwenMax:       return "Flagship Qwen — deepest reasoning and planning"
+        case .qwenPlus:      return "Balanced reasoning and speed for everyday tasks"
+        case .qwenTurbo:     return "Fastest, cheapest — drafting and quick iteration"
         }
     }
 
     var contextWindow: Int {
         switch self {
-        case .claudeOpus46:     return 1_000_000
-        case .gemini31Pro:      return 1_000_000
-        case .claudeSonnet46:   return 1_000_000
-        case .codex53:          return 200_000
-        case .kimiK25:          return 262_144
-        case .claudeSonnet4:    return 200_000
-        case .gemini31Flash:    return 1_000_000
-        case .deepseekChat:     return 128_000
-        case .qwen3Coder:       return 262_000
-        case .deepseekR1:       return 164_000
-        case .gptOss120b:       return 131_000
-        case .trinityLarge:     return 131_000
-        case .step35Flash:      return 256_000
-        case .llama33:          return 128_000
-        case .glm45Air:         return 131_000
+        case .qwenCoderPlus: return 1_000_000
+        case .qwenMax:       return 32_768
+        case .qwenPlus:      return 131_072
+        case .qwenTurbo:     return 1_000_000
         }
     }
 
+    // Conservative max_tokens that stay within DashScope per-model output limits.
     var maxOutput: Int {
         switch self {
-        case .claudeOpus46:     return 65_536
-        case .gemini31Pro:      return 65_536
-        case .claudeSonnet46:   return 65_536
-        case .codex53:          return 65_536
-        case .kimiK25:          return 65_536
-        case .claudeSonnet4:    return 16_000
-        case .gemini31Flash:    return 65_536
-        case .deepseekChat:     return 16_384
-        case .qwen3Coder:       return 32_768
-        case .deepseekR1:       return 32_768
-        case .gptOss120b:       return 16_384
-        case .trinityLarge:     return 16_384
-        case .step35Flash:      return 16_384
-        case .llama33:          return 16_384
-        case .glm45Air:         return 16_384
+        case .qwenCoderPlus: return 65_536
+        case .qwenMax:       return 8_192
+        case .qwenPlus:      return 8_192
+        case .qwenTurbo:     return 8_192
         }
     }
 
-    var tier: String {
-        switch self {
-        case .claudeOpus46, .gemini31Pro, .claudeSonnet46, .codex53, .kimiK25:
-            return "Pro"
-        case .claudeSonnet4, .gemini31Flash, .deepseekChat:
-            return "Fast"
-        case .qwen3Coder, .deepseekR1, .gptOss120b, .trinityLarge, .step35Flash, .llama33, .glm45Air:
-            return "Free"
-        }
-    }
+    // Single provider now; kept for UI labels that group by tier.
+    var tier: String { "Qwen" }
 
-    /// Models available for the given platform tier. Pro/Team -> all; Free -> Fast + Free tiers.
+    /// All Qwen models, regardless of platform tier (billing removed).
     static func modelsForTier(_ platformTier: String?) -> [AIModel] {
-        let isPaid = platformTier == "pro" || platformTier == "team"
-        if isPaid {
-            return [.claudeOpus46, .gemini31Pro, .claudeSonnet46, .codex53, .kimiK25]
-        }
-        return [
-            .claudeSonnet4, .gemini31Flash, .deepseekChat,
-            .qwen3Coder, .deepseekR1, .gptOss120b, .trinityLarge, .step35Flash, .llama33, .glm45Air
-        ]
+        AIModel.allCases
     }
 
     static func defaultForTier(_ platformTier: String?) -> AIModel {
-        modelsForTier(platformTier).first ?? .qwen3Coder
+        .qwenCoderPlus
     }
 
-    /// Migrate old model IDs to current ones (for saved conversations).
+    /// Map any legacy (multi-provider) model id from saved conversations/presets
+    /// onto a Qwen model so nothing crashes after the single-provider migration.
     static func migrateLegacyID(_ rawValue: String) -> AIModel? {
-        // Handle renamed Gemini models
-        switch rawValue {
-        case "google/gemini-2.5-pro-preview": return .gemini31Pro
-        case "google/gemini-2.5-flash-preview": return .gemini31Flash
-        default: return AIModel(rawValue: rawValue)
+        if let exact = AIModel(rawValue: rawValue) { return exact }
+        let lower = rawValue.lowercased()
+        if lower.contains("coder") || lower.contains("codex") || lower.contains("deepseek") {
+            return .qwenCoderPlus
         }
+        if lower.contains("flash") || lower.contains("turbo") || lower.contains("mini") || lower.contains("air") {
+            return .qwenTurbo
+        }
+        if lower.contains("opus") || lower.contains("max") || lower.contains("pro") || lower.contains("r1") {
+            return .qwenMax
+        }
+        // Any other historical id → safe default.
+        return .qwenCoderPlus
     }
 }

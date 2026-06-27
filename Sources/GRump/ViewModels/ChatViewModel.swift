@@ -258,9 +258,9 @@ class ChatViewModel: ObservableObject {
         }
 
         // Load legacy model selection
-        let savedModel = UserDefaults.standard.string(forKey: "SelectedModel") ?? AIModel.claudeSonnet4.rawValue
+        let savedModel = UserDefaults.standard.string(forKey: "SelectedModel") ?? AIModel.qwenCoderPlus.rawValue
         let migratedModel = Self.migrateLegacyModelID(savedModel)
-        self.selectedModel = AIModel(rawValue: migratedModel) ?? .claudeSonnet4
+        self.selectedModel = AIModel(rawValue: migratedModel) ?? .qwenCoderPlus
         self.systemPrompt = UserDefaults.standard.string(forKey: "SystemPrompt") ?? GRumpDefaults.defaultSystemPrompt
         let savedMode = UserDefaults.standard.string(forKey: "AgentMode") ?? AgentMode.standard.rawValue
         self.agentMode = AgentMode(rawValue: savedMode) ?? .standard
@@ -409,12 +409,10 @@ class ChatViewModel: ObservableObject {
         return dict[id.uuidString] ?? ""
     }
 
-    /// Maps removed OpenRouter model IDs to current equivalents so existing users keep a sensible selection.
+    /// Maps any legacy (multi-provider) model ID onto a current Qwen model so
+    /// existing users keep a valid selection after the single-provider migration.
     private static func migrateLegacyModelID(_ id: String) -> String {
-        switch id {
-        case "anthropic/claude-3.7-sonnet": return AIModel.claudeSonnet4.rawValue
-        default: return id
-        }
+        (AIModel.migrateLegacyID(id) ?? .qwenCoderPlus).rawValue
     }
 
     /// Project-level config loaded from .grump/config.json or grump.json when working directory is set.

@@ -1,11 +1,22 @@
 import Foundation
 
-// MARK: - OpenRouter Service
-// Base URL: https://openrouter.ai/api/v1
+// MARK: - Qwen Service
+// Qwen Cloud (Alibaba DashScope) OpenAI-compatible endpoint.
+// Class name kept as OpenRouterService for now to avoid churning call sites
+// and tests; this is the single Qwen transport (tool-call-complete buildBody).
 
 class OpenRouterService {
-    // Compile-time constant URL, guaranteed valid.
-    private let openRouterURL = URL(string: "https://openrouter.ai/api/v1/chat/completions")!
+    // Qwen DashScope OpenAI-compatible chat-completions endpoint. Override the
+    // base via the `QwenBaseURL` UserDefaults key (e.g. the mainland host
+    // https://dashscope.aliyuncs.com/compatible-mode/v1) without a rebuild.
+    private var qwenBaseURL: URL {
+        let configured = UserDefaults.standard.string(forKey: "QwenBaseURL")?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let base = (configured?.isEmpty == false ? configured! : "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return URL(string: base + "/chat/completions")
+            ?? URL(string: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions")!
+    }
 
     // MARK: - Streaming (OpenRouter or platform backend)
 
@@ -77,18 +88,13 @@ class OpenRouterService {
     ) throws -> URLRequest {
         guard !apiKey.isEmpty else { throw ServiceError.missingAPIKey }
 
-        var request = URLRequest(url: openRouterURL)
+        var request = URLRequest(url: qwenBaseURL)
         request.httpMethod = "POST"
         request.timeoutInterval = 180
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("https://www.g-rump.com", forHTTPHeaderField: "HTTP-Referer")
-        request.addValue("G-Rump", forHTTPHeaderField: "X-Title")
-        #if os(macOS)
-        request.addValue("macos-native", forHTTPHeaderField: "X-Client-Platform")
-        #else
-        request.addValue("ios-native", forHTTPHeaderField: "X-Client-Platform")
-        #endif
+        // No HTTP-Referer / X-Title / X-Client-Platform — those are OpenRouter
+        // routing hints and DashScope rejects unexpected fields.
         request.httpBody = try buildBody(messages: messages, model: model, stream: stream, tools: tools)
         return request
     }
@@ -165,10 +171,7 @@ class OpenRouterService {
 
         body["tools"] = tools ?? ToolDefinitions.allTools
         body["tool_choice"] = "auto"
-        body["provider"] = [
-            "sort": "price",
-            "allow_fallbacks": true
-        ]
+        // No OpenRouter `provider` routing block — DashScope 400s on unknown fields.
 
         return try JSONSerialization.data(withJSONObject: body, options: [])
     }
@@ -200,16 +203,16 @@ class OpenRouterService {
         var errorDescription: String? {
             switch self {
             case .missingAPIKey:
-                return "Missing API key. Please set your OpenRouter API key in Settings."
+                return "Missing API key. Please set your Qwen (DashScope) API key in Settings."
             case .networkError:
                 return "Network error. Please check your connection."
             case .apiError(let code, let message):
                 if let message = message, !message.isEmpty {
-                    return "OpenRouter API error (HTTP \(code)): \(message)"
+                    return "Qwen API error (HTTP \(code)): \(message)"
                 }
-                return "OpenRouter API error (HTTP \(code)). Check your API key or model availability."
+                return "Qwen API error (HTTP \(code)). Check your API key or model availability."
             case .invalidResponse:
-                return "Received an invalid response from OpenRouter."
+                return "Received an invalid response from Qwen."
             }
         }
     }
