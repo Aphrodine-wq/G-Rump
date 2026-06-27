@@ -228,22 +228,6 @@ struct Conversation: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-// MARK: - Parallel Agent UI State
-
-/// Published state for a single sub-agent running in parallel mode.
-struct ParallelAgentState: Identifiable, Sendable {
-    enum SubAgentStatus: String, Sendable {
-        case pending, running, completed, failed
-    }
-    let id: String                  // sub-agent task id
-    let agentIndex: Int             // 1-based display index
-    let taskDescription: String
-    let taskType: TaskType
-    let modelName: String
-    var status: SubAgentStatus = .pending
-    var streamingText: String = ""
-    var result: String?
-}
 
 // MARK: - Available Models (Qwen Cloud / Alibaba DashScope)
 // rawValue == the exact DashScope model id sent on the wire.

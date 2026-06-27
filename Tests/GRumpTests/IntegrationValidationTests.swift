@@ -172,22 +172,6 @@ final class IntegrationValidationTests: XCTestCase {
         XCTAssertEqual(status.status, .cancelled)
     }
 
-    // MARK: - ParallelAgentState
-
-    func testParallelAgentStateCreation() {
-        let state = ParallelAgentState(
-            id: "sub-1",
-            agentIndex: 1,
-            taskDescription: "Read all files",
-            taskType: .research,
-            modelName: "claude-sonnet-4"
-        )
-        XCTAssertEqual(state.id, "sub-1")
-        XCTAssertEqual(state.agentIndex, 1)
-        XCTAssertEqual(state.status, .pending)
-        XCTAssertTrue(state.streamingText.isEmpty)
-        XCTAssertNil(state.result)
-    }
 
     // MARK: - SystemRunHistoryEntry
 

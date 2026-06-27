@@ -424,24 +424,6 @@ final class ModelsTests: XCTestCase {
         }
     }
 
-    // MARK: - ParallelAgentState
-
-    func testParallelAgentStateCreation() {
-        let state = ParallelAgentState(
-            id: "agent-1",
-            agentIndex: 1,
-            taskDescription: "Read files",
-            taskType: .fileOps,
-            modelName: "Qwen3 Coder"
-        )
-        XCTAssertEqual(state.id, "agent-1")
-        XCTAssertEqual(state.agentIndex, 1)
-        XCTAssertEqual(state.taskType, .fileOps)
-        XCTAssertEqual(state.status, .pending)
-        XCTAssertTrue(state.streamingText.isEmpty)
-        XCTAssertNil(state.result)
-    }
-
     // MARK: - ToolCallStatus Progress
 
     func testToolCallStatusProgress() {

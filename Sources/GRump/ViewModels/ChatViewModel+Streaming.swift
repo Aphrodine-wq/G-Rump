@@ -8,7 +8,7 @@ extension ChatViewModel {
     /// Creates a streaming connection using the appropriate provider.
     /// Uses the platform backend when authenticated, otherwise falls back
     /// to the configured AI provider. This eliminates duplicated if/else
-    /// blocks across `runAgentLoop()`, `runFastReply()`, and `handleOpenClawMessage()`.
+    /// blocks across `runAgentLoop()` and `handleOpenClawMessage()`.
     func createProviderStream(
         messages: [Message],
         tools: [[String: Any]]

@@ -146,27 +146,6 @@ final class ChatStreamingTests: XCTestCase {
         XCTAssertNotNil(vm.streamMetrics, "StreamMetrics should be initialized")
     }
 
-    // MARK: - Agent Mode Routing
-
-    func testIsSimpleConversationalMessageDetectsGreetings() {
-        let vm = makeViewModel()
-
-        XCTAssertTrue(vm.isSimpleConversationalMessage("hello"),
-                      "Greetings should be detected as simple conversational messages")
-        XCTAssertTrue(vm.isSimpleConversationalMessage("thanks!"),
-                      "Thanks should be detected as simple")
-        XCTAssertTrue(vm.isSimpleConversationalMessage("yes"),
-                      "Short affirmatives should be simple")
-    }
-
-    func testIsSimpleConversationalMessageRejectsCodeRequests() {
-        let vm = makeViewModel()
-
-        XCTAssertFalse(vm.isSimpleConversationalMessage("Write a function that sorts an array"),
-                       "Code requests should not be simple")
-        XCTAssertFalse(vm.isSimpleConversationalMessage("Fix the bug in auth.swift and add tests"),
-                       "Complex tasks should not be simple")
-    }
 
     // MARK: - Code Changes Tracking
 
