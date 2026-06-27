@@ -12,11 +12,6 @@ extension ChatViewModel {
     func prependModeInstructions(to basePrompt: String) -> String {
         let instructions: String
         switch agentMode {
-        case .standard:
-            instructions = """
-            MODE: Chat.
-            IMPORTANT — Your FIRST response should start with a brief acknowledgment (1-2 sentences) confirming you understand the request. This reassures the user that the system is working. Then proceed with your full answer, tool calls, or implementation.
-            """
         case .plan:
             instructions = """
             MODE: Plan.
@@ -37,30 +32,11 @@ extension ChatViewModel {
             Do NOT paste large code blocks into your text response — the user expects files to appear on disk in real time.
             In your text, show only a brief summary of what you wrote (filename, purpose, key changes). The actual code goes through tool calls.
             """
-        case .argue:
-            instructions = """
-            MODE: Argue.
-            IMPORTANT — Your FIRST response must be SHORT (under 150 words). Restate the user's position in your own words to confirm you understand it, then immediately present your strongest counter-argument or alternative. This gives instant feedback that the system is engaged.
-            Continue the debate across follow-up messages. Push back, challenge assumptions, and explore tradeoffs until you converge on the best solution. Do not implement until the debate concludes.
-            """
         case .spec:
             instructions = """
             MODE: Spec.
             IMPORTANT — Your FIRST response must be SHORT (under 150 words). Confirm what the user wants to spec out, then present 3-5 structured clarifying questions (numbered, specific, with example answers where helpful). This reassures the user that the system understood their request and is gathering the right context.
             Once the user answers (or says "just go" / "skip"), produce the full detailed spec. Proceed only after gathering enough context.
-            """
-        case .parallel:
-            instructions = """
-            MODE: Parallel.
-            IMPORTANT — Your FIRST response must be SHORT (under 150 words). Acknowledge the task, then briefly outline how you plan to decompose it into parallel subtasks (e.g. "I'll split this into 3 parallel agents: one for X, one for Y, one for Z"). This gives the user immediate confidence that the system is working and shows the orchestration strategy.
-            Then proceed to decompose, assign each subtask to the best-fit model, run them in parallel, and synthesize the results into a single coherent response.
-            """
-        case .speculative:
-            instructions = """
-            MODE: Explore (Speculative Branching).
-            The system will automatically generate 2-3 competing solution approaches in parallel, \
-            evaluate each one, and present the winner. You are one branch of this exploration. \
-            Commit fully to your assigned approach — do not hedge or mention alternatives.
             """
         }
         let antiXML = "\nIMPORTANT: Do NOT output raw XML, function calls, or tool invocation markup (e.g. <execute>, <function>, <tool_call>) in your text response. Use the native tool_calls API mechanism instead. Any XML tool markup in your text will be stripped and may cause unexpected behavior."

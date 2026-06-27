@@ -9,15 +9,6 @@ final class PromptBuildingTests: XCTestCase {
     // MARK: - Mode-Specific Instructions
 
     @MainActor
-    func testStandardMode_containsChatInstructions() {
-        let vm = ChatViewModel()
-        vm.agentMode = .standard
-        let result = vm.prependModeInstructions(to: "BASE")
-        XCTAssertTrue(result.hasSuffix("BASE"))
-        XCTAssertTrue(result.contains("Chat"))
-    }
-
-    @MainActor
     func testPlanMode_containsPlanInstructions() {
         let vm = ChatViewModel()
         vm.agentMode = .plan
@@ -36,27 +27,11 @@ final class PromptBuildingTests: XCTestCase {
     }
 
     @MainActor
-    func testArgueMode_containsDebateInstructions() {
-        let vm = ChatViewModel()
-        vm.agentMode = .argue
-        let result = vm.prependModeInstructions(to: "BASE")
-        XCTAssertTrue(result.contains("Argue"))
-    }
-
-    @MainActor
     func testSpecMode_containsSpecInstructions() {
         let vm = ChatViewModel()
         vm.agentMode = .spec
         let result = vm.prependModeInstructions(to: "BASE")
         XCTAssertTrue(result.contains("spec") || result.contains("Spec"))
-    }
-
-    @MainActor
-    func testParallelMode_containsParallelInstructions() {
-        let vm = ChatViewModel()
-        vm.agentMode = .parallel
-        let result = vm.prependModeInstructions(to: "BASE")
-        XCTAssertTrue(result.contains("Parallel"))
     }
 
     // MARK: - Base Prompt Preserved

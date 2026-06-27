@@ -232,12 +232,15 @@ struct Conversation: Identifiable, Codable, Equatable, Sendable {
 
 /// Published state for a single sub-agent running in parallel mode.
 struct ParallelAgentState: Identifiable, Sendable {
-    let id: String                  // SubAgentTask.id
+    enum SubAgentStatus: String, Sendable {
+        case pending, running, completed, failed
+    }
+    let id: String                  // sub-agent task id
     let agentIndex: Int             // 1-based display index
     let taskDescription: String
     let taskType: TaskType
     let modelName: String
-    var status: SubAgentTask.SubAgentStatus = .pending
+    var status: SubAgentStatus = .pending
     var streamingText: String = ""
     var result: String?
 }

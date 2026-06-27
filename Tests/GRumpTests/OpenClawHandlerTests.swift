@@ -85,11 +85,14 @@ final class OpenClawHandlerTests: XCTestCase {
     // MARK: - Agent Mode Interaction
 
     func testAgentModeDefaultForOpenClaw() {
+        // Clear any persisted mode so we observe the true default (other tests
+        // share UserDefaults.standard and may persist a different mode).
+        UserDefaults.standard.removeObject(forKey: "AgentMode")
         let vm = makeViewModel()
         // OpenClaw messages run through the standard agent loop
         // regardless of the current agent mode
-        XCTAssertEqual(vm.agentMode, .standard,
-                       "Default agent mode should be standard")
+        XCTAssertEqual(vm.agentMode, .plan,
+                       "Default agent mode should be plan")
     }
 
     func testAllAgentModesHaveDisplayNames() {
@@ -104,8 +107,8 @@ final class OpenClawHandlerTests: XCTestCase {
     }
 
     func testAgentModeCount() {
-        XCTAssertEqual(AgentMode.allCases.count, 7,
-                       "Should have exactly 7 agent modes: standard, plan, fullStack, argue, spec, parallel, speculative")
+        XCTAssertEqual(AgentMode.allCases.count, 3,
+                       "Should have exactly 3 agent modes: plan, fullStack, spec")
     }
 
     func testAgentModeToastMessages() {
@@ -117,12 +120,8 @@ final class OpenClawHandlerTests: XCTestCase {
 
     func testAgentModeLogoMoods() {
         // Verify specific mode-mood mappings
-        XCTAssertEqual(AgentMode.standard.logoMood, .neutral)
         XCTAssertEqual(AgentMode.plan.logoMood, .thinking)
         XCTAssertEqual(AgentMode.fullStack.logoMood, .happy)
-        XCTAssertEqual(AgentMode.argue.logoMood, .error)
         XCTAssertEqual(AgentMode.spec.logoMood, .thinking)
-        XCTAssertEqual(AgentMode.parallel.logoMood, .neutral)
-        XCTAssertEqual(AgentMode.speculative.logoMood, .neutral)
     }
 }

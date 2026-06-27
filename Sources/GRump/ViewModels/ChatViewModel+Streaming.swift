@@ -87,11 +87,6 @@ extension ChatViewModel {
         thinkingContent = ""
         isThinking = false
         activeToolCalls = []
-        parallelAgents = []
-        orchestrationPlan = nil
-        synthesisingContent = ""
-        speculativeBranches = []
-        speculativeWinnerIndex = nil
         currentRunCodeChanges = []
 
         // Load temporal intelligence and intent continuity for this run
@@ -102,15 +97,7 @@ extension ChatViewModel {
 
         streamTask?.cancel()
         streamTask = Task {
-            if self.agentMode == .parallel {
-                await self.runParallelAgentLoop(userTask: task)
-            } else if self.agentMode == .speculative {
-                await self.runSpeculativeBranchLoop(userTask: task)
-            } else if self.agentMode == .standard && isSimpleConversationalMessage(task) {
-                await self.runFastReply()
-            } else {
-                await self.runAgentLoop()
-            }
+            await self.runAgentLoop()
             streamTask = nil
             isLoading = false
         }
@@ -148,8 +135,6 @@ extension ChatViewModel {
 
     /// Restart streaming with current conversation state
     func restartStreaming() {
-        orchestrationPlan = nil
-        synthesisingContent = ""
         streamTask?.cancel()
         streamTask = Task {
             await self.runAgentLoop()

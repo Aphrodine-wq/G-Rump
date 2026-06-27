@@ -64,14 +64,14 @@ final class BuildModePromptTests: XCTestCase {
             "Build mode should suppress follow-up suggestions")
     }
 
-    func testFollowUpNotSuppressedInChatMode() {
+    func testFollowUpNotSuppressedInSpecMode() {
         let suggestions = FollowUpGenerator.generate(
             from: "I wrote a function to handle authentication.",
-            agentMode: .standard
+            agentMode: .spec
         )
-        // Chat mode with code keywords should produce suggestions
+        // Spec mode with code keywords should produce suggestions
         XCTAssertFalse(suggestions.isEmpty,
-            "Chat mode with code keywords should produce suggestions")
+            "Spec mode with code keywords should produce suggestions")
     }
 
     func testFollowUpNotSuppressedInPlanMode() {
@@ -98,12 +98,6 @@ final class BuildModePromptTests: XCTestCase {
             "Plan mode should mention planning")
     }
 
-    func testDebateModeDescriptionMentionsDebate() {
-        let desc = AgentMode.argue.description
-        XCTAssertTrue(desc.lowercased().contains("debate") || desc.lowercased().contains("both sides"),
-            "Debate mode should mention debating")
-    }
-
     // MARK: - Build Mode Icon and Color
 
     func testBuildModeHasHammerIcon() {
@@ -128,9 +122,9 @@ final class BuildModePromptTests: XCTestCase {
 
     // MARK: - All Modes Covered
 
-    func testSevenModesExist() {
-        XCTAssertEqual(AgentMode.allCases.count, 7,
-            "Should have 7 modes: Chat, Plan, Build, Debate, Spec, Parallel, Explore")
+    func testThreeModesExist() {
+        XCTAssertEqual(AgentMode.allCases.count, 3,
+            "Should have 3 modes: Plan, Build, Spec")
     }
 
     func testBuildModeIsFullStack() {

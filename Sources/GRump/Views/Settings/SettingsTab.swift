@@ -160,7 +160,5 @@ enum SettingsKeys {
     static let showMenuBarExtra = "ShowMenuBarExtra"
     static let projectMemoryEnabled = "ProjectMemoryEnabled"
     static let semanticMemoryEnabled = "SemanticMemoryEnabled"
-    static let parallelAgentsEnabled = "ParallelAgentsEnabled"
-    static let parallelAgentsMax = "ParallelAgentsMax"
     static let returnToSend = "ReturnToSend"
 }

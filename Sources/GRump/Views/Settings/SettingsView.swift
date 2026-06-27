@@ -52,8 +52,6 @@ struct SettingsView: View {
     @AppStorage(SettingsKeys.showTokenCount) var showTokenCount: Bool = false
     @AppStorage(SettingsKeys.projectMemoryEnabled) var projectMemoryEnabled: Bool = true
     @AppStorage(SettingsKeys.semanticMemoryEnabled) var semanticMemoryEnabled: Bool = true
-    @AppStorage(SettingsKeys.parallelAgentsEnabled) var parallelAgentsEnabled: Bool = false
-    @AppStorage(SettingsKeys.parallelAgentsMax) var parallelAgentsMax: Int = 4
     @AppStorage(SettingsKeys.returnToSend) var returnToSendSetting: Bool = false
     @AppStorage("LineSpacing") var lineSpacingSetting: String = "normal"
     @AppStorage("CodeFont") var codeFontSetting: String = "sf-mono"

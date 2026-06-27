@@ -38,17 +38,13 @@ final class AgentModeTests: XCTestCase {
 
     func testModeCount() {
         // Ensure we don't accidentally drop a mode
-        XCTAssertEqual(AgentMode.allCases.count, 7, "Expected 7 modes: Chat, Plan, Build, Debate, Spec, Parallel, Explore")
+        XCTAssertEqual(AgentMode.allCases.count, 3, "Expected 3 modes: Plan, Build, Spec")
     }
 
     func testModeRawValues() {
-        XCTAssertEqual(AgentMode.standard.rawValue, "standard")
         XCTAssertEqual(AgentMode.plan.rawValue, "plan")
         XCTAssertEqual(AgentMode.fullStack.rawValue, "fullStack")
-        XCTAssertEqual(AgentMode.argue.rawValue, "argue")
         XCTAssertEqual(AgentMode.spec.rawValue, "spec")
-        XCTAssertEqual(AgentMode.parallel.rawValue, "parallel")
-        XCTAssertEqual(AgentMode.speculative.rawValue, "speculative")
     }
 
     // MARK: - Expanded Tests
@@ -102,13 +98,9 @@ final class AgentModeTests: XCTestCase {
     }
 
     func testSpecificDisplayNames() {
-        XCTAssertEqual(AgentMode.standard.displayName, "Chat")
         XCTAssertEqual(AgentMode.plan.displayName, "Plan")
         XCTAssertEqual(AgentMode.fullStack.displayName, "Build")
-        XCTAssertEqual(AgentMode.argue.displayName, "Debate")
         XCTAssertEqual(AgentMode.spec.displayName, "Spec")
-        XCTAssertEqual(AgentMode.parallel.displayName, "Parallel")
-        XCTAssertEqual(AgentMode.speculative.displayName, "Explore")
     }
 
     func testModeFromRawValue() {

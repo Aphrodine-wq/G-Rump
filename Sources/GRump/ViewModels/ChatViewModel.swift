@@ -4,7 +4,7 @@
 // ║                                                              ║
 // ║  Extensions:  +AgentLoop, +Streaming, +ToolExecution,       ║
 // ║  +Messages, +Memory, +Persistence, +PromptBuilding,         ║
-// ║  +Helpers, +UIState, +ExportImport, +ParallelAgents,        ║
+// ║  +Helpers, +UIState, +ExportImport,                         ║
 // ║  +AgentPostRun, +ThinkingParser                             ║
 // ╚══════════════════════════════════════════════════════════════╝
 
@@ -55,16 +55,6 @@ class ChatViewModel: ObservableObject {
     var lspDiagnostics: [String: [LSPDiagnostic]] = [:]
     var lspStatusMessage: String = "Not started"
 
-    // MARK: - Parallel Multi-Agent State
-    /// Active when agentMode == .parallel. Shows per-sub-agent streaming state.
-    @Published var parallelAgents: [ParallelAgentState] = []
-    /// The orchestration plan message shown before agents start.
-    @Published var orchestrationPlan: String?
-    /// The final synthesized response from the orchestrator.
-    @Published var synthesisingContent: String = ""
-
-    private let orchestrator = AgentOrchestrator()
-
     /// Real-time streaming performance metrics (tokens/sec, elapsed, phase).
     let streamMetrics = StreamMetrics()
 
@@ -88,12 +78,6 @@ class ChatViewModel: ObservableObject {
     let intentContinuity = IntentContinuityService()
     /// Tracks code changes made during the current agent run for adversarial review.
     var currentRunCodeChanges: [CodeChange] = []
-
-    // MARK: - Speculative Branching State
-    /// Active when agentMode == .speculative. Shows per-branch state.
-    @Published var speculativeBranches: [SpeculativeBranchState] = []
-    /// Index of the winning branch after evaluation.
-    @Published var speculativeWinnerIndex: Int?
 
     /// Preserved partial response content when a stream error occurs.
     @Published var streamErrorPartialContent: String?
@@ -144,7 +128,7 @@ class ChatViewModel: ObservableObject {
     @Published var systemPrompt: String {
         didSet { UserDefaults.standard.set(systemPrompt, forKey: "SystemPrompt") }
     }
-    /// Agent mode for next message (Plan, Full Stack, Argue, Spec). Per-message override.
+    /// Agent mode for next message (Plan, Build, Spec). Per-message override.
     @Published var agentMode: AgentMode {
         didSet { UserDefaults.standard.set(agentMode.rawValue, forKey: "AgentMode") }
     }
@@ -257,8 +241,8 @@ class ChatViewModel: ObservableObject {
         let migratedModel = Self.migrateLegacyModelID(savedModel)
         self.selectedModel = AIModel(rawValue: migratedModel) ?? .qwenCoderPlus
         self.systemPrompt = UserDefaults.standard.string(forKey: "SystemPrompt") ?? GRumpDefaults.defaultSystemPrompt
-        let savedMode = UserDefaults.standard.string(forKey: "AgentMode") ?? AgentMode.standard.rawValue
-        self.agentMode = AgentMode(rawValue: savedMode) ?? .standard
+        let savedMode = UserDefaults.standard.string(forKey: "AgentMode") ?? AgentMode.plan.rawValue
+        self.agentMode = AgentMode(rawValue: savedMode) ?? .plan
         self.workingDirectory = UserDefaults.standard.string(forKey: "WorkingDirectory") ?? ""
         self.projectConfig = ProjectConfig.load(from: self.workingDirectory)
         if !self.workingDirectory.isEmpty {

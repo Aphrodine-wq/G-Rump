@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Behavior Settings Tab View
-// Contains: behaviorSection (System Prompt, Agent, Input, Parallel Agents), routingRow
+// Contains: behaviorSection (System Prompt, Agent, Input)
 // Extracted from Settings+TabViews.swift for maintainability.
 
 extension SettingsView {
@@ -72,69 +72,6 @@ extension SettingsView {
                         .foregroundColor(.textMuted)
                 }
             }
-            settingsCard {
-                VStack(alignment: .leading, spacing: Spacing.xxl) {
-                    sectionTitle("Parallel Agents", icon: "arrow.triangle.branch", accent: themeManager.accentColor)
-                    Text("When enabled, selecting Parallel mode decomposes complex tasks into concurrent sub-agents, each auto-routed to the optimal model for its task type. Results stream inline and are synthesized into a final response.")
-                        .font(Typography.bodySmall)
-                        .foregroundColor(.textMuted)
-
-                    Toggle("Enable Parallel Agent Mode", isOn: $parallelAgentsEnabled)
-
-                    if parallelAgentsEnabled {
-                        Divider()
-                        HStack(spacing: Spacing.xl) {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text("Max concurrent agents")
-                                    .font(Typography.bodySmallMedium)
-                                    .foregroundColor(.textPrimary)
-                                Text("How many sub-agents can run simultaneously per wave.")
-                                    .font(Typography.captionSmall)
-                                    .foregroundColor(.textMuted)
-                            }
-                            Spacer()
-                            Stepper(value: $parallelAgentsMax, in: 2...5, step: 1) {
-                                Text("\(parallelAgentsMax)")
-                                    .font(Typography.bodySmall)
-                                    .foregroundColor(.textSecondary)
-                                    .frame(minWidth: 20, alignment: .trailing)
-                            }
-                        }
-                        Divider()
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text("Model routing")
-                                .font(Typography.bodySmallMedium)
-                                .foregroundColor(.textPrimary)
-                            VStack(alignment: .leading, spacing: 4) {
-                                routingRow(type: "Reasoning / Planning", model: "DeepSeek R1", icon: "brain")
-                                routingRow(type: "File Ops / Search", model: "Gemini 2.5 Flash", icon: "doc.text")
-                                routingRow(type: "Code Generation", model: "Qwen3 Coder 480B", icon: "chevron.left.forwardslash.chevron.right")
-                                routingRow(type: "Synthesis / Writing", model: "Claude 3.7 Sonnet", icon: "arrow.triangle.merge")
-                                routingRow(type: "Web / Research", model: "Gemini 2.5 Flash", icon: "globe")
-                            }
-                            .padding(Spacing.lg)
-                            .background(themeManager.palette.bgInput)
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    func routingRow(type: String, model: String, icon: String) -> some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 11))
-                .foregroundColor(.textMuted)
-                .frame(width: 16)
-            Text(type)
-                .font(Typography.captionSmall)
-                .foregroundColor(.textSecondary)
-            Spacer()
-            Text(model)
-                .font(Typography.captionSmall)
-                .foregroundColor(themeManager.palette.effectiveAccentLightVariant)
         }
     }
 }

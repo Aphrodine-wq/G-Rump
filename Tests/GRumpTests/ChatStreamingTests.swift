@@ -168,23 +168,6 @@ final class ChatStreamingTests: XCTestCase {
                        "Complex tasks should not be simple")
     }
 
-    // MARK: - Parallel Agent State
-
-    func testParallelAgentsInitiallyEmpty() {
-        let vm = makeViewModel()
-        XCTAssertTrue(vm.parallelAgents.isEmpty)
-        XCTAssertNil(vm.orchestrationPlan)
-        XCTAssertEqual(vm.synthesisingContent, "")
-    }
-
-    // MARK: - Speculative Branching State
-
-    func testSpeculativeBranchesInitiallyEmpty() {
-        let vm = makeViewModel()
-        XCTAssertTrue(vm.speculativeBranches.isEmpty)
-        XCTAssertNil(vm.speculativeWinnerIndex)
-    }
-
     // MARK: - Code Changes Tracking
 
     func testCurrentRunCodeChangesInitiallyEmpty() {

@@ -202,19 +202,19 @@ final class ChatInputIntegrationTests: XCTestCase {
 
     func testFollowUpSuggestionsAfterCodeResponse() {
         let assistantMessage = "Here's the implementation:\n```swift\nfunc hello() { }\n```"
-        let suggestions = FollowUpGenerator.generate(from: assistantMessage, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: assistantMessage, agentMode: .spec)
         XCTAssertFalse(suggestions.isEmpty, "Should produce follow-up suggestions after code response")
     }
 
     func testFollowUpSuggestionsAfterErrorResponse() {
         let assistantMessage = "There was an error compiling the file."
-        let suggestions = FollowUpGenerator.generate(from: assistantMessage, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: assistantMessage, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.category == .fix || $0.category == .explain }))
     }
 
     func testFollowUpSuggestionsAfterPlainResponse() {
         let assistantMessage = "Sure, I can help with that."
-        let suggestions = FollowUpGenerator.generate(from: assistantMessage, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: assistantMessage, agentMode: .spec)
         XCTAssertTrue(suggestions.isEmpty, "Plain messages should not generate fallback suggestions")
     }
 
