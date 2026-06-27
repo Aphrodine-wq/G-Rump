@@ -144,9 +144,9 @@ class ChatViewModel: ObservableObject {
     }
 
     // New multi-provider system
-    @Published var aiService = MultiProviderAIService()
+    @Published var aiService = QwenAIService()
 
-    let openRouterService = OpenRouterService()
+    let qwenService = QwenService()
     let activityStore = ActivityStore()
     internal var streamTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
@@ -220,7 +220,7 @@ class ChatViewModel: ObservableObject {
 
     init() {
         // Initialize AI service
-        self.aiService = MultiProviderAIService()
+        self.aiService = QwenAIService()
 
         // Load the Qwen API key, migrating any key from the old provider account.
         if let key = KeychainStorage.get(account: "QwenAPIKey") {

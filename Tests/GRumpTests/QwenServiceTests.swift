@@ -1,8 +1,8 @@
 import XCTest
 @testable import GRump
 
-/// Unit tests for the Qwen transport (class still named `OpenRouterService`,
-/// but it now targets Alibaba DashScope's OpenAI-compatible endpoint).
+/// Unit tests for the Qwen transport (`QwenService`), which targets
+/// Alibaba DashScope's OpenAI-compatible endpoint.
 ///
 /// We exercise the reachable public/internal surface: `buildRequest(...)` is
 /// internal, so `@testable import` lets us build a real `URLRequest` and inspect
@@ -25,7 +25,7 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - URL targets DashScope
 
     func testRequestTargetsDashScopeHost() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
@@ -41,7 +41,7 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - Authorization header
 
     func testRequestHasBearerAuthorizationHeader() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
@@ -57,7 +57,7 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - Body shape: tool_choice + tools, no OpenRouter/Anthropic fields
 
     func testBodyHasToolChoiceAutoAndToolsArray() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let tools: [[String: Any]] = [[
             "type": "function",
             "function": ["name": "read_file", "description": "read", "parameters": ["type": "object"]],
@@ -78,7 +78,7 @@ final class QwenServiceTests: XCTestCase {
     }
 
     func testBodyDoesNotContainOpenRouterOrAnthropicFields() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
@@ -102,7 +102,7 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - Missing API key path
 
     func testBuildRequestThrowsOnEmptyAPIKey() {
-        let service = OpenRouterService()
+        let service = QwenService()
         XCTAssertThrowsError(
             try service.buildRequest(
                 messages: sampleMessages(),
@@ -112,7 +112,7 @@ final class QwenServiceTests: XCTestCase {
                 tools: nil
             )
         ) { error in
-            guard case OpenRouterService.ServiceError.missingAPIKey = error else {
+            guard case QwenService.ServiceError.missingAPIKey = error else {
                 return XCTFail("Expected .missingAPIKey, got \(error)")
             }
         }

@@ -196,7 +196,7 @@ final class WritingToolsService: ObservableObject {
         let systemMsg = Message(role: .system, content: "You are a precise writing assistant. Respond only with the requested text, no explanations or preamble.")
         let userMsg = Message(role: .user, content: prompt)
         let messages = [systemMsg, userMsg]
-        let service = OpenRouterService()
+        let service = QwenService()
         let stream = service.streamMessage(messages: messages, apiKey: apiKey, model: modelId)
 
         var accumulated = ""

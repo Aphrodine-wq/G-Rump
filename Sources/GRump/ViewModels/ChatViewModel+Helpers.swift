@@ -259,7 +259,7 @@ extension ChatViewModel {
             default: return "Network error: \(urlError.localizedDescription)"
             }
         }
-        if let serviceError = error as? OpenRouterService.ServiceError {
+        if let serviceError = error as? QwenService.ServiceError {
             if case .apiError(let code, let msg) = serviceError {
                 if code == 503 { return "Service temporarily unavailable. Please retry in a moment." }
                 if code == 429 { return "Rate limit reached. Please wait a moment and try again." }

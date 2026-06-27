@@ -1,10 +1,10 @@
 import XCTest
 @testable import GRump
 
-final class OpenRouterServiceTests: XCTestCase {
+final class QwenServiceTransportTests: XCTestCase {
 
     func testBuildRequestContainsMessagesModelStreamAndTools() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [
             Message(role: .system, content: "You are helpful."),
             Message(role: .user, content: "Hi"),
@@ -32,17 +32,17 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testBuildRequestThrowsWhenAPIKeyEmpty() {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         XCTAssertThrowsError(try service.buildRequest(messages: messages, apiKey: "", model: "m", stream: true)) { error in
-            XCTAssertTrue(error is OpenRouterService.ServiceError)
+            XCTAssertTrue(error is QwenService.ServiceError)
         }
     }
 
     // MARK: - Request Headers
 
     func testBuildRequestHasContentTypeHeader() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
@@ -50,7 +50,7 @@ final class OpenRouterServiceTests: XCTestCase {
 
     func testBuildRequestHasNoRefererHeader() throws {
         // DashScope build drops the OpenRouter HTTP-Referer routing hint.
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
         XCTAssertNil(request.value(forHTTPHeaderField: "HTTP-Referer"))
@@ -58,7 +58,7 @@ final class OpenRouterServiceTests: XCTestCase {
 
     func testBuildRequestHasNoPlatformHeader() throws {
         // DashScope build drops the OpenRouter X-Client-Platform routing hint.
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
         XCTAssertNil(request.value(forHTTPHeaderField: "X-Client-Platform"))
@@ -67,7 +67,7 @@ final class OpenRouterServiceTests: XCTestCase {
     // MARK: - Request Body
 
     func testBuildRequestStreamFalse() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Test")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
         let body = try XCTUnwrap(request.httpBody)
@@ -76,7 +76,7 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testBuildRequestContainsMaxTokens() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Test")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "test/model", stream: true)
         let body = try XCTUnwrap(request.httpBody)
@@ -85,7 +85,7 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testBuildRequestContainsTemperature() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Test")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "test/model", stream: true)
         let body = try XCTUnwrap(request.httpBody)
@@ -94,7 +94,7 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testBuildRequestContainsToolChoice() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Test")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: true)
         let body = try XCTUnwrap(request.httpBody)
@@ -105,7 +105,7 @@ final class OpenRouterServiceTests: XCTestCase {
     // MARK: - Message Serialization
 
     func testAssistantMessageWithToolCallsSerialized() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         var msg = Message(role: .assistant, content: "")
         msg.toolCalls = [ToolCall(id: "tc1", name: "read_file", arguments: "{\"path\":\"/test\"}")]
         let messages = [msg]
@@ -118,7 +118,7 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testToolMessageSerialized() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         var msg = Message(role: .tool, content: "file contents here")
         msg.toolCallId = "tc1"
         let messages = [msg]
@@ -133,7 +133,7 @@ final class OpenRouterServiceTests: XCTestCase {
     // MARK: - Backend Request
 
     func testBuildBackendRequestURL() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildBackendRequest(
             messages: messages, model: "m", stream: true,
@@ -144,7 +144,7 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testBuildBackendRequestAuth() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildBackendRequest(
             messages: messages, model: "m", stream: true,
@@ -154,7 +154,7 @@ final class OpenRouterServiceTests: XCTestCase {
     }
 
     func testBuildBackendRequestTrimsTrailingSlash() throws {
-        let service = OpenRouterService()
+        let service = QwenService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildBackendRequest(
             messages: messages, model: "m", stream: true,
@@ -167,23 +167,23 @@ final class OpenRouterServiceTests: XCTestCase {
     // MARK: - ServiceError
 
     func testServiceErrorMissingAPIKey() {
-        let error = OpenRouterService.ServiceError.missingAPIKey
+        let error = QwenService.ServiceError.missingAPIKey
         XCTAssertNotNil(error.errorDescription)
     }
 
     func testServiceErrorNetwork() {
-        let error = OpenRouterService.ServiceError.networkError
+        let error = QwenService.ServiceError.networkError
         XCTAssertNotNil(error.errorDescription)
     }
 
     func testServiceErrorAPIError() {
-        let error = OpenRouterService.ServiceError.apiError(statusCode: 429, message: "Rate limited")
+        let error = QwenService.ServiceError.apiError(statusCode: 429, message: "Rate limited")
         XCTAssertNotNil(error.errorDescription)
         XCTAssertTrue(error.errorDescription?.contains("429") ?? false)
     }
 
     func testServiceErrorInvalidResponse() {
-        let error = OpenRouterService.ServiceError.invalidResponse
+        let error = QwenService.ServiceError.invalidResponse
         XCTAssertNotNil(error.errorDescription)
     }
 }

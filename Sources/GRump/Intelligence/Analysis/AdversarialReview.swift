@@ -166,7 +166,7 @@ final class AdversarialReviewEngine: ObservableObject {
     @Published private(set) var isReviewing = false
     @Published private(set) var lastReport: AdversarialReviewReport?
 
-    private let openRouterService = OpenRouterService()
+    private let qwenService = QwenService()
     private let logger = GRumpLogger.general
 
     /// Whether adversarial review is enabled (user toggle).
@@ -249,7 +249,7 @@ final class AdversarialReviewEngine: ObservableObject {
             let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if !backendURL.isEmpty {
-                let stream = openRouterService.streamMessageViaBackend(
+                let stream = qwenService.streamMessageViaBackend(
                     messages: messages,
                     model: reviewModelId,
                     backendBaseURL: backendURL,
@@ -259,7 +259,7 @@ final class AdversarialReviewEngine: ObservableObject {
                     if case .text(let chunk) = event { fullResponse += chunk }
                 }
             } else {
-                let stream = openRouterService.streamMessage(
+                let stream = qwenService.streamMessage(
                     messages: messages,
                     apiKey: apiKey,
                     model: reviewModelId

@@ -2,10 +2,10 @@ import Foundation
 
 // MARK: - Qwen Service
 // Qwen Cloud (Alibaba DashScope) OpenAI-compatible endpoint.
-// Class name kept as OpenRouterService for now to avoid churning call sites
-// and tests; this is the single Qwen transport (tool-call-complete buildBody).
+// The single Qwen transport (tool-call-complete buildBody): direct DashScope
+// calls or via the slim backend proxy.
 
-class OpenRouterService {
+class QwenService {
     // Qwen DashScope OpenAI-compatible chat-completions endpoint. Override the
     // base via the `QwenBaseURL` UserDefaults key (e.g. the mainland host
     // https://dashscope.aliyuncs.com/compatible-mode/v1) without a rebuild.
@@ -272,7 +272,7 @@ enum SSELineParser {
             }
         }
         if !sawEvent {
-            throw OpenRouterService.ServiceError.invalidResponse
+            throw QwenService.ServiceError.invalidResponse
         }
     }
 

@@ -15,7 +15,7 @@ extension ChatViewModel {
         let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if !backendURL.isEmpty {
-            return openRouterService.streamMessageViaBackend(
+            return qwenService.streamMessageViaBackend(
                 messages: messages,
                 model: effectiveModel.rawValue,
                 backendBaseURL: backendURL,
