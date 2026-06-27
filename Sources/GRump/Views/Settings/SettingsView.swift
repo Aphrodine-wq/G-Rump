@@ -289,8 +289,6 @@ struct SettingsView: View {
                 toolsSection
             case .mcp:
                 mcpSection
-            case .openClaw:
-                OpenClawSettingsView()
             case .skills:
                 skillsSettingsSection
             case .soul:

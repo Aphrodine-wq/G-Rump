@@ -149,8 +149,6 @@ class ChatViewModel: ObservableObject {
     let openRouterService = OpenRouterService()
     let activityStore = ActivityStore()
     internal var streamTask: Task<Void, Never>?
-    /// The OpenClaw session ID currently being processed, if any.
-    internal var activeOpenClawSessionId: String?
     private var cancellables = Set<AnyCancellable>()
     var syncDebounceTask: Task<Void, Never>?
     var syncDirty = false
@@ -297,21 +295,6 @@ class ChatViewModel: ObservableObject {
         activityStore.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
-            .store(in: &cancellables)
-
-        // Subscribe to OpenClaw messages from the gateway
-        NotificationCenter.default.publisher(for: .openClawMessageReceived)
-            .receive(on: RunLoop.main)
-            .sink { [weak self] notification in
-                guard let self,
-                      let userInfo = notification.userInfo,
-                      let sessionId = userInfo["sessionId"] as? String,
-                      let content = userInfo["content"] as? String else { return }
-                let model = userInfo["model"] as? String
-                Task { @MainActor in
-                    await self.handleOpenClawMessage(sessionId: sessionId, content: content, model: model)
-                }
-            }
             .store(in: &cancellables)
     }
 

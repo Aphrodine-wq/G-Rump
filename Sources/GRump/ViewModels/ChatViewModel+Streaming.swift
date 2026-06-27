@@ -7,8 +7,7 @@ extension ChatViewModel {
 
     /// Creates a streaming connection using the appropriate provider.
     /// Routes through the slim backend proxy when a BackendURL is configured,
-    /// otherwise calls Qwen directly with the user's own API key. This eliminates
-    /// duplicated if/else blocks across `runAgentLoop()` and `handleOpenClawMessage()`.
+    /// otherwise calls Qwen directly with the user's own API key.
     func createProviderStream(
         messages: [Message],
         tools: [[String: Any]]
@@ -144,68 +143,6 @@ extension ChatViewModel {
             await self.runAgentLoop()
             streamTask = nil
             isLoading = false
-        }
-    }
-
-    // MARK: - OpenClaw Message Handling
-
-    /// Process an incoming message from the OpenClaw gateway.
-    /// Routes it through the normal agent loop and streams the response back.
-    func handleOpenClawMessage(sessionId: String, content: String, model: String?) async {
-        // Don't interrupt an active generation
-        guard !isLoading else {
-            await OpenClawService.shared.sendResponse(
-                sessionId: sessionId,
-                content: "G-Rump is busy with another task. Please wait.",
-                done: true
-            )
-            return
-        }
-
-        activeOpenClawSessionId = sessionId
-
-        // Inject the message into the conversation
-        let userMessage = Message(role: .user, content: content)
-        if currentConversation == nil { createNewConversation() }
-        currentConversation?.messages.append(userMessage)
-        currentConversation?.updateTitle()
-        syncConversation()
-
-        // If the caller requested a specific model, try to select it
-        if let modelId = model, let aiModel = AIModel(rawValue: modelId) {
-            selectedModel = aiModel
-        }
-
-        // Run the agent loop (reuses the same streaming pipeline as normal chat)
-        isLoading = true
-        isPaused = false
-        errorMessage = nil
-        streamingContent = ""
-        activeToolCalls = []
-        currentRunCodeChanges = []
-
-        streamTask?.cancel()
-        streamTask = Task {
-            await self.runAgentLoop()
-            streamTask = nil
-            isLoading = false
-
-            // Send the final assistant response back to OpenClaw
-            let responseContent: String
-            if let lastAssistant = self.currentConversation?.messages.last(where: { $0.role == .assistant }) {
-                responseContent = lastAssistant.content
-            } else if let err = self.errorMessage {
-                responseContent = "Error: \(err)"
-            } else {
-                responseContent = "No response generated."
-            }
-
-            await OpenClawService.shared.sendResponse(
-                sessionId: sessionId,
-                content: responseContent,
-                done: true
-            )
-            self.activeOpenClawSessionId = nil
         }
     }
 }
