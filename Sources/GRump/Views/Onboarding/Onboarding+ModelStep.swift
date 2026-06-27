@@ -28,32 +28,14 @@ extension OnboardingView {
 
             ScrollView {
                 LazyVStack(spacing: Spacing.md) {
-                    // Show models for the selected provider
-                    let providerModels = AIModelRegistry.shared.getModels(for: selectedOnboardingProvider)
+                    // Qwen-only: show the available Qwen models.
+                    let providerModels = AIModelRegistry.shared.getModels(for: .qwen)
 
                     if !providerModels.isEmpty {
-                        providerSectionHeader(selectedOnboardingProvider.displayName, icon: providerIconName(selectedOnboardingProvider))
+                        providerSectionHeader(AIProvider.qwen.displayName, icon: providerIconName(.qwen))
                         ForEach(providerModels, id: \.id) { model in
                             enhancedModelCard(model)
                         }
-                    }
-
-                    // Also show legacy models if OpenRouter is selected
-                    if selectedOnboardingProvider == .openRouter {
-                        let models = AIModel.modelsForTier(viewModel.platformUser?.tier)
-                        let freeModels = models.filter { $0.tier == "Free" }
-                        if !freeModels.isEmpty {
-                            providerSectionHeader("Free Models", icon: "gift")
-                            ForEach(freeModels) { model in
-                                modelCard(model)
-                            }
-                        }
-                    }
-
-                    // Other providers teaser
-                    if selectedOnboardingProvider.requiresAPIKey {
-                        providerSectionHeader("Local Options", icon: "desktopcomputer")
-                        otherProvidersTeaser
                     }
                 }
                 .padding(.horizontal, Spacing.huge)
@@ -65,12 +47,7 @@ extension OnboardingView {
 
     func providerIconName(_ provider: AIProvider) -> String {
         switch provider {
-        case .anthropic: return "sparkles"
-        case .openAI: return "brain"
-        case .openRouter: return "globe"
-        case .google: return "globe.americas"
-        case .ollama: return "desktopcomputer"
-        case .onDevice: return "apple.logo"
+        case .qwen: return "sparkles"
         }
     }
 

@@ -8,7 +8,6 @@ extension SettingsView {
     // MARK: - Providers Section
 
     var providersSection: some View {
-        let isPaid = platformUser?.tier == "pro" || platformUser?.tier == "team"
         let registry = AIModelRegistry.shared
 
         return HStack(alignment: .top, spacing: 0) {
@@ -26,190 +25,14 @@ extension SettingsView {
 
             ScrollView {
                 settingsCard {
-                    switch selectedProvider {
-                    case .openRouter:
-                        providerBlock(
-                            provider: .openRouter,
-                            subtitle: isPaid
-                                ? "Pro models available on your plan."
-                                : "Upgrade to Pro/Team for flagship models.",
-                            registry: registry
-                        ) {
-                            let availableModels = AIModel.modelsForTier(platformUser?.tier)
-                            ForEach(availableModels) { model in
-                                modelRow(model)
-                            }
-                        }
-                    case .openAI:
-                        providerBlock(
-                            provider: .openAI,
-                            subtitle: "Direct access to Codex 5.3, GPT-4o, o3, o4 Mini, and more.",
-                            registry: registry
-                        ) {
-                            ForEach(registry.getModels(for: .openAI), id: \.id) { model in
-                                enhancedModelRow(model)
-                            }
-                        }
-                    case .anthropic:
-                        providerBlock(
-                            provider: .anthropic,
-                            subtitle: "Direct access to Claude Opus 4.6, Sonnet 4.6, Haiku 3.5.",
-                            registry: registry
-                        ) {
-                            ForEach(registry.getModels(for: .anthropic), id: \.id) { model in
-                                enhancedModelRow(model)
-                            }
-                        }
-                    case .google:
-                        providerBlock(
-                            provider: .google,
-                            subtitle: "Direct access to Gemini 3.1 Pro and Flash.",
-                            registry: registry
-                        ) {
-                            ForEach(registry.getModels(for: .google), id: \.id) { model in
-                                enhancedModelRow(model)
-                            }
-                        }
-                    case .ollama:
-                        providerBlock(
-                            provider: .ollama,
-                            subtitle: "Run models locally. No API key needed.",
-                            registry: registry
-                        ) {
-                            let models = registry.getModels(for: .ollama)
-                            let installedNames = Set(models.map(\.modelID))
-
-                            HStack(spacing: Spacing.md) {
-                                Circle()
-                                    .fill(ollamaDetected ? Color.accentGreen : Color.accentOrange)
-                                    .frame(width: 8, height: 8)
-                                Text(ollamaDetected ? "Ollama detected" : "Ollama not detected")
-                                    .font(Typography.captionSmallSemibold)
-                                    .foregroundColor(ollamaDetected ? .accentGreen : .textMuted)
-                            }
-
-                            if let status = ollamaStatusMessage {
-                                Text(status)
-                                    .font(Typography.captionSmall)
-                                    .foregroundColor(.textMuted)
-                            }
-
-                            if models.isEmpty {
-                                Text("No Ollama models found locally yet.")
-                                    .font(Typography.captionSmall)
-                                    .foregroundColor(.textMuted)
-                            } else {
-                                ForEach(models, id: \.id) { model in
-                                    enhancedModelRow(model)
-                                }
-                            }
-
-                            if ollamaDetected {
-                                Divider()
-
-                                VStack(alignment: .leading, spacing: Spacing.md) {
-                                    Text("Quick downloads")
-                                        .font(Typography.captionSmallSemibold)
-                                        .foregroundColor(.textSecondary)
-
-                                    ForEach(ollamaQuickModels, id: \.name) { quickModel in
-                                        HStack(spacing: Spacing.lg) {
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(quickModel.label)
-                                                    .font(Typography.bodySmallSemibold)
-                                                    .foregroundColor(.textPrimary)
-                                                Text(quickModel.name)
-                                                    .font(Typography.codeSmall)
-                                                    .foregroundColor(.textMuted)
-                                            }
-                                            Spacer()
-                                            if installedNames.contains(quickModel.name) {
-                                                Text("Installed")
-                                                    .font(Typography.microSemibold)
-                                                    .foregroundColor(.accentGreen)
-                                            } else {
-                                                Button {
-                                                    Task { await downloadOllamaModel(quickModel.name, using: registry) }
-                                                } label: {
-                                                    if ollamaPullingModels.contains(quickModel.name) {
-                                                        ProgressView()
-                                                            .controlSize(.small)
-                                                    } else {
-                                                        Text("Download")
-                                                            .font(Typography.captionSmallSemibold)
-                                                    }
-                                                }
-                                                .buttonStyle(.bordered)
-                                                .disabled(ollamaPullingModels.contains(quickModel.name))
-                                            }
-                                        }
-                                        .padding(Spacing.lg)
-                                        .background(themeManager.palette.bgInput)
-                                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                                    }
-                                }
-                            }
-
-                            Button {
-                                Task { await refreshOllamaStatus(using: registry) }
-                            } label: {
-                                HStack(spacing: Spacing.sm) {
-                                    if ollamaRefreshing {
-                                        ProgressView()
-                                            .controlSize(.small)
-                                    }
-                                    Text("Detect & refresh")
-                                        .font(Typography.captionSmallSemibold)
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(ollamaRefreshing)
-                        }
-                    case .onDevice:
-                        providerBlock(
-                            provider: .onDevice,
-                            subtitle: "Apple Silicon inference via Core ML — zero network, zero telemetry.",
-                            registry: registry
-                        ) {
-                            let models = registry.getModels(for: .onDevice)
-                            if models.isEmpty {
-                                Text("No on-device models downloaded yet. Use the catalog below.")
-                                    .font(Typography.captionSmall)
-                                    .foregroundColor(.textMuted)
-                            } else {
-                                ForEach(models, id: \.id) { model in
-                                    enhancedModelRow(model)
-                                }
-                            }
-
-                            Divider()
-
-                            HStack(spacing: Spacing.md) {
-                                Image(systemName: "memorychip")
-                                    .foregroundColor(themeManager.palette.effectiveAccent)
-                                Text("\(coreMLRegistry.systemRAMGB) GB RAM detected")
-                                    .font(Typography.captionSmallSemibold)
-                                    .foregroundColor(.textSecondary)
-                                Text("— recommended: \(coreMLRegistry.recommendedQuantLevel()) quantization")
-                                    .font(Typography.captionSmall)
-                                    .foregroundColor(.textMuted)
-                            }
-
-                            ForEach(CoreMLModelCatalogEntry.Category.allCases, id: \.self) { category in
-                                let entries = CoreMLModelRegistryService.catalog.filter { $0.category == category }
-                                if !entries.isEmpty {
-                                    VStack(alignment: .leading, spacing: Spacing.md) {
-                                        Text(category.rawValue)
-                                            .font(Typography.captionSmallSemibold)
-                                            .foregroundColor(.textSecondary)
-                                            .padding(.top, Spacing.sm)
-
-                                        ForEach(entries) { entry in
-                                            coreMLModelRow(entry: entry)
-                                        }
-                                    }
-                                }
-                            }
+                    // Qwen is the only provider. One API key + the Qwen model list.
+                    providerBlock(
+                        provider: .qwen,
+                        subtitle: "Direct access to Qwen Coder Plus, Max, Plus, and Turbo via Qwen Cloud (DashScope).",
+                        registry: registry
+                    ) {
+                        ForEach(registry.getModels(for: .qwen), id: \.id) { model in
+                            enhancedModelRow(model)
                         }
                     }
                 }
@@ -223,7 +46,6 @@ extension SettingsView {
                 providerAPIKeys[provider.rawValue] = config?.apiKey ?? ""
                 providerBaseURLs[provider.rawValue] = config?.baseURL ?? provider.defaultBaseURL
             }
-            Task { await refreshOllamaStatus(using: registry) }
         }
     }
 
@@ -306,7 +128,7 @@ extension SettingsView {
             if provider.requiresAPIKey {
                 Divider()
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    Text("API Key")
+                    Text("Qwen / DashScope API Key")
                         .font(Typography.captionSemibold)
                         .foregroundColor(.textSecondary)
                     HStack(spacing: Spacing.md) {
@@ -348,47 +170,7 @@ extension SettingsView {
 
     func providerIcon(_ provider: AIProvider) -> String {
         switch provider {
-        case .openRouter: return "globe"
-        case .openAI: return "brain"
-        case .anthropic: return "sparkles"
-        case .google: return "globe.americas"
-        case .ollama: return "desktopcomputer"
-        case .onDevice: return "apple.logo"
-        }
-    }
-
-    @MainActor
-    func refreshOllamaStatus(using registry: AIModelRegistry) async {
-        ollamaRefreshing = true
-        defer { ollamaRefreshing = false }
-
-        let detected = await registry.isOllamaRunning()
-        ollamaDetected = detected
-
-        if detected {
-            _ = await registry.refreshOllamaModels()
-            if registry.getModels(for: .ollama).isEmpty {
-                ollamaStatusMessage = "Ollama is running, but no models are installed yet. Use Quick downloads below."
-            } else {
-                ollamaStatusMessage = nil
-            }
-        } else {
-            ollamaStatusMessage = "Start Ollama locally, then press Detect & refresh."
-        }
-    }
-
-    @MainActor
-    func downloadOllamaModel(_ modelName: String, using registry: AIModelRegistry) async {
-        guard !ollamaPullingModels.contains(modelName) else { return }
-        ollamaPullingModels.insert(modelName)
-        defer { ollamaPullingModels.remove(modelName) }
-
-        do {
-            try await registry.pullOllamaModel(modelName)
-            ollamaStatusMessage = "Downloaded \(modelName)."
-            await refreshOllamaStatus(using: registry)
-        } catch {
-            ollamaStatusMessage = "Failed to download \(modelName): \(error.localizedDescription)"
+        case .qwen: return "sparkles"
         }
     }
 
@@ -428,137 +210,4 @@ extension SettingsView {
             .stroke(themeManager.palette.borderCrisp.opacity(0.3), lineWidth: Border.thin))
     }
 
-    // MARK: - Core ML Model Row
-
-    func coreMLModelRow(entry: CoreMLModelCatalogEntry) -> some View {
-        let state = coreMLRegistry.state(for: entry.id)
-        let tooLarge = coreMLRegistry.isModelTooLarge(entry)
-
-        return HStack(spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: Spacing.sm) {
-                    Text(entry.name)
-                        .font(Typography.bodySmallSemibold)
-                        .foregroundColor(.textPrimary)
-                    if tooLarge {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(.accentOrange)
-                            .help("May exceed available RAM (\(entry.recommendedRAMGB) GB recommended)")
-                    }
-                }
-                Text("\(entry.description)")
-                    .font(Typography.captionSmall)
-                    .foregroundColor(.textMuted)
-                    .lineLimit(1)
-                HStack(spacing: Spacing.md) {
-                    Text(entry.parameterCount)
-                        .font(Typography.micro)
-                        .foregroundColor(.textMuted)
-                    Text("·")
-                        .font(Typography.micro)
-                        .foregroundColor(.textMuted)
-                    Text(entry.quantization)
-                        .font(Typography.micro)
-                        .foregroundColor(.textMuted)
-                    Text("·")
-                        .font(Typography.micro)
-                        .foregroundColor(.textMuted)
-                    Text(entry.sizeFormatted)
-                        .font(Typography.micro)
-                        .foregroundColor(.textMuted)
-                }
-            }
-            Spacer()
-
-            switch state {
-            case .notDownloaded:
-                Button {
-                    coreMLRegistry.downloadModel(entry)
-                } label: {
-                    Text("Download")
-                        .font(Typography.captionSmallSemibold)
-                }
-                .buttonStyle(.bordered)
-
-            case .downloading(let progress, let bytesReceived, let totalBytes):
-                HStack(spacing: Spacing.md) {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        ProgressView(value: progress)
-                            .frame(width: 80)
-                        Text("\(ByteCountFormatter.string(fromByteCount: bytesReceived, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file))")
-                            .font(Typography.micro)
-                            .foregroundColor(.textMuted)
-                    }
-                    Button {
-                        coreMLRegistry.pauseDownload(entry.id)
-                    } label: {
-                        Image(systemName: "pause.fill")
-                            .font(.system(size: 10))
-                    }
-                    .buttonStyle(.bordered)
-                    Button {
-                        coreMLRegistry.cancelDownload(entry.id)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10))
-                    }
-                    .buttonStyle(.bordered)
-                }
-
-            case .paused(let bytesReceived, let totalBytes):
-                HStack(spacing: Spacing.md) {
-                    Text("Paused (\(ByteCountFormatter.string(fromByteCount: bytesReceived, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file)))")
-                        .font(Typography.micro)
-                        .foregroundColor(.textMuted)
-                    Button {
-                        coreMLRegistry.downloadModel(entry)
-                    } label: {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 10))
-                    }
-                    .buttonStyle(.bordered)
-                    Button {
-                        coreMLRegistry.cancelDownload(entry.id)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10))
-                    }
-                    .buttonStyle(.bordered)
-                }
-
-            case .downloaded:
-                HStack(spacing: Spacing.md) {
-                    Text("Installed")
-                        .font(Typography.microSemibold)
-                        .foregroundColor(.accentGreen)
-                    Button(role: .destructive) {
-                        coreMLRegistry.deleteModel(entry)
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 10))
-                    }
-                    .buttonStyle(.bordered)
-                }
-
-            case .error(let message):
-                HStack(spacing: Spacing.md) {
-                    Text(message)
-                        .font(Typography.micro)
-                        .foregroundColor(.red)
-                        .lineLimit(1)
-                    Button {
-                        coreMLRegistry.downloadModel(entry)
-                    } label: {
-                        Text("Retry")
-                            .font(Typography.captionSmallSemibold)
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-        }
-        .padding(Spacing.lg)
-        .background(themeManager.palette.bgInput)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-    }
 }

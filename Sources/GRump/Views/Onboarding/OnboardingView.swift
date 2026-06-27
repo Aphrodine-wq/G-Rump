@@ -28,7 +28,7 @@ struct OnboardingView: View {
     @State var apiKeyInput = ""
     @State var showAPIKeyField = false
     @State var direction: Edge = .trailing
-    @State var selectedOnboardingProvider: AIProvider = .anthropic
+    @State var selectedOnboardingProvider: AIProvider = .qwen
 
     // Email auth state
     @State var authEmail = ""

@@ -65,64 +65,35 @@ extension OnboardingView {
             }
 
             VStack(spacing: Spacing.xl) {
-                // Provider picker cards
-                VStack(spacing: Spacing.md) {
-                    Text("Choose a provider")
+                // Qwen-only: enter the Qwen (DashScope) API key.
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    Text("Qwen / DashScope API Key")
                         .font(Typography.captionSemibold)
                         .foregroundColor(themeManager.palette.textMuted)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     HStack(spacing: Spacing.md) {
-                        onboardingProviderCard(.anthropic, icon: "sparkles", name: "Anthropic")
-                        onboardingProviderCard(.openAI, icon: "brain", name: "OpenAI")
-                        onboardingProviderCard(.ollama, icon: "desktopcomputer", name: "Ollama")
-                        onboardingProviderCard(.openRouter, icon: "globe", name: "OpenRouter")
+                        SecureField(apiKeyPlaceholder(for: .qwen), text: $apiKeyInput)
+                            .textFieldStyle(.plain)
+                            .font(Typography.bodySmall)
+                            .padding(Spacing.lg)
+                            .background(themeManager.palette.bgInput)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                                .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+
+                        Button("Save") {
+                            saveProviderKey()
+                        }
+                        .font(Typography.bodySmallSemibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.xl)
+                        .padding(.vertical, Spacing.lg)
+                        .background(themeManager.palette.effectiveAccent)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .buttonStyle(.plain)
+                        .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
                 .frame(maxWidth: 420)
-
-                // API key field for cloud providers
-                if selectedOnboardingProvider.requiresAPIKey {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text("\(selectedOnboardingProvider.displayName) API Key")
-                            .font(Typography.captionSemibold)
-                            .foregroundColor(themeManager.palette.textMuted)
-                        HStack(spacing: Spacing.md) {
-                            SecureField(apiKeyPlaceholder(for: selectedOnboardingProvider), text: $apiKeyInput)
-                                .textFieldStyle(.plain)
-                                .font(Typography.bodySmall)
-                                .padding(Spacing.lg)
-                                .background(themeManager.palette.bgInput)
-                                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                                    .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-
-                            Button("Save") {
-                                saveProviderKey()
-                            }
-                            .font(Typography.bodySmallSemibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, Spacing.xl)
-                            .padding(.vertical, Spacing.lg)
-                            .background(themeManager.palette.effectiveAccent)
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                            .buttonStyle(.plain)
-                            .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
-                        }
-                    }
-                    .frame(maxWidth: 420)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                } else if selectedOnboardingProvider == .ollama {
-                    HStack(spacing: Spacing.md) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(themeManager.palette.effectiveAccent)
-                        Text("No API key needed. Make sure Ollama is running locally.")
-                            .font(Typography.captionSmall)
-                            .foregroundColor(themeManager.palette.textSecondary)
-                    }
-                    .frame(maxWidth: 420, alignment: .leading)
-                }
-
             }
 
             // Privacy consent
@@ -352,22 +323,16 @@ extension OnboardingView {
 
     func apiKeyPlaceholder(for provider: AIProvider) -> String {
         switch provider {
-        case .anthropic: return "sk-ant-..."
-        case .openAI: return "sk-..."
-        case .openRouter: return "sk-or-..."
-        case .google: return "AIza..."
-        default: return "API key..."
+        case .qwen: return "sk-..."
         }
     }
 
     func saveProviderKey() {
         let key = apiKeyInput.trimmingCharacters(in: .whitespaces)
         guard !key.isEmpty else { return }
-        let config = ProviderConfiguration(provider: selectedOnboardingProvider, apiKey: key)
+        let config = ProviderConfiguration(provider: .qwen, apiKey: key)
         AIModelRegistry.shared.setProviderConfig(config)
-        viewModel.selectProvider(selectedOnboardingProvider)
-        if selectedOnboardingProvider == .openRouter {
-            viewModel.apiKey = key
-        }
+        viewModel.selectProvider(.qwen)
+        viewModel.apiKey = key
     }
 }

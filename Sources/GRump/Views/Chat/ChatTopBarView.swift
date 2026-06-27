@@ -13,9 +13,8 @@ struct ChatTopBarView: View {
     @State private var editedTitle = ""
     @State private var showInsightsPopover = false
 
-    private var isLocalProvider: Bool {
-        viewModel.currentAIProvider == .ollama || viewModel.currentAIProvider == .onDevice
-    }
+    // Qwen is a cloud provider — there is no local/on-device mode.
+    private var isLocalProvider: Bool { false }
 
     var body: some View {
         HStack(spacing: Spacing.xxl) {
@@ -184,74 +183,8 @@ struct ChatTopBarView: View {
 
     private var modelPickerMenu: some View {
         Menu {
-            if isLocalProvider {
-                // Local mode: show only Ollama + On-Device models
-                let ollamaModels = viewModel.modelsForProvider(.ollama)
-                let onDeviceModels = viewModel.modelsForProvider(.onDevice)
-
-                if !ollamaModels.isEmpty {
-                    Section("Ollama") {
-                        ForEach(ollamaModels) { model in
-                            Button {
-                                viewModel.selectProviderAndModel(provider: .ollama, model: model)
-                            } label: {
-                                HStack {
-                                    Text(model.displayName)
-                                    if model.id == viewModel.currentEnhancedModel?.id {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if !onDeviceModels.isEmpty {
-                    Section("On-Device (Core ML)") {
-                        ForEach(onDeviceModels) { model in
-                            Button {
-                                viewModel.selectProviderAndModel(provider: .onDevice, model: model)
-                            } label: {
-                                HStack {
-                                    Text(model.displayName)
-                                    if model.id == viewModel.currentEnhancedModel?.id {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if ollamaModels.isEmpty && onDeviceModels.isEmpty {
-                    Text("No local models available")
-                        .foregroundColor(.secondary)
-                }
-
-                Divider()
-
-                Button {
-                    // Switch back to cloud
-                    viewModel.selectProvider(.anthropic)
-                } label: {
-                    Label("Switch to Cloud Models", systemImage: "cloud")
-                }
-            } else {
-                // Cloud mode: show all providers grouped
-                providerSection(provider: .anthropic, icon: "sparkles")
-                providerSection(provider: .openAI, icon: "brain")
-                providerSection(provider: .openRouter, icon: "globe")
-
-                let ollamaModels = viewModel.modelsForProvider(.ollama)
-                if !ollamaModels.isEmpty {
-                    providerSection(provider: .ollama, icon: "desktopcomputer")
-                }
-
-                let onDeviceModels = viewModel.modelsForProvider(.onDevice)
-                if !onDeviceModels.isEmpty {
-                    providerSection(provider: .onDevice, icon: "apple.logo")
-                }
-            }
+            // Qwen-only: a single section over the available Qwen models.
+            providerSection(provider: .qwen, icon: "sparkles")
 
             Divider()
             Button {

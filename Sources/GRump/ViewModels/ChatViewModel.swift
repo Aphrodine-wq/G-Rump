@@ -116,11 +116,11 @@ class ChatViewModel: ObservableObject {
     // Legacy properties for backward compatibility
     @Published var apiKey: String {
         didSet {
-            KeychainStorage.set(account: "OpenRouterAPIKey", value: apiKey)
-            // Update OpenRouter configuration
-            if let config = aiService.modelRegistry.getProviderConfig(for: .openRouter) {
+            KeychainStorage.set(account: "QwenAPIKey", value: apiKey)
+            // Update Qwen provider configuration
+            if let config = aiService.modelRegistry.getProviderConfig(for: .qwen) {
                 let updatedConfig = ProviderConfiguration(
-                    provider: .openRouter,
+                    provider: .qwen,
                     apiKey: apiKey,
                     baseURL: config.baseURL
                 )
@@ -215,16 +215,11 @@ class ChatViewModel: ObservableObject {
 
     /// All models for a given provider from the registry
     func modelsForProvider(_ provider: AIProvider) -> [EnhancedAIModel] {
-        if provider == .onDevice {
-            return aiService.availableModels.filter { $0.provider == .onDevice }
-        }
         return aiService.modelRegistry.getModels(for: provider)
     }
 
-    /// All local models (Ollama + On-Device)
-    var localModels: [EnhancedAIModel] {
-        modelsForProvider(.ollama) + modelsForProvider(.onDevice)
-    }
+    /// No local models in the Qwen build (all inference is cloud).
+    var localModels: [EnhancedAIModel] { [] }
 
     /// Whether a provider has any models available
     func providerHasModels(_ provider: AIProvider) -> Bool {
@@ -246,13 +241,13 @@ class ChatViewModel: ObservableObject {
         // Initialize AI service
         self.aiService = MultiProviderAIService()
 
-        // Load legacy API key
-        if let key = KeychainStorage.get(account: "OpenRouterAPIKey") {
+        // Load the Qwen API key, migrating any key from the old provider account.
+        if let key = KeychainStorage.get(account: "QwenAPIKey") {
             self.apiKey = key
-        } else if let legacy = UserDefaults.standard.string(forKey: "OpenRouterAPIKey"), !legacy.isEmpty {
+        } else if let legacy = KeychainStorage.get(account: "OpenRouterAPIKey") {
+            // One-time migration from the pre-Qwen build.
             self.apiKey = legacy
-            KeychainStorage.set(account: "OpenRouterAPIKey", value: legacy)
-            UserDefaults.standard.removeObject(forKey: "OpenRouterAPIKey")
+            KeychainStorage.set(account: "QwenAPIKey", value: legacy)
         } else {
             self.apiKey = ""
         }
@@ -363,30 +358,10 @@ class ChatViewModel: ObservableObject {
         }
     }
 
+    /// No-op in the Qwen build — there is no local Ollama provider to detect.
     func refreshLocalOllamaAvailability() async {
-        let registry = aiService.modelRegistry
-        let detected = await registry.isOllamaRunning()
-
-        if detected {
-            _ = await registry.refreshOllamaModels()
-        }
-
-        let hasPulledModels = !registry.getModels(for: .ollama).isEmpty
-
-        localOllamaDetected = detected
-        localOllamaReady = detected && hasPulledModels
-
-        guard localOllamaReady else { return }
-
-        let hasPlatformAuth = platformUser != nil
-        let hasLegacyAPIKey = !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        guard !hasPlatformAuth && !hasLegacyAPIKey else { return }
-
-        aiService.selectProvider(.ollama)
-        aiService.refreshModels()
-        if aiService.currentModel == nil, let fallback = aiService.availableModels.first {
-            aiService.selectModel(fallback)
-        }
+        localOllamaDetected = false
+        localOllamaReady = false
     }
 
     func logoutPlatform() {

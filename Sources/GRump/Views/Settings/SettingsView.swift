@@ -64,24 +64,12 @@ struct SettingsView: View {
     @AppStorage(SettingsKeys.showMenuBarExtra) var showMenuBarExtra: Bool = false
     @State var execConfig: ExecApprovalsConfig = .default
     #endif
-    @StateObject var coreMLRegistry = CoreMLModelRegistryService()
-
     @State var expandedCategories: Set<String> = ["AI", "Workspace", "General"]
 
-    // Provider state
-    @State var selectedProvider: AIProvider = .openRouter
+    // Provider state (Qwen-only)
+    @State var selectedProvider: AIProvider = .qwen
     @State var providerAPIKeys: [String: String] = [:]
     @State var providerBaseURLs: [String: String] = [:]
-    @State var ollamaDetected = false
-    @State var ollamaRefreshing = false
-    @State var ollamaPullingModels: Set<String> = []
-    @State var ollamaStatusMessage: String?
-
-    let ollamaQuickModels: [(name: String, label: String)] = [
-        ("qwen2.5-coder:7b", "Qwen2.5 Coder 7B"),
-        ("llama3.2:3b", "Llama 3.2 3B"),
-        ("mistral:7b", "Mistral 7B")
-    ]
 
     // Tools state
     @State var toolsDenylist: Set<String> = []

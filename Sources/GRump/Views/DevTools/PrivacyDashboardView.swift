@@ -13,7 +13,7 @@ struct PrivacyDashboardView: View {
     @AppStorage("LocalOnlyMode") private var localOnlyMode = false
     @AppStorage("ShowPrivacyBadge") private var showPrivacyBadge = true
 
-    var currentProvider: AIProvider = .openRouter
+    var currentProvider: AIProvider = .qwen
     var onDeviceAvailable: Bool = false
 
     var body: some View {
@@ -95,18 +95,18 @@ struct PrivacyDashboardView: View {
             VStack(spacing: Spacing.lg) {
                 dataFlowRow(
                     icon: "desktopcomputer",
-                    label: "On-Device (Core ML / Ollama)",
+                    label: "On-Device (Core ML)",
                     detail: "Code stays on your Mac",
                     status: .local,
-                    isActive: currentProvider == .ollama || currentProvider == .onDevice
+                    isActive: false
                 )
 
                 dataFlowRow(
                     icon: "cloud",
-                    label: "OpenRouter / OpenAI / Anthropic",
-                    detail: "Encrypted in transit, not stored by providers",
+                    label: "Qwen Cloud (DashScope)",
+                    detail: "Encrypted in transit, not stored by the provider",
                     status: .cloud,
-                    isActive: currentProvider == .openRouter || currentProvider == .openAI || currentProvider == .anthropic
+                    isActive: currentProvider == .qwen
                 )
 
                 dataFlowRow(
@@ -345,7 +345,8 @@ struct PrivacyDashboardView: View {
     // MARK: - Helpers
 
     private var isFullyLocal: Bool {
-        localOnlyMode || currentProvider == .ollama || currentProvider == .onDevice
+        // Qwen is cloud-only; "fully local" only when the user forces Local Only mode.
+        localOnlyMode
     }
 
     private func sectionHeader(_ title: String, icon: String, color: Color) -> some View {
