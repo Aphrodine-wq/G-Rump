@@ -112,8 +112,6 @@ class ChatViewModel: ObservableObject {
             }
         }
     }
-    @Published private(set) var localOllamaDetected: Bool = false
-    @Published private(set) var localOllamaReady: Bool = false
     @Published var selectedModel: AIModel {
         didSet {
             guard oldValue != selectedModel else { return }
@@ -132,17 +130,6 @@ class ChatViewModel: ObservableObject {
         didSet { UserDefaults.standard.set(agentMode.rawValue, forKey: "AgentMode") }
     }
 
-    /// Selected model mode (Thinking, Fast, 1M, etc.) — nil for models without modes.
-    @Published var selectedModelMode: ModelMode? {
-        didSet {
-            if let mode = selectedModelMode {
-                UserDefaults.standard.set(mode.id, forKey: "SelectedModelMode")
-            } else {
-                UserDefaults.standard.removeObject(forKey: "SelectedModelMode")
-            }
-        }
-    }
-
     // New multi-provider system
     @Published var aiService = QwenAIService()
 
@@ -157,7 +144,6 @@ class ChatViewModel: ObservableObject {
         SuggestionEngine.suggest(activityEntries: activityStore.entries, workingDirectory: workingDirectory)
     }
     static let appDirectoryName = "GRump"
-    static let legacyAppDirectoryName = "ClaudeLite"
     private static let draftsUserDefaultsKey = "GRumpConversationDrafts"
 
     var messages: [Message] {
@@ -257,13 +243,6 @@ class ChatViewModel: ObservableObject {
             self.loadConversations()
         }
 
-        // Network calls (Ollama) run detached so they never
-        // block the main-actor cooperative queue during startup.
-        Task.detached(priority: .utility) { [weak self] in
-            guard let self else { return }
-            await self.refreshLocalOllamaAvailability()
-        }
-
         // Set up AI service observers
         aiService.$currentProvider
             .sink { [weak self] _ in
@@ -296,12 +275,6 @@ class ChatViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
-    }
-
-    /// No-op in the Qwen build — there is no local Ollama provider to detect.
-    func refreshLocalOllamaAvailability() async {
-        localOllamaDetected = false
-        localOllamaReady = false
     }
 
     func saveDraft(_ text: String, forConversationId id: UUID) {

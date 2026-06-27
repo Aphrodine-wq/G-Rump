@@ -136,7 +136,6 @@ struct ChatTopBarView: View {
             }
 
             modelPickerMenu
-            modelModePicker
         }
         .padding(.horizontal, Spacing.massive)
         .padding(.vertical, Spacing.xxl)
@@ -259,39 +258,6 @@ struct ChatTopBarView: View {
 
     // MARK: - Model Mode Picker
 
-    @ViewBuilder
-    private var modelModePicker: some View {
-        if let model = viewModel.currentEnhancedModel, model.hasModes {
-            HStack(spacing: 2) {
-                ForEach(model.modes) { mode in
-                    Button {
-                        viewModel.selectedModelMode = mode
-                    } label: {
-                        Text(mode.displayName)
-                            .font(Typography.micro)
-                            .foregroundColor(
-                                viewModel.selectedModelMode?.id == mode.id
-                                    ? .white
-                                    : .textMuted
-                            )
-                            .padding(.horizontal, Spacing.lg)
-                            .padding(.vertical, 4)
-                            .background(
-                                viewModel.selectedModelMode?.id == mode.id
-                                    ? themeManager.palette.effectiveAccent
-                                    : Color.clear
-                            )
-                            .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(2)
-            .background(themeManager.palette.bgInput)
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(themeManager.palette.borderSubtle, lineWidth: Border.hairline))
-        }
-    }
 }
 
 // MARK: - Connection Status Dot

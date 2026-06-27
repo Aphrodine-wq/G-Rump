@@ -36,7 +36,7 @@ extension ChatViewModel {
         guard !trimmed.isEmpty else { return }
         let backendConfigured = !((UserDefaults.standard.string(forKey: "BackendURL") ?? "")
             .trimmingCharacters(in: .whitespaces).isEmpty)
-        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty && !backendConfigured && !localOllamaReady {
+        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty && !backendConfigured {
             errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key, or set a backend URL."
             return
         }

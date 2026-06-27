@@ -27,7 +27,6 @@ struct ModalManagerView<Content: View>: View {
             }
             .sheet(isPresented: $showSettings, onDismiss: {
                 settingsInitialTab = nil
-                Task { await viewModel.refreshLocalOllamaAvailability() }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { messageFieldFocused = true }
             }) {
                 settingsSheetContent

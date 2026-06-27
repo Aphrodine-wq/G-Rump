@@ -37,24 +37,6 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-// MARK: - Model Mode
-
-struct ModelMode: Codable, Equatable, Identifiable {
-    let id: String
-    let displayName: String
-    let apiModelID: String?
-    let overrideContextWindow: Int?
-    let overrideMaxOutput: Int?
-
-    init(id: String, displayName: String, apiModelID: String? = nil, overrideContextWindow: Int? = nil, overrideMaxOutput: Int? = nil) {
-        self.id = id
-        self.displayName = displayName
-        self.apiModelID = apiModelID
-        self.overrideContextWindow = overrideContextWindow
-        self.overrideMaxOutput = overrideMaxOutput
-    }
-}
-
 // MARK: - Enhanced AI Model
 
 struct EnhancedAIModel: Identifiable, Codable, Equatable {
@@ -68,28 +50,12 @@ struct EnhancedAIModel: Identifiable, Codable, Equatable {
     let requiresPaidTier: Bool
     let capabilities: ModelCapabilities
     let pricing: ModelPricing?
-    let modes: [ModelMode]
 
     var rawValue: String { modelID }
 
-    var hasModes: Bool { !modes.isEmpty }
-
-    func effectiveModelID(mode: ModelMode?) -> String {
-        guard let mode = mode, let override = mode.apiModelID else { return modelID }
-        return override
-    }
-
-    func effectiveContextWindow(mode: ModelMode?) -> Int {
-        mode?.overrideContextWindow ?? contextWindow
-    }
-
-    func effectiveMaxOutput(mode: ModelMode?) -> Int {
-        mode?.overrideMaxOutput ?? maxOutput
-    }
-
     init(id: String, provider: AIProvider, modelID: String, displayName: String, description: String,
          contextWindow: Int, maxOutput: Int, requiresPaidTier: Bool, capabilities: ModelCapabilities,
-         pricing: ModelPricing?, modes: [ModelMode] = []) {
+         pricing: ModelPricing?) {
         self.id = id
         self.provider = provider
         self.modelID = modelID
@@ -100,7 +66,6 @@ struct EnhancedAIModel: Identifiable, Codable, Equatable {
         self.requiresPaidTier = requiresPaidTier
         self.capabilities = capabilities
         self.pricing = pricing
-        self.modes = modes
     }
 
     static func == (lhs: EnhancedAIModel, rhs: EnhancedAIModel) -> Bool {
