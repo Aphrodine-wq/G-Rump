@@ -10,14 +10,11 @@ extension ChatViewModel {
         return true
     }
 
-    /// Platform tier for model filtering. nil = free (API key or not signed in).
-    internal var platformTier: String? { platformUser?.tier }
-
-    /// Ensures selectedModel is valid for current tier. Call after tier changes.
+    /// Ensures selectedModel is a valid Qwen model (single provider, no tiers).
     func ensureSelectedModelValidForTier() {
-        let allowed = AIModel.modelsForTier(platformTier)
+        let allowed = AIModel.modelsForTier(nil)
         if !allowed.contains(selectedModel) {
-            selectedModel = AIModel.defaultForTier(platformTier)
+            selectedModel = AIModel.defaultForTier(nil)
         }
     }
 

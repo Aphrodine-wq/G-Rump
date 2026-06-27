@@ -137,7 +137,7 @@ final class OpenRouterServiceTests: XCTestCase {
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildBackendRequest(
             messages: messages, model: "m", stream: true,
-            backendBaseURL: "https://api.grump.app", authToken: "tok123"
+            backendBaseURL: "https://api.grump.app", appAPIKey: "tok123"
         )
         XCTAssertEqual(request.url?.host, "api.grump.app")
         XCTAssertTrue(request.url?.path.contains("chat/completions") ?? false)
@@ -148,7 +148,7 @@ final class OpenRouterServiceTests: XCTestCase {
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildBackendRequest(
             messages: messages, model: "m", stream: true,
-            backendBaseURL: "https://api.grump.app", authToken: "tok123"
+            backendBaseURL: "https://api.grump.app", appAPIKey: "tok123"
         )
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer tok123")
     }
@@ -158,7 +158,7 @@ final class OpenRouterServiceTests: XCTestCase {
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildBackendRequest(
             messages: messages, model: "m", stream: true,
-            backendBaseURL: "https://api.grump.app/", authToken: "tok"
+            backendBaseURL: "https://api.grump.app/", appAPIKey: "tok"
         )
         // The base's trailing slash must be trimmed so the path has no "host//path".
         XCTAssertFalse(request.url?.absoluteString.contains(".app//") ?? true)

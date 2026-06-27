@@ -262,15 +262,6 @@ struct ConversationSidebar: View {
                         .font(Typography.bodySmallMedium)
                         .foregroundColor(themeManager.palette.textSecondary)
                     Spacer()
-                    if let user = viewModel.platformUser {
-                        Text("\(user.creditsBalance)")
-                            .font(Typography.micro)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, 2)
-                            .background(themeManager.palette.effectiveAccent.opacity(0.8))
-                            .clipShape(Capsule())
-                    }
                     Image(systemName: "chevron.right")
                         .font(Typography.micro)
                         .foregroundColor(themeManager.palette.textMuted)

@@ -7,7 +7,6 @@ import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
     case account
-    case billing
     case providers
     case presets
     case behavior
@@ -38,7 +37,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// Each category is (icon, label, tabs). If tabs has only 1 item, it shows directly; otherwise drill-down.
     static var categories: [(icon: String, label: String, tabs: [SettingsTab])] {
         var list: [(icon: String, label: String, tabs: [SettingsTab])] = [
-            ("person.crop.circle.fill", "Account", [.account, .billing]),
+            ("person.crop.circle.fill", "Account", [.account]),
             ("cpu", "AI", [.providers, .presets, .behavior, .streaming, .advanced]),
             ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul, .brain]),
             ("paintbrush.fill", "Appearance", [.appearance]),
@@ -61,7 +60,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .account: return "Account"
-        case .billing: return "Billing"
         case .appearance: return "Appearance"
         case .providers: return "Providers"
         case .presets: return "Workflow Presets"
@@ -91,7 +89,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .account: return "key.fill"
-        case .billing: return "creditcard.fill"
         case .appearance: return "paintbrush.fill"
         case .providers: return "cpu"
         case .presets: return "square.stack.3d.up.fill"
@@ -121,7 +118,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// Top-level tab groups for horizontal tab bar. (Label, tabs in group)
     static var tabGroups: [(String, [SettingsTab])] {
         var list: [(String, [SettingsTab])] = [
-            ("Account", [.account, .billing]),
+            ("Account", [.account]),
             ("AI & Providers", [.providers, .presets, .behavior, .streaming]),
             ("Advanced", [.advanced]),
             ("Workspace", [.project]),

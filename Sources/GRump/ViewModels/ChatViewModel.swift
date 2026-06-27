@@ -112,7 +112,6 @@ class ChatViewModel: ObservableObject {
             }
         }
     }
-    @Published var platformUser: PlatformUser?
     @Published private(set) var localOllamaDetected: Bool = false
     @Published private(set) var localOllamaReady: Bool = false
     @Published var selectedModel: AIModel {
@@ -178,8 +177,8 @@ class ChatViewModel: ObservableObject {
 
         // Fallback to legacy system
         let candidate = projectConfig?.model.flatMap { AIModel(rawValue: $0) } ?? selectedModel
-        let allowed = AIModel.modelsForTier(platformTier)
-        return allowed.contains(candidate) ? candidate : AIModel.defaultForTier(platformTier)
+        let allowed = AIModel.modelsForTier(nil)
+        return allowed.contains(candidate) ? candidate : AIModel.defaultForTier(nil)
     }
 
     /// Enhanced model currently selected
@@ -260,13 +259,10 @@ class ChatViewModel: ObservableObject {
             self.loadConversations()
         }
 
-        // Network calls (Ollama, platform) run detached so they never
+        // Network calls (Ollama) run detached so they never
         // block the main-actor cooperative queue during startup.
         Task.detached(priority: .utility) { [weak self] in
             guard let self else { return }
-            if await PlatformService.isLoggedIn {
-                await self.refreshPlatformUser()
-            }
             await self.refreshLocalOllamaAvailability()
         }
 
@@ -319,38 +315,10 @@ class ChatViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Fetches /api/me and updates platformUser (credits, tier). Call after login or after a chat run.
-    func refreshPlatformUser() async {
-        guard PlatformService.isLoggedIn else {
-            await MainActor.run {
-                platformUser = nil
-                ensureSelectedModelValidForTier()
-            }
-            return
-        }
-        do {
-            let user = try await PlatformService.fetchMe()
-            await MainActor.run {
-                platformUser = user
-                ensureSelectedModelValidForTier()
-            }
-        } catch {
-            await MainActor.run {
-                platformUser = nil
-                ensureSelectedModelValidForTier()
-            }
-        }
-    }
-
     /// No-op in the Qwen build — there is no local Ollama provider to detect.
     func refreshLocalOllamaAvailability() async {
         localOllamaDetected = false
         localOllamaReady = false
-    }
-
-    func logoutPlatform() {
-        PlatformService.logout()
-        platformUser = nil
     }
 
     func saveDraft(_ text: String, forConversationId id: UUID) {

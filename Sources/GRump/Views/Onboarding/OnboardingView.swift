@@ -30,15 +30,6 @@ struct OnboardingView: View {
     @State var direction: Edge = .trailing
     @State var selectedOnboardingProvider: AIProvider = .qwen
 
-    // Email auth state
-    @State var authEmail = ""
-    @State var authPassword = ""
-    @State var authDisplayName = ""
-    @State var isSignUpMode = true
-    @State var authInProgress = false
-    @State var authError: String?
-    @State var authSuccess = false
-
     let totalSteps = 6
     @State var selectedSecurityPreset: ExecSecurityPreset = .balanced
     @State var selectedSkillPacks: Set<String> = []

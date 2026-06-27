@@ -134,18 +134,6 @@ final class SecurityAuditTests: XCTestCase {
         XCTAssertNil(MCPCredentialVault.getValue(serverID: testID, key: "KEY1"))
     }
 
-    // MARK: - Platform Service URL Safety
-
-    func testPlatformServiceBaseURLIsHTTPS() {
-        // Verify the hardcoded platform API URL uses HTTPS
-        // PlatformService.defaultBaseURL is private, but we can check the tier display names
-        // which proves the service is properly configured
-        XCTAssertEqual(PlatformService.tierDisplayName("pro"), "Pro")
-        XCTAssertEqual(PlatformService.tierDisplayName("team"), "Team")
-        XCTAssertEqual(PlatformService.tierDisplayName("starter"), "Starter")
-        XCTAssertEqual(PlatformService.tierDisplayName("unknown"), "Free")
-    }
-
     // MARK: - Model Data Integrity
 
     func testAllModelsHaveValidContextConfigurations() {

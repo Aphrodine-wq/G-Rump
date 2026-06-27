@@ -6,19 +6,21 @@ extension ChatViewModel {
     // MARK: - Provider Stream Factory
 
     /// Creates a streaming connection using the appropriate provider.
-    /// Uses the platform backend when authenticated, otherwise falls back
-    /// to the configured AI provider. This eliminates duplicated if/else
-    /// blocks across `runAgentLoop()` and `handleOpenClawMessage()`.
+    /// Routes through the slim backend proxy when a BackendURL is configured,
+    /// otherwise calls Qwen directly with the user's own API key. This eliminates
+    /// duplicated if/else blocks across `runAgentLoop()` and `handleOpenClawMessage()`.
     func createProviderStream(
         messages: [Message],
         tools: [[String: Any]]
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        if let token = PlatformService.authToken, !token.isEmpty {
+        let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !backendURL.isEmpty {
             return openRouterService.streamMessageViaBackend(
                 messages: messages,
                 model: effectiveModel.rawValue,
-                backendBaseURL: PlatformService.baseURL,
-                authToken: token,
+                backendBaseURL: backendURL,
+                appAPIKey: KeychainStorage.get(account: "AppAPIKey") ?? "",
                 tools: tools.isEmpty ? nil : tools
             )
         } else {
@@ -33,8 +35,10 @@ extension ChatViewModel {
     func sendMessage() {
         let trimmed = userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty && platformUser == nil && !localOllamaReady {
-            errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key, or start Ollama locally."
+        let backendConfigured = !((UserDefaults.standard.string(forKey: "BackendURL") ?? "")
+            .trimmingCharacters(in: .whitespaces).isEmpty)
+        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty && !backendConfigured && !localOllamaReady {
+            errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key, or set a backend URL."
             return
         }
 

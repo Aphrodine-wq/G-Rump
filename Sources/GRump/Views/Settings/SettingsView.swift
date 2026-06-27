@@ -18,12 +18,6 @@ struct SettingsView: View {
     @Binding var systemPrompt: String
     @Binding var workingDirectory: String
     var onSetWorkingDirectory: (String) -> Void
-    /// Platform account (when signed in). Pass viewModel.platformUser.
-    var platformUser: PlatformUser?
-    /// Call after login/signup so viewModel refreshes platform user.
-    var onPlatformLoginSuccess: (() async -> Void)?
-    /// Call when user logs out.
-    var onPlatformLogout: (() -> Void)?
     /// When set, the sheet will select this tab when it appears (e.g. open to Model from chat toolbar).
     var initialTab: SettingsTab?
     /// Export/import actions (macOS). When nil, Data section shows unavailable message.
@@ -42,8 +36,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @State var apiKeyVisible = false
     @State var selectedTab: SettingsTab = .account
-    @State var signInError: String?
-    @State var signInInProgress = false
+    @AppStorage("BackendURL") var backendURL: String = ""
+    @State var appAPIKeyInput: String = KeychainStorage.get(account: "AppAPIKey") ?? ""
+    @State var appAPIKeyVisible = false
     @AppStorage(SettingsKeys.maxAgentSteps) var maxAgentStepsStorage: Int = 200
     @AppStorage(SettingsKeys.compactToolResults) var compactToolResults: Bool = false
     @AppStorage(SettingsKeys.allowSystemNotifications) var allowSystemNotifications: Bool = true
@@ -270,8 +265,6 @@ struct SettingsView: View {
             switch tab {
             case .account:
                 accountSection
-            case .billing:
-                BillingView()
             case .appearance:
                 appearanceSection
             case .providers:
@@ -321,52 +314,58 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Account (credits + API key)
+    // MARK: - Account (backend proxy + API key)
 
     var accountSection: some View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
-            if let user = platformUser {
-                settingsCard {
-                    VStack(alignment: .leading, spacing: Spacing.xxl) {
-                        sectionTitle("Account", icon: "person.crop.circle.fill", accent: themeManager.accentColor)
-                        HStack(spacing: Spacing.xl) {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text(user.email)
-                                    .font(Typography.bodySmallMedium)
-                                    .foregroundColor(.textPrimary)
-                                HStack(spacing: Spacing.md) {
-                                    Text(user.tierName)
-                                        .font(Typography.captionSmallSemibold)
-                                        .foregroundColor(themeManager.palette.effectiveAccentLightVariant)
-                                        .padding(.horizontal, Spacing.md)
-                                        .padding(.vertical, Spacing.xs)
-                                        .background(themeManager.palette.effectiveAccent.opacity(0.15))
-                                        .clipShape(Capsule())
-                                    Text("\(user.creditsBalance) credits")
-                                        .font(Typography.captionSmall)
-                                        .foregroundColor(.textMuted)
-                                }
-                            }
-                            Spacer()
-                            Button("Log out") {
-                                PlatformService.logout()
-                                onPlatformLogout?()
-                            }
-                            .font(Typography.captionSmallSemibold)
-                            .foregroundColor(.textMuted)
+            settingsCard {
+                VStack(alignment: .leading, spacing: Spacing.xxl) {
+                    sectionTitle("Backend", icon: "server.rack", accent: themeManager.accentColor)
+                    Text("Optional: route requests through a slim backend proxy. Leave blank to call Qwen (DashScope) directly with your API key below.")
+                        .font(Typography.captionSmall)
+                        .foregroundColor(.textMuted)
+                    TextField("https://your-backend.example.com", text: $backendURL)
+                        .font(Typography.bodySmall)
+                        .fontDesign(.monospaced)
+                        .textFieldStyle(.plain)
+                        .padding(Spacing.xl)
+                        .background(themeManager.palette.bgInput)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                            .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+
+                    Text("Backend API key (APP_API_KEY)")
+                        .font(Typography.captionSmall)
+                        .foregroundColor(.textMuted)
+                    HStack(spacing: Spacing.xl) {
+                        if appAPIKeyVisible {
+                            TextField("Optional — leave blank in local dev", text: $appAPIKeyInput)
+                                .font(Typography.bodySmall)
+                                .fontDesign(.monospaced)
+                        } else {
+                            SecureField("Optional — leave blank in local dev", text: $appAPIKeyInput)
+                                .font(Typography.bodySmall)
+                                .fontDesign(.monospaced)
                         }
-                        Text("\(user.creditsPerMonth) credits per month on \(user.tierName). Usage is deducted per request.")
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
+                        Button(action: { appAPIKeyVisible.toggle() }) {
+                            Image(systemName: appAPIKeyVisible ? "eye.slash" : "eye")
+                                .foregroundColor(.textMuted)
+                                .font(Typography.bodySmall)
+                        }
+                        .buttonStyle(.plain)
                     }
-                }
-            } else {
-                settingsCard {
-                    VStack(alignment: .leading, spacing: Spacing.xxl) {
-                        sectionTitle("Account", icon: "person.crop.circle.fill", accent: themeManager.accentColor)
-                        Text("Sign in is coming soon. Use API keys or Ollama to get started.")
-                            .font(Typography.bodySmall)
-                            .foregroundColor(.textMuted)
+                    .padding(Spacing.xl)
+                    .background(themeManager.palette.bgInput)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                        .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+                    .onChange(of: appAPIKeyInput) { _, newValue in
+                        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if trimmed.isEmpty {
+                            KeychainStorage.delete(account: "AppAPIKey")
+                        } else {
+                            KeychainStorage.set(account: "AppAPIKey", value: trimmed)
+                        }
                     }
                 }
             }

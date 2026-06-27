@@ -34,15 +34,16 @@ class OpenRouterService {
         return streamWithRequest(req)
     }
 
-    /// Stream via G-Rump platform backend (single backend OpenRouter key; credits deducted server-side).
+    /// Stream via the slim G-Rump backend proxy. Bearer auth uses the shared
+    /// APP_API_KEY (empty is allowed: the backend runs open in local dev).
     func streamMessageViaBackend(
         messages: [Message],
         model: String,
         backendBaseURL: String,
-        authToken: String,
+        appAPIKey: String,
         tools: [[String: Any]]? = nil
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        guard let req = try? buildBackendRequest(messages: messages, model: model, stream: true, backendBaseURL: backendBaseURL, authToken: authToken, tools: tools) else {
+        guard let req = try? buildBackendRequest(messages: messages, model: model, stream: true, backendBaseURL: backendBaseURL, appAPIKey: appAPIKey, tools: tools) else {
             return AsyncThrowingStream { $0.finish(throwing: ServiceError.networkError) }
         }
         return streamWithRequest(req)
@@ -104,7 +105,7 @@ class OpenRouterService {
         model: String,
         stream: Bool,
         backendBaseURL: String,
-        authToken: String,
+        appAPIKey: String,
         tools: [[String: Any]]? = nil
     ) throws -> URLRequest {
         let base = backendBaseURL.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -113,7 +114,11 @@ class OpenRouterService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 180
-        request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        // Only attach the bearer when a key is set; the backend is open in local dev.
+        let key = appAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !key.isEmpty {
+            request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        }
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try buildBody(messages: messages, model: model, stream: stream, tools: tools)
         return request

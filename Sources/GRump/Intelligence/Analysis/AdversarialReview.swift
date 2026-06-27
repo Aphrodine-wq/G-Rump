@@ -182,7 +182,7 @@ final class AdversarialReviewEngine: ObservableObject {
         codeChanges: [CodeChange],
         conversationContext: String,
         apiKey: String,
-        authToken: String?,
+        appAPIKey: String?,
         primaryModel: AIModel
     ) async -> AdversarialReviewReport? {
         guard isEnabled, !codeChanges.isEmpty else { return nil }
@@ -246,12 +246,14 @@ final class AdversarialReviewEngine: ObservableObject {
         var fullResponse = ""
 
         do {
-            if let token = authToken, !token.isEmpty {
+            let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !backendURL.isEmpty {
                 let stream = openRouterService.streamMessageViaBackend(
                     messages: messages,
                     model: reviewModelId,
-                    backendBaseURL: PlatformService.baseURL,
-                    authToken: token
+                    backendBaseURL: backendURL,
+                    appAPIKey: appAPIKey ?? ""
                 )
                 for try await event in stream {
                     if case .text(let chunk) = event { fullResponse += chunk }

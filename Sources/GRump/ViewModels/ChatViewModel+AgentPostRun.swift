@@ -45,7 +45,7 @@ extension ChatViewModel {
                 codeChanges: currentRunCodeChanges,
                 conversationContext: userMessage,
                 apiKey: apiKey,
-                authToken: PlatformService.authToken,
+                appAPIKey: KeychainStorage.get(account: "AppAPIKey"),
                 primaryModel: effectiveModel
             ) {
                 let reviewMsg = Message(role: .assistant, content: report.markdownSummary)
@@ -107,9 +107,6 @@ extension ChatViewModel {
                 modelName: effectiveModel.displayName,
                 resultSummary: String(lastAssistant.prefix(200))
             )
-        }
-        if PlatformService.isLoggedIn {
-            Task { await refreshPlatformUser() }
         }
     }
 }
