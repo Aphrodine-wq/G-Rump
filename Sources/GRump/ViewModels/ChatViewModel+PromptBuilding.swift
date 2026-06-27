@@ -151,7 +151,9 @@ extension ChatViewModel {
 
         let queryText = currentConversation?.messages.last(where: { $0.role == .user })?.content ?? ""
         for store in activeMemoryStores() {
-            if let block = store.memoryBlock(for: queryText) {
+            // Budget-aware recall: the most relevant/recent/important memories
+            // packed into a fixed token window (Track 1 MemoryAgent).
+            if let block = store.budgetedMemoryBlock(for: queryText, tokenBudget: CognitiveMemory.defaultTokenBudget) {
                 prompt += block
                 return
             }

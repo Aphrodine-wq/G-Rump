@@ -46,4 +46,11 @@ extension ProjectMemoryStore {
         }
         return block
     }
+
+    /// Budget-aware recall block. Default falls back to a flat top-K block;
+    /// SemanticMemoryStore overrides it with relevance × recency × salience
+    /// ranking packed into the token budget (Track 1: limited context window).
+    func budgetedMemoryBlock(for query: String, tokenBudget: Int) -> String? {
+        memoryBlock(for: query, limit: 5)
+    }
 }
