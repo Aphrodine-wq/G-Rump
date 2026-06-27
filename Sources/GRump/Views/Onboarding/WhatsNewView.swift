@@ -11,7 +11,7 @@ struct WhatsNewView: View {
         ("book.closed.fill", "Skills System", "40+ bundled skills for SwiftUI, async/await, Kubernetes, code review, and more. Add your own with SKILL.md files."),
         ("heart.text.square", "SOUL.md Personality", "Define global and per-project AI personality with SOUL.md files and built-in templates."),
         ("hammer.fill", "Apple-Native Tools", "24 new tools: Spotlight search, Keychain, Calendar, OCR, image classification, xcodebuild, and more."),
-        ("paintbrush.fill", "Themes & Layout", "Fun themes (Cursor, ChatGPT, Claude, Gemini, Kiro), Zen Mode, customizable layout, and Activity Bar."),
+        ("paintbrush.fill", "Themes & Layout", "Fun themes (Snow, Linen, Graphite, Amethyst, Ink), Zen Mode, customizable layout, and Activity Bar."),
         ("doc.text.magnifyingglass", "LSP Integration", "Live SourceKit-LSP diagnostics with error/warning badges in the top bar."),
         ("terminal.fill", "Inline Terminal", "Multi-session terminal with ANSI color parsing built right into the app."),
         ("arrow.triangle.branch", "Git Panel", "Full git integration: status, branches, commit, push, and pull without leaving G-Rump.")
