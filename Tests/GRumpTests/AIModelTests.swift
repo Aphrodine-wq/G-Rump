@@ -37,7 +37,8 @@ final class AIModelTests: XCTestCase {
     }
 
     func testAllModelsHaveTier() {
-        let validTiers = Set(["Pro", "Fast", "Free"])
+        // Single provider now — every model reports the "Qwen" tier.
+        let validTiers = Set(["Qwen"])
         for model in AIModel.allCases {
             XCTAssertTrue(validTiers.contains(model.tier),
                 "\(model.rawValue) has unexpected tier: \(model.tier)")
@@ -70,18 +71,14 @@ final class AIModelTests: XCTestCase {
     }
 
     func testModelsForProTier() {
+        // Billing removed — every tier returns all Qwen models.
         let proModels = AIModel.modelsForTier("pro")
-        XCTAssertFalse(proModels.isEmpty)
-        // Pro tier should include paid models
-        let hasPaid = proModels.contains(where: { $0.requiresPaidTier })
-        XCTAssertTrue(hasPaid, "Pro tier should include paid models")
+        XCTAssertEqual(Set(proModels), Set(AIModel.allCases))
     }
 
     func testModelsForTeamTier() {
         let teamModels = AIModel.modelsForTier("team")
-        XCTAssertFalse(teamModels.isEmpty)
-        let hasPaid = teamModels.contains(where: { $0.requiresPaidTier })
-        XCTAssertTrue(hasPaid, "Team tier should include paid models")
+        XCTAssertEqual(Set(teamModels), Set(AIModel.allCases))
     }
 
     func testProAndTeamTiersReturnSameModels() {
@@ -116,12 +113,10 @@ final class AIModelTests: XCTestCase {
 
     // MARK: - Paid Tier Classification
 
-    func testPaidModelsRequirePaidTier() {
+    func testNoModelRequiresPaidTier() {
+        // Billing tiers were removed in the Qwen build — nothing is paid-gated.
         let paidModels = AIModel.allCases.filter { $0.requiresPaidTier }
-        XCTAssertFalse(paidModels.isEmpty, "Should have some paid models")
-        for model in paidModels {
-            XCTAssertEqual(model.tier, "Pro", "\(model.rawValue) is paid but not in Pro tier")
-        }
+        XCTAssertTrue(paidModels.isEmpty, "No model should require a paid tier")
     }
 
     func testFreeModelsDoNotRequirePaidTier() {
@@ -134,9 +129,8 @@ final class AIModelTests: XCTestCase {
     // MARK: - Model Count Regression
 
     func testModelCount() {
-        // Guard against accidentally removing models
-        XCTAssertGreaterThanOrEqual(AIModel.allCases.count, 10,
-            "Expected at least 10 models")
+        // Qwen-only build ships exactly 4 models.
+        XCTAssertEqual(AIModel.allCases.count, 4, "Expected the 4 Qwen models")
     }
 
     func testUniqueRawValues() {

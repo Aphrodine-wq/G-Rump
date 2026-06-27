@@ -6,16 +6,15 @@ final class AIProvidersTests: XCTestCase {
     // MARK: - AIProvider Enum
 
     func testAllCasesCount() {
-        XCTAssertEqual(AIProvider.allCases.count, 6)
+        XCTAssertEqual(AIProvider.allCases, [.qwen])
     }
 
     func testRawValues() {
-        XCTAssertEqual(AIProvider.openRouter.rawValue, "openrouter")
-        XCTAssertEqual(AIProvider.openAI.rawValue, "openai")
-        XCTAssertEqual(AIProvider.anthropic.rawValue, "anthropic")
-        XCTAssertEqual(AIProvider.google.rawValue, "google")
-        XCTAssertEqual(AIProvider.ollama.rawValue, "ollama")
-        XCTAssertEqual(AIProvider.onDevice.rawValue, "ondevice")
+        XCTAssertEqual(AIProvider.qwen.rawValue, "qwen")
+    }
+
+    func testDisplayNameIsQwen() {
+        XCTAssertEqual(AIProvider.qwen.displayName, "Qwen")
     }
 
     func testDisplayNames() {
@@ -37,36 +36,18 @@ final class AIProvidersTests: XCTestCase {
     }
 
     func testRequiresAPIKey() {
-        XCTAssertTrue(AIProvider.openRouter.requiresAPIKey)
-        XCTAssertTrue(AIProvider.openAI.requiresAPIKey)
-        XCTAssertTrue(AIProvider.anthropic.requiresAPIKey)
-        XCTAssertTrue(AIProvider.google.requiresAPIKey)
-        XCTAssertFalse(AIProvider.ollama.requiresAPIKey)
-        XCTAssertFalse(AIProvider.onDevice.requiresAPIKey)
+        XCTAssertTrue(AIProvider.qwen.requiresAPIKey)
     }
 
     func testDefaultBaseURLs() {
-        XCTAssertTrue(AIProvider.openRouter.defaultBaseURL.contains("openrouter.ai"))
-        XCTAssertTrue(AIProvider.openAI.defaultBaseURL.contains("openai.com"))
-        XCTAssertTrue(AIProvider.anthropic.defaultBaseURL.contains("anthropic.com"))
-        XCTAssertTrue(AIProvider.google.defaultBaseURL.contains("generativelanguage.googleapis.com"))
-        XCTAssertTrue(AIProvider.ollama.defaultBaseURL.contains("localhost"))
-        XCTAssertEqual(AIProvider.onDevice.defaultBaseURL, "")
+        XCTAssertEqual(AIProvider.qwen.defaultBaseURL,
+                       "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
+        XCTAssertTrue(AIProvider.qwen.defaultBaseURL.contains("dashscope"))
     }
 
-    func testCloudProvidersRequireKeys() {
-        let cloudProviders: [AIProvider] = [.openRouter, .openAI, .anthropic, .google]
-        for provider in cloudProviders {
-            XCTAssertTrue(provider.requiresAPIKey, "\(provider.displayName) should require API key")
-            XCTAssertFalse(provider.defaultBaseURL.isEmpty, "\(provider.displayName) should have base URL")
-        }
-    }
-
-    func testLocalProvidersNoKeys() {
-        let localProviders: [AIProvider] = [.ollama, .onDevice]
-        for provider in localProviders {
-            XCTAssertFalse(provider.requiresAPIKey, "\(provider.displayName) should not require API key")
-        }
+    func testQwenRequiresKeyAndHasBaseURL() {
+        XCTAssertTrue(AIProvider.qwen.requiresAPIKey, "Qwen should require API key")
+        XCTAssertFalse(AIProvider.qwen.defaultBaseURL.isEmpty, "Qwen should have a base URL")
     }
 
     func testCodableRoundtrip() throws {
@@ -122,12 +103,12 @@ final class AIProvidersTests: XCTestCase {
 
     func testEnhancedModelEquality() {
         let a = EnhancedAIModel(
-            id: "test-1", provider: .openAI, modelID: "gpt-4o", displayName: "GPT-4o",
+            id: "test-1", provider: .qwen, modelID: "qwen-coder-plus", displayName: "Qwen Coder Plus",
             description: "Test", contextWindow: 128_000, maxOutput: 16_384,
             requiresPaidTier: false, capabilities: .default, pricing: nil
         )
         let b = EnhancedAIModel(
-            id: "test-1", provider: .anthropic, modelID: "different", displayName: "Different",
+            id: "test-1", provider: .qwen, modelID: "different", displayName: "Different",
             description: "Different", contextWindow: 0, maxOutput: 0,
             requiresPaidTier: true, capabilities: .default, pricing: nil
         )
@@ -136,12 +117,12 @@ final class AIProvidersTests: XCTestCase {
 
     func testEnhancedModelNotEqual() {
         let a = EnhancedAIModel(
-            id: "test-1", provider: .openAI, modelID: "gpt-4o", displayName: "GPT-4o",
+            id: "test-1", provider: .qwen, modelID: "qwen-coder-plus", displayName: "Qwen Coder Plus",
             description: "Test", contextWindow: 128_000, maxOutput: 16_384,
             requiresPaidTier: false, capabilities: .default, pricing: nil
         )
         let b = EnhancedAIModel(
-            id: "test-2", provider: .openAI, modelID: "gpt-4o", displayName: "GPT-4o",
+            id: "test-2", provider: .qwen, modelID: "qwen-coder-plus", displayName: "Qwen Coder Plus",
             description: "Test", contextWindow: 128_000, maxOutput: 16_384,
             requiresPaidTier: false, capabilities: .default, pricing: nil
         )
@@ -161,8 +142,8 @@ final class AIProvidersTests: XCTestCase {
 
     func testEnhancedModelCodable() throws {
         let model = EnhancedAIModel(
-            id: "test-codable", provider: .anthropic, modelID: "claude-sonnet",
-            displayName: "Claude Sonnet", description: "Fast",
+            id: "test-codable", provider: .qwen, modelID: "qwen-plus",
+            displayName: "Qwen Plus", description: "Fast",
             contextWindow: 200_000, maxOutput: 8_192,
             requiresPaidTier: false, capabilities: .default,
             pricing: ModelPricing(inputPricePer1K: 0.003, outputPricePer1K: 0.015, currency: "USD")
@@ -178,24 +159,24 @@ final class AIProvidersTests: XCTestCase {
     // MARK: - ProviderConfiguration
 
     func testProviderConfigDefaults() {
-        let config = ProviderConfiguration(provider: .openAI)
-        XCTAssertEqual(config.provider, .openAI)
+        let config = ProviderConfiguration(provider: .qwen)
+        XCTAssertEqual(config.provider, .qwen)
         XCTAssertNil(config.apiKey)
-        XCTAssertEqual(config.baseURL, AIProvider.openAI.defaultBaseURL)
+        XCTAssertEqual(config.baseURL, AIProvider.qwen.defaultBaseURL)
         XCTAssertTrue(config.isEnabled)
         XCTAssertTrue(config.customHeaders.isEmpty)
     }
 
     func testProviderConfigCustomURL() {
-        let config = ProviderConfiguration(provider: .ollama, baseURL: "http://myserver:11434/v1")
+        let config = ProviderConfiguration(provider: .qwen, baseURL: "http://myserver:11434/v1")
         XCTAssertEqual(config.baseURL, "http://myserver:11434/v1")
     }
 
     func testProviderConfigCodable() throws {
-        let config = ProviderConfiguration(provider: .openRouter, apiKey: "sk-test-key")
+        let config = ProviderConfiguration(provider: .qwen, apiKey: "sk-test-key")
         let data = try JSONEncoder().encode(config)
         let decoded = try JSONDecoder().decode(ProviderConfiguration.self, from: data)
-        XCTAssertEqual(decoded.provider, .openRouter)
+        XCTAssertEqual(decoded.provider, .qwen)
         XCTAssertEqual(decoded.apiKey, "sk-test-key")
     }
 
@@ -242,8 +223,13 @@ final class AIProvidersTests: XCTestCase {
         XCTAssertNil(found)
     }
 
-    func testRegistryOnDeviceAlwaysConfigured() {
-        XCTAssertTrue(AIModelRegistry.shared.isProviderConfigured(.onDevice))
+    func testRegistryOnlyHasQwenModels() {
+        let models = AIModelRegistry.shared.getAllModels()
+        XCTAssertFalse(models.isEmpty)
+        for model in models {
+            XCTAssertEqual(model.provider, .qwen, "Registry should only contain Qwen models")
+            XCTAssertTrue(model.capabilities.supportsTools, "Qwen model \(model.id) should support tools")
+        }
     }
 
     func testRegistryModelIDsUnique() {

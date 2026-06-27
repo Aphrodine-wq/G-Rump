@@ -339,47 +339,45 @@ final class ModelsTests: XCTestCase {
     }
 
     func testAIModelTiers() {
+        // Single provider now — every model reports the "Qwen" tier.
         let tiers = Set(AIModel.allCases.map(\.tier))
-        XCTAssertTrue(tiers.contains("Pro"))
-        XCTAssertTrue(tiers.contains("Fast"))
-        XCTAssertTrue(tiers.contains("Free"))
+        XCTAssertEqual(tiers, ["Qwen"])
     }
 
-    func testPaidModelsRequirePaidTier() {
-        let paid: [AIModel] = [.claudeOpus46, .gemini31Pro, .claudeSonnet46, .codex53, .kimiK25]
-        for model in paid {
-            XCTAssertTrue(model.requiresPaidTier, "\(model.rawValue) should require paid tier")
-        }
-    }
-
-    func testFreeModelsDoNotRequirePaidTier() {
-        let free: [AIModel] = [.qwen3Coder, .deepseekR1, .gptOss120b, .trinityLarge, .step35Flash, .llama33, .glm45Air]
-        for model in free {
+    func testNoModelRequiresPaidTier() {
+        // Billing tiers were removed in the Qwen build.
+        for model in AIModel.allCases {
             XCTAssertFalse(model.requiresPaidTier, "\(model.rawValue) should not require paid tier")
         }
     }
 
-    func testModelsForPaidTier() {
-        let proModels = AIModel.modelsForTier("pro")
-        XCTAssertTrue(proModels.contains(.claudeOpus46))
-        XCTAssertTrue(proModels.contains(.gemini31Pro))
+    func testQwenModelsExist() {
+        let qwen: [AIModel] = [.qwenCoderPlus, .qwenMax, .qwenPlus, .qwenTurbo]
+        for model in qwen {
+            XCTAssertFalse(model.requiresPaidTier, "\(model.rawValue) should not require paid tier")
+        }
     }
 
-    func testModelsForTeamTier() {
-        let teamModels = AIModel.modelsForTier("team")
-        XCTAssertTrue(teamModels.contains(.claudeOpus46))
+    func testModelsForTierReturnsAllQwen() {
+        // modelsForTier ignores the platform tier now and returns all 4 Qwen models.
+        for tier in ["pro", "team", "free", nil] as [String?] {
+            let models = AIModel.modelsForTier(tier)
+            XCTAssertEqual(Set(models), Set(AIModel.allCases))
+            XCTAssertEqual(models.count, 4)
+        }
     }
 
     func testModelsForFreeTier() {
         let freeModels = AIModel.modelsForTier(nil)
-        XCTAssertTrue(freeModels.contains(.qwen3Coder))
-        XCTAssertFalse(freeModels.contains(.claudeOpus46))
+        XCTAssertTrue(freeModels.contains(.qwenCoderPlus))
+        XCTAssertTrue(freeModels.contains(.qwenMax))
     }
 
-    func testDefaultForTierPaid() {
-        let model = AIModel.defaultForTier("pro")
-        XCTAssertNotNil(model)
-        XCTAssertTrue(model.requiresPaidTier)
+    func testDefaultForTierIsQwenCoderPlus() {
+        // Default is the same regardless of tier.
+        for tier in ["pro", "team", "free", nil] as [String?] {
+            XCTAssertEqual(AIModel.defaultForTier(tier), .qwenCoderPlus)
+        }
     }
 
     func testDefaultForTierFree() {
@@ -387,26 +385,35 @@ final class ModelsTests: XCTestCase {
         XCTAssertFalse(model.requiresPaidTier)
     }
 
-    // MARK: - Legacy Migration
+    // MARK: - Legacy Migration (now maps legacy ids onto Qwen, never nil)
 
-    func testMigrateLegacyGeminiPro() {
-        let result = AIModel.migrateLegacyID("google/gemini-2.5-pro-preview")
-        XCTAssertEqual(result, .gemini31Pro)
+    func testMigrateLegacyMaxTier() {
+        // "opus"/"max"/"pro"/"r1" → Qwen Max
+        XCTAssertEqual(AIModel.migrateLegacyID("anthropic/claude-opus-4"), .qwenMax)
+        XCTAssertEqual(AIModel.migrateLegacyID("custom/model-max"), .qwenMax)
     }
 
-    func testMigrateLegacyGeminiFlash() {
-        let result = AIModel.migrateLegacyID("google/gemini-2.5-flash-preview")
-        XCTAssertEqual(result, .gemini31Flash)
+    func testMigrateLegacyGeminiMapsToTurbo() {
+        // "gemini" contains the substring "mini", so the flash/turbo/mini/air rule
+        // wins first → Qwen Turbo (both the pro and flash variants).
+        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-pro-preview"), .qwenTurbo)
+        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-flash-preview"), .qwenTurbo)
+    }
+
+    func testMigrateLegacyCoder() {
+        // "coder"/"deepseek" → Qwen Coder Plus
+        XCTAssertEqual(AIModel.migrateLegacyID("deepseek/deepseek-coder"), .qwenCoderPlus)
     }
 
     func testMigrateLegacyValidCurrent() {
-        let result = AIModel.migrateLegacyID(AIModel.claudeSonnet4.rawValue)
-        XCTAssertEqual(result, .claudeSonnet4)
+        let result = AIModel.migrateLegacyID(AIModel.qwenCoderPlus.rawValue)
+        XCTAssertEqual(result, .qwenCoderPlus)
     }
 
-    func testMigrateLegacyUnknown() {
+    func testMigrateLegacyUnknownFallsBackToCoderPlus() {
+        // Never returns nil now — unknown ids fall back to the default.
         let result = AIModel.migrateLegacyID("unknown/model-xyz")
-        XCTAssertNil(result)
+        XCTAssertEqual(result, .qwenCoderPlus)
     }
 
     // MARK: - AIModel Identifiable

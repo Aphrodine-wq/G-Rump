@@ -13,7 +13,8 @@ final class OpenRouterServiceTests: XCTestCase {
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.timeoutInterval, 180)
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
-        XCTAssertEqual(request.value(forHTTPHeaderField: "X-Title"), "G-Rump")
+        // DashScope build: no OpenRouter X-Title routing hint.
+        XCTAssertNil(request.value(forHTTPHeaderField: "X-Title"))
         let body = try XCTUnwrap(request.httpBody)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
         XCTAssertEqual(json["model"] as? String, "test/model")
@@ -26,8 +27,8 @@ final class OpenRouterServiceTests: XCTestCase {
         XCTAssertEqual(msgs[1]["role"] as? String, "user")
         XCTAssertEqual(msgs[1]["content"] as? String, "Hi")
         XCTAssertNotNil(json["tools"])
-        let provider = try XCTUnwrap(json["provider"] as? [String: Any])
-        XCTAssertEqual(provider["sort"] as? String, "price")
+        // DashScope rejects unknown fields — no OpenRouter `provider` routing block.
+        XCTAssertNil(json["provider"])
     }
 
     func testBuildRequestThrowsWhenAPIKeyEmpty() {
@@ -47,22 +48,20 @@ final class OpenRouterServiceTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
     }
 
-    func testBuildRequestHasRefererHeader() throws {
+    func testBuildRequestHasNoRefererHeader() throws {
+        // DashScope build drops the OpenRouter HTTP-Referer routing hint.
         let service = OpenRouterService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
-        XCTAssertEqual(request.value(forHTTPHeaderField: "HTTP-Referer"), "https://www.g-rump.com")
+        XCTAssertNil(request.value(forHTTPHeaderField: "HTTP-Referer"))
     }
 
-    func testBuildRequestHasPlatformHeader() throws {
+    func testBuildRequestHasNoPlatformHeader() throws {
+        // DashScope build drops the OpenRouter X-Client-Platform routing hint.
         let service = OpenRouterService()
         let messages = [Message(role: .user, content: "Hi")]
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", stream: false)
-        #if os(macOS)
-        XCTAssertEqual(request.value(forHTTPHeaderField: "X-Client-Platform"), "macos-native")
-        #else
-        XCTAssertEqual(request.value(forHTTPHeaderField: "X-Client-Platform"), "ios-native")
-        #endif
+        XCTAssertNil(request.value(forHTTPHeaderField: "X-Client-Platform"))
     }
 
     // MARK: - Request Body

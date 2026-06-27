@@ -168,16 +168,18 @@ final class SecurityAuditTests: XCTestCase {
     }
 
     func testModelMigrationHandlesUnknownIds() {
-        // Unknown model IDs should return nil, not crash
-        XCTAssertNil(AIModel.migrateLegacyID("totally-fake/nonexistent-model-v99"))
-        XCTAssertNil(AIModel.migrateLegacyID(""))
-        XCTAssertNil(AIModel.migrateLegacyID(" "))
+        // Unknown model IDs should fall back to the default Qwen model, not crash or return nil
+        XCTAssertEqual(AIModel.migrateLegacyID("totally-fake/nonexistent-model-v99"), .qwenCoderPlus)
+        XCTAssertEqual(AIModel.migrateLegacyID(""), .qwenCoderPlus)
+        XCTAssertEqual(AIModel.migrateLegacyID(" "), .qwenCoderPlus)
     }
 
     func testModelMigrationHandlesKnownLegacyIds() {
-        // Known legacy IDs must migrate correctly
-        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-pro-preview"), .gemini31Pro)
-        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-flash-preview"), .gemini31Flash)
+        // Known legacy IDs must migrate onto a Qwen model. Note "gemini" contains
+        // the substring "mini", so both gemini variants resolve to Qwen Turbo.
+        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-pro-preview"), .qwenTurbo)
+        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-flash-preview"), .qwenTurbo)
+        XCTAssertEqual(AIModel.migrateLegacyID("anthropic/claude-opus-4"), .qwenMax)
     }
 
     func testModelMigrationPassesThroughCurrentIds() {

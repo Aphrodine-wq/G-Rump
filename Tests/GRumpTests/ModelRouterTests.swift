@@ -6,13 +6,13 @@ final class ModelRouterTests: XCTestCase {
     // MARK: - Basic Routing
 
     func testRouteReturnsModel() {
-        let fallback = AIModel.qwen3Coder
+        let fallback = AIModel.qwenCoderPlus
         let model = ModelRouter.route(taskType: .codeGen, fallback: fallback)
         XCTAssertFalse(model.displayName.isEmpty)
     }
 
     func testRouteAllTaskTypes() {
-        let fallback = AIModel.qwen3Coder
+        let fallback = AIModel.qwenCoderPlus
         for taskType in TaskType.allCases {
             let model = ModelRouter.route(taskType: taskType, fallback: fallback)
             XCTAssertFalse(model.rawValue.isEmpty,
@@ -23,7 +23,7 @@ final class ModelRouterTests: XCTestCase {
     // MARK: - Fallback Chain
 
     func testFallbackChainNotEmpty() {
-        let fallback = AIModel.deepseekChat
+        let fallback = AIModel.qwenPlus
         for taskType in TaskType.allCases {
             let chain = ModelRouter.fallbackChain(for: taskType, fallback: fallback)
             XCTAssertFalse(chain.isEmpty,
@@ -32,7 +32,7 @@ final class ModelRouterTests: XCTestCase {
     }
 
     func testFallbackChainContainsFallback() {
-        let fallback = AIModel.llama33
+        let fallback = AIModel.qwenTurbo
         for taskType in TaskType.allCases {
             let chain = ModelRouter.fallbackChain(for: taskType, fallback: fallback)
             XCTAssertTrue(chain.contains(fallback),
@@ -41,7 +41,7 @@ final class ModelRouterTests: XCTestCase {
     }
 
     func testFallbackChainFirstIsPreferred() {
-        let fallback = AIModel.qwen3Coder
+        let fallback = AIModel.qwenCoderPlus
         // For code gen, the first should be a coding-focused model
         let chain = ModelRouter.fallbackChain(for: .codeGen, fallback: fallback)
         XCTAssertGreaterThanOrEqual(chain.count, 2)
@@ -53,20 +53,20 @@ final class ModelRouterTests: XCTestCase {
     // MARK: - Context-Aware Routing
 
     func testRouteWithSmallTokenCount() {
-        let fallback = AIModel.qwen3Coder
+        let fallback = AIModel.qwenCoderPlus
         let model = ModelRouter.route(taskType: .codeGen, fallback: fallback, estimatedTokens: 1000)
         XCTAssertGreaterThan(model.contextWindow - model.maxOutput, 1000)
     }
 
     func testRouteWithLargeTokenCount() {
-        let fallback = AIModel.qwen3Coder
+        let fallback = AIModel.qwenCoderPlus
         let model = ModelRouter.route(taskType: .reasoning, fallback: fallback, estimatedTokens: 500_000)
         // Should pick a model with large context
         XCTAssertGreaterThan(model.contextWindow, 100_000)
     }
 
     func testRouteWithZeroTokens() {
-        let fallback = AIModel.deepseekChat
+        let fallback = AIModel.qwenPlus
         let model = ModelRouter.route(taskType: .general, fallback: fallback, estimatedTokens: 0)
         XCTAssertFalse(model.rawValue.isEmpty)
     }

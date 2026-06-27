@@ -76,9 +76,9 @@ final class IntegrationValidationTests: XCTestCase {
     func testModelPropertyConsistency() {
         // Every model must have all 6 properties populated correctly
         for model in AIModel.allCases {
-            // rawValue should be a valid provider/model path
-            XCTAssertTrue(model.rawValue.contains("/"),
-                "\(model.rawValue) should be in 'provider/model' format")
+            // rawValue is the DashScope wire id (e.g. "qwen-coder-plus"), no slash.
+            XCTAssertFalse(model.rawValue.isEmpty,
+                "\(model.rawValue) should have a non-empty wire id")
 
             // displayName should be human-readable (no slashes)
             XCTAssertFalse(model.displayName.contains("/"),
@@ -88,8 +88,8 @@ final class IntegrationValidationTests: XCTestCase {
             XCTAssertGreaterThan(model.description.count, 10,
                 "\(model.rawValue) description too short")
 
-            // tier must be valid
-            XCTAssertTrue(["Pro", "Fast", "Free"].contains(model.tier),
+            // tier must be valid — single provider now.
+            XCTAssertTrue(["Qwen"].contains(model.tier),
                 "\(model.rawValue) has invalid tier: \(model.tier)")
 
             // id must equal rawValue

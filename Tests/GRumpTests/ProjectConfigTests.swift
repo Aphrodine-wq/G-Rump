@@ -58,13 +58,13 @@ final class ProjectConfigTests: XCTestCase {
     // MARK: - Merge
 
     func testMergeOverridesModel() {
-        let config = ProjectConfig(model: AIModel.claudeSonnet4.rawValue)
+        let config = ProjectConfig(model: AIModel.qwenCoderPlus.rawValue)
         let result = config.merged(
-            currentModel: .gemini31Flash,
+            currentModel: .qwenPlus,
             currentPrompt: "default prompt",
             currentMaxSteps: 25
         )
-        XCTAssertEqual(result.model, .claudeSonnet4)
+        XCTAssertEqual(result.model, .qwenCoderPlus)
         XCTAssertEqual(result.prompt, "default prompt")
         XCTAssertEqual(result.maxSteps, 25)
         XCTAssertNil(result.tools)
@@ -73,7 +73,7 @@ final class ProjectConfigTests: XCTestCase {
     func testMergeOverridesPrompt() {
         let config = ProjectConfig(systemPrompt: "custom prompt")
         let result = config.merged(
-            currentModel: .gemini31Flash,
+            currentModel: .qwenPlus,
             currentPrompt: "default prompt",
             currentMaxSteps: 25
         )
@@ -83,11 +83,11 @@ final class ProjectConfigTests: XCTestCase {
     func testMergeKeepsDefaultsWhenNil() {
         let config = ProjectConfig()
         let result = config.merged(
-            currentModel: .gemini31Flash,
+            currentModel: .qwenPlus,
             currentPrompt: "keep this",
             currentMaxSteps: 42
         )
-        XCTAssertEqual(result.model, .gemini31Flash)
+        XCTAssertEqual(result.model, .qwenPlus)
         XCTAssertEqual(result.prompt, "keep this")
         XCTAssertEqual(result.maxSteps, 42)
     }
@@ -95,7 +95,7 @@ final class ProjectConfigTests: XCTestCase {
     func testMergeOverridesMaxSteps() {
         let config = ProjectConfig(maxAgentSteps: 100)
         let result = config.merged(
-            currentModel: .gemini31Flash,
+            currentModel: .qwenPlus,
             currentPrompt: "p",
             currentMaxSteps: 25
         )
@@ -105,7 +105,7 @@ final class ProjectConfigTests: XCTestCase {
     func testMergeToolAllowlist() {
         let config = ProjectConfig(toolAllowlist: ["read_file"])
         let result = config.merged(
-            currentModel: .gemini31Flash,
+            currentModel: .qwenPlus,
             currentPrompt: "p",
             currentMaxSteps: 25
         )
