@@ -3,18 +3,18 @@ import SwiftUI
 struct RightPanelManager: View {
     @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject private var layoutOptions = LayoutOptions.shared
-    
+
     @AppStorage("SelectedPanel") private var selectedPanelRaw: String = PanelTab.chat.rawValue
     @AppStorage("RightPanelCollapsed") private var rightPanelCollapsed = true
-    
+
     private var selectedPanel: PanelTab {
-        get { PanelTab(rawValue: selectedPanelRaw) ?? .chat }
+        PanelTab(rawValue: selectedPanelRaw) ?? .chat
     }
-    
+
     private var showRightPanel: Bool {
         layoutOptions.panelVisible && !layoutOptions.zenMode && !rightPanelCollapsed && selectedPanel != .chat
     }
-    
+
     var body: some View {
         Group {
             if showRightPanel {
@@ -34,7 +34,7 @@ struct RightPanelManager: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var rightPanelContent: some View {
         switch selectedPanel {
@@ -91,7 +91,7 @@ struct RightPanelManager: View {
             MemoryPanel()
         }
     }
-    
+
     func switchPanel(_ tab: PanelTab) {
         withAnimation(.easeInOut(duration: Anim.quick)) {
             if selectedPanelRaw == tab.rawValue && !rightPanelCollapsed {

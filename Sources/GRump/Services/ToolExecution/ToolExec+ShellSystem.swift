@@ -147,6 +147,12 @@ extension ChatViewModel {
         let cwd = (args["cwd"] as? String).map { ($0 as NSString).expandingTildeInPath }
         let timeoutSeconds = args["timeout_seconds"] as? Int ?? 60
         let resolvedPath = resolveExecutablePath(from: command, cwd: cwd)
+
+        // Conscience gate runs first — short-circuits before the approval flow.
+        if let refusal = await conscienceRefusal(toolName: "system_run", arguments: command) {
+            return refusal
+        }
+
         var config = ExecApprovalsStorage.load()
         let allowed: Bool
         switch config.security {
@@ -302,6 +308,7 @@ extension ChatViewModel {
         if !allowNotifications {
             return
         }
+        guard GRumpRuntime.notificationsAvailable else { return }
         let center = UNUserNotificationCenter.current()
         let soundEnabled = UserDefaults.standard.object(forKey: "NotificationSoundEnabled") as? Bool ?? true
         let options: UNAuthorizationOptions = soundEnabled ? [.alert, .sound] : [.alert]
@@ -465,7 +472,7 @@ extension ChatViewModel {
             return "Error: could not get key window for screen capture."
         }
         let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
-        let image = renderer.image { ctx in
+        let image = renderer.image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
         }
         guard let pngData = image.pngData() else {

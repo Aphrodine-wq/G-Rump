@@ -2,9 +2,9 @@ import Foundation
 
 // MARK: - Messages and Conversations Extension
 extension ChatViewModel {
-    
+
     // MARK: - Conversation Management
-    
+
     func createNewConversation() {
         let conversation = Conversation(title: "New Chat")
         conversations.insert(conversation, at: 0)
@@ -14,7 +14,7 @@ extension ChatViewModel {
         flushSync()
         SpotlightIndexer.shared.indexConversation(conversation)
     }
-    
+
     func deleteConversation(_ conversation: Conversation) {
         SpotlightIndexer.shared.deindexConversation(conversation.id)
         saveDraft("", forConversationId: conversation.id) // Clean up orphaned draft
@@ -26,7 +26,7 @@ extension ChatViewModel {
         syncDirty = true
         flushSync()
     }
-    
+
     func renameConversation(_ conversation: Conversation, to newTitle: String) {
         if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
             conversations[index].title = newTitle
@@ -38,7 +38,7 @@ extension ChatViewModel {
             SpotlightIndexer.shared.indexConversation(conversations[index])
         }
     }
-    
+
     func duplicateConversation(_ conversation: Conversation) {
         var copy = Conversation(title: "Copy of \(conversation.title)")
         copy.messages = conversation.messages.map { msg in
@@ -51,7 +51,7 @@ extension ChatViewModel {
         syncDirty = true
         flushSync()
     }
-    
+
     func selectConversation(_ conversation: Conversation) {
         if let currentId = currentConversation?.id {
             saveDraft(userInput, forConversationId: currentId)
@@ -59,7 +59,7 @@ extension ChatViewModel {
         currentConversation = conversation
         userInput = loadDraft(forConversationId: conversation.id)
     }
-    
+
     func syncConversation() {
         guard let current = currentConversation,
               let idx = conversations.firstIndex(where: { $0.id == current.id }) else { return }
@@ -76,33 +76,33 @@ extension ChatViewModel {
             }
         }
     }
-    
+
     // MARK: - Message Operations
-    
+
     func undoSend() {
-        guard undoSendAvailable, 
+        guard undoSendAvailable,
               let lastMessage = currentConversation?.messages.last,
               lastMessage.role == .user else { return }
-        
+
         currentConversation?.messages.removeLast()
         currentConversation?.updateTitle()
         undoSendAvailable = false
         syncConversation()
     }
-    
+
     func editUserMessage(_ messageId: UUID, newContent: String) {
         guard var conversation = currentConversation else { return }
-        
+
         if let messageIndex = conversation.messages.firstIndex(where: { $0.id == messageId }),
            conversation.messages[messageIndex].role == .user {
-            
+
             conversation.messages[messageIndex].content = newContent
             conversation.updateTitle()
             currentConversation = conversation
             syncConversation()
         }
     }
-    
+
     // MARK: - Threading Support
 
     func createThread(from messageId: UUID, name: String? = nil) {

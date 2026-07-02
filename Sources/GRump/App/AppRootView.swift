@@ -41,6 +41,10 @@ struct AppRootView: View {
             Task.detached(priority: .background) {
                 SkillsStorage.seedBundledSkillsIfNeeded()
                 SoulStorage.seedDefaultSoulIfNeeded()
+                // Brain subsystem: seed generic config + vault folder scaffold.
+                BrainConfigStore.shared.seedIfNeeded()
+                BrainPaths.ensureVaultScaffold()
+                MindStorage.seedDefaultMindIfNeeded()
             }
         }
         .onChange(of: scenePhase) { _, newPhase in

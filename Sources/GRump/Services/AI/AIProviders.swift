@@ -140,7 +140,7 @@ struct ModelCapabilities: Codable, Equatable {
     let maxTokens: Int?
     let supportsSystemMessages: Bool
     let supportsParallelToolUse: Bool
-    
+
     static let `default` = ModelCapabilities(
         supportsTools: true,
         supportsVision: false,
@@ -159,11 +159,11 @@ struct ModelPricing: Codable, Equatable {
     let inputPricePer1K: Double  // Price per 1K input tokens
     let outputPricePer1K: Double // Price per 1K output tokens
     let currency: String
-    
+
     var formattedInputPrice: String {
         return String(format: "%.4f %@", inputPricePer1K, currency)
     }
-    
+
     var formattedOutputPrice: String {
         return String(format: "%.4f %@", outputPricePer1K, currency)
     }
@@ -177,7 +177,7 @@ struct ProviderConfiguration: Codable {
     var baseURL: String?
     var isEnabled: Bool = true
     var customHeaders: [String: String] = [:]
-    
+
     init(provider: AIProvider, apiKey: String? = nil, baseURL: String? = nil) {
         self.provider = provider
         self.apiKey = apiKey
@@ -189,57 +189,57 @@ struct ProviderConfiguration: Codable {
 
 final class AIModelRegistry: @unchecked Sendable {
     static let shared = AIModelRegistry()
-    
+
     private var models: [EnhancedAIModel] = []
     private var providerConfigs: [AIProvider: ProviderConfiguration] = [:]
-    
+
     private init() {
         loadDefaultModels()
         loadProviderConfigurations()
     }
-    
+
     // MARK: - Public Interface
-    
+
     func getAllModels() -> [EnhancedAIModel] {
         return models.sorted { $0.displayName < $1.displayName }
     }
-    
+
     func getModels(for provider: AIProvider) -> [EnhancedAIModel] {
         return models.filter { $0.provider == provider }
             .sorted { $0.displayName < $1.displayName }
     }
-    
+
     func getModel(by id: String) -> EnhancedAIModel? {
         return models.first { $0.id == id }
     }
-    
+
     func getProviderConfig(for provider: AIProvider) -> ProviderConfiguration? {
         return providerConfigs[provider]
     }
-    
+
     func setProviderConfig(_ config: ProviderConfiguration) {
         providerConfigs[config.provider] = config
         saveProviderConfigurations()
     }
-    
+
     func isProviderConfigured(_ provider: AIProvider) -> Bool {
         // On-device needs no config — it's always "configured" if Core ML is available
         if provider == .onDevice { return true }
-        
+
         guard let config = providerConfigs[provider] else { return false }
-        
+
         if !provider.requiresAPIKey { return true }
         return !(config.apiKey?.isEmpty ?? true)
     }
-    
+
     // MARK: - Model Loading (catalog in AIModelCatalog.swift)
 
     private func loadDefaultModels() {
         models = defaultModelCatalog()
     }
-    
+
     // MARK: - Configuration Management
-    
+
     private func loadProviderConfigurations() {
         if let data = UserDefaults.standard.data(forKey: "AIProviderConfigurations"),
            let configs = try? JSONDecoder().decode([ProviderConfiguration].self, from: data) {
@@ -247,7 +247,7 @@ final class AIModelRegistry: @unchecked Sendable {
                 providerConfigs[config.provider] = config
             }
         }
-        
+
         // Set up default configurations for unconfigured providers
         for provider in AIProvider.allCases {
             if providerConfigs[provider] == nil {
@@ -255,21 +255,21 @@ final class AIModelRegistry: @unchecked Sendable {
             }
         }
     }
-    
+
     private func saveProviderConfigurations() {
         let configs = Array(providerConfigs.values)
         if let data = try? JSONEncoder().encode(configs) {
             UserDefaults.standard.set(data, forKey: "AIProviderConfigurations")
         }
     }
-    
+
     // MARK: - Dynamic Model Loading
-    
+
     @discardableResult
     func refreshOllamaModels() async -> Bool {
         guard let config = providerConfigs[.ollama],
               config.isEnabled else { return false }
-        
+
         do {
             let fetchedModels = try await fetchOllamaModels(baseURL: config.baseURL ?? AIProvider.ollama.defaultBaseURL)
             await MainActor.run {
@@ -349,7 +349,7 @@ final class AIModelRegistry: @unchecked Sendable {
 
         throw lastError
     }
-    
+
     private func fetchOllamaModels(baseURL: String) async throws -> [OllamaModel] {
         let endpoints = ollamaTagEndpoints(baseURL: baseURL)
         guard !endpoints.isEmpty else { throw URLError(.badURL) }

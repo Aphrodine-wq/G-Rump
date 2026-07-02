@@ -4,7 +4,7 @@ struct ActivityView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var activityStore: ActivityStore
     @Environment(\.dismiss) var dismiss
-    @State private var filterSuccess: Bool? = nil
+    @State private var filterSuccess: Bool?
     @State private var searchText: String = ""
 
     private var filteredEntries: [ActivityEntry] {

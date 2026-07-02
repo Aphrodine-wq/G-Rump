@@ -28,7 +28,7 @@ extension OnboardingView {
             SkillPack(id: "quality", name: "Code Quality", icon: "checkmark.seal.fill", description: "Reviews, testing, refactoring, security",
                       skillIds: ["code-review", "testing", "test-generation", "refactoring", "security-audit", "performance", "accessibility"]),
             SkillPack(id: "aiml", name: "AI & ML", icon: "brain.head.profile", description: "Prompt engineering, CoreML, MLX, data science",
-                      skillIds: ["prompt-engineering", "coreml-conversion", "mlx-training", "data-science"]),
+                      skillIds: ["prompt-engineering", "coreml-conversion", "mlx-training", "data-science"])
         ]
     }
 

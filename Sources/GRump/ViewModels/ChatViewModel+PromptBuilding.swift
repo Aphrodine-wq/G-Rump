@@ -32,7 +32,7 @@ extension ChatViewModel {
             3. Implement the feature step by step — write real code, create/edit files, run builds, and fix errors as you go.
             4. After implementation, run tests or build commands to verify your work.
             If something is genuinely ambiguous (e.g. you cannot determine the tech stack from the project), state your assumption and proceed. The user chose Build mode because they want code, not questions.
-            
+
             CRITICAL: When writing or modifying code, you MUST use the write_file or edit_file tools to write code directly to disk.
             Do NOT paste large code blocks into your text response — the user expects files to appear on disk in real time.
             In your text, show only a brief summary of what you wrote (filename, purpose, key changes). The actual code goes through tool calls.
@@ -72,6 +72,13 @@ extension ChatViewModel {
         guard let soul = SoulStorage.loadSoul(workingDirectory: workingDirectory) else { return basePrompt }
         let soulBlock = "\n\n--- Soul: \(soul.name) ---\n" + soul.body + "\n\n--- End of soul ---\n\n"
         return soulBlock + basePrompt
+    }
+
+    /// Prepends MIND.md identity content as the outermost foundation layer (before Soul).
+    func prependMindContent(to basePrompt: String) -> String {
+        guard let mind = MindStorage.loadMind(workingDirectory: workingDirectory) else { return basePrompt }
+        let mindBlock = "\n\n--- Mind: \(mind.name) ---\n" + mind.body + "\n\n--- End of mind ---\n\n"
+        return mindBlock + basePrompt
     }
 
     /// Prepends enabled skill instructions to the base prompt.

@@ -10,22 +10,22 @@ import SwiftUI
 
 @MainActor
 final class FocusFilterService: ObservableObject {
-    
+
     static let shared = FocusFilterService()
-    
+
     @Published var currentFocusMode: FocusMode = .none
     @Published var isFocusModeActive = false
-    
+
     private init() {
         startObservingFocusChanges()
     }
-    
+
     deinit {
         focusObservationTimer?.invalidate()
     }
-    
+
     private var focusObservationTimer: Timer?
-    
+
     private func startObservingFocusChanges() {
         // Poll system Focus state periodically
         // INFocusStatusCenter is iOS-only; on macOS we detect via Do Not Disturb defaults
@@ -38,18 +38,18 @@ final class FocusFilterService: ObservableObject {
         checkCurrentFocusMode()
         #endif
     }
-    
+
     #if os(macOS)
     private func checkCurrentFocusMode() {
         // Read DND/Focus state from defaults
         // macOS stores Focus state in com.apple.controlcenter and com.apple.ncprefs
         let defaults = UserDefaults(suiteName: "com.apple.controlcenter")
         let dndEnabled = defaults?.bool(forKey: "NSStatusItem Visible FocusModes") ?? false
-        
+
         // Also check via assertions database for active Focus
         let assertionStore = UserDefaults(suiteName: "com.apple.ncprefs")
         let activeMode: FocusMode
-        
+
         if let modeData = assertionStore?.data(forKey: "activeFocusMode"),
            let modeStr = String(data: modeData, encoding: .utf8),
            let mode = FocusMode(rawValue: modeStr) {
@@ -59,17 +59,17 @@ final class FocusFilterService: ObservableObject {
         } else {
             activeMode = .none
         }
-        
+
         if activeMode != currentFocusMode {
             let oldMode = currentFocusMode
             currentFocusMode = activeMode
             isFocusModeActive = activeMode != .none
-            
+
             if activeMode != .none {
                 let config = getConfiguration(for: activeMode)
                 applyFocusConfiguration(config)
             }
-            
+
             NotificationCenter.default.post(
                 name: .focusModeDidChange,
                 object: nil,
@@ -81,9 +81,9 @@ final class FocusFilterService: ObservableObject {
         }
     }
     #endif
-    
+
     // MARK: - Focus Mode Configuration
-    
+
     func getConfiguration(for focusMode: FocusMode) -> FocusConfiguration {
         switch focusMode {
         case .work:
@@ -126,9 +126,9 @@ final class FocusFilterService: ObservableObject {
             return FocusConfiguration.default
         }
     }
-    
+
     // MARK: - Apply Focus Configuration
-    
+
     func applyFocusConfiguration(_ config: FocusConfiguration) {
         NotificationCenter.default.post(
             name: .focusConfigurationChanged,
@@ -142,13 +142,13 @@ final class FocusFilterService: ObservableObject {
 
 enum FocusMode: String, CaseIterable, Identifiable, Codable {
     case none, work, personal, sleep, driving, exercise, mindfulness, reading, gaming
-    
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         rawValue.capitalized
     }
-    
+
     var icon: String {
         switch self {
         case .none: return "circle"
@@ -162,7 +162,7 @@ enum FocusMode: String, CaseIterable, Identifiable, Codable {
         case .gaming: return "gamecontroller"
         }
     }
-    
+
     var color: Color {
         switch self {
         case .none: return .gray
@@ -187,7 +187,7 @@ struct FocusConfiguration: Codable {
     let showDistractions: Bool
     let enableSounds: Bool
     let suggestedSkills: [String]
-    
+
     static let `default` = FocusConfiguration(
         allowedNotifications: FocusNotificationCategory.allCases,
         agentModeId: "chat",
@@ -203,7 +203,7 @@ enum FocusNotificationCategory: String, CaseIterable, Codable {
     case taskFailed = "GRUMP_TASK_FAILED"
     case approvalNeeded = "GRUMP_APPROVAL_NEEDED"
     case buildResult = "GRUMP_BUILD_RESULT"
-    
+
     var displayName: String {
         switch self {
         case .taskComplete: return "Task Complete"
@@ -222,22 +222,22 @@ struct SetGRumpFocusIntent: AppIntent {
         "Set how G-Rump behaves when this Focus mode is active.",
         categoryName: "Productivity"
     )
-    
+
     @Parameter(title: "Focus Mode")
     var focusMode: FocusModeAppEnum
-    
+
     @Parameter(title: "Agent Mode", default: .chat)
     var agentMode: FocusAgentModeAppEnum
-    
+
     @Parameter(title: "Enable Notifications", default: true)
     var enableNotifications: Bool
-    
+
     @Parameter(title: "Enable Sounds", default: true)
     var enableSounds: Bool
-    
+
     @Parameter(title: "Auto-start Agent", default: false)
     var autoStartAgent: Bool
-    
+
     func perform() async throws -> some IntentResult {
         let config = FocusConfiguration(
             allowedNotifications: enableNotifications ? FocusNotificationCategory.allCases : [],
@@ -259,17 +259,17 @@ struct StartGRumpFocusSessionIntent: AppIntent {
         categoryName: "Productivity"
     )
     static var openAppWhenRun: Bool = true
-    
+
     @Parameter(title: "Focus Type", default: .work)
     var focusType: FocusModeAppEnum
-    
+
     @Parameter(title: "Task Description")
     var taskDescription: String?
-    
+
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let config = await FocusFilterService.shared.getConfiguration(for: focusType.mode)
         await FocusFilterService.shared.applyFocusConfiguration(config)
-        
+
         var userInfo: [String: Any] = [
             "focusMode": focusType.mode.rawValue,
             "autoStart": config.autoStartAgent
@@ -286,11 +286,11 @@ struct StartGRumpFocusSessionIntent: AppIntent {
 
 enum FocusModeAppEnum: String, AppEnum {
     case none, work, personal, sleep, driving, exercise, mindfulness, reading, gaming
-    
+
     static var typeDisplayRepresentation: TypeDisplayRepresentation {
         TypeDisplayRepresentation(name: "Focus Mode")
     }
-    
+
     static var caseDisplayRepresentations: [FocusModeAppEnum: DisplayRepresentation] {
         [
             .none: DisplayRepresentation(title: "None"),
@@ -304,7 +304,7 @@ enum FocusModeAppEnum: String, AppEnum {
             .gaming: DisplayRepresentation(title: "Gaming", image: .init(systemName: "gamecontroller"))
         ]
     }
-    
+
     var mode: FocusMode {
         FocusMode(rawValue: self.rawValue) ?? .none
     }
@@ -312,11 +312,11 @@ enum FocusModeAppEnum: String, AppEnum {
 
 enum FocusAgentModeAppEnum: String, AppEnum {
     case chat, plan, build, debate, spec
-    
+
     static var typeDisplayRepresentation: TypeDisplayRepresentation {
         TypeDisplayRepresentation(name: "Agent Mode")
     }
-    
+
     static var caseDisplayRepresentations: [FocusAgentModeAppEnum: DisplayRepresentation] {
         [
             .chat: DisplayRepresentation(title: "Chat", image: .init(systemName: "message")),
@@ -332,10 +332,10 @@ enum FocusAgentModeAppEnum: String, AppEnum {
 
 class FocusConfigurationStore: ObservableObject {
     static let shared = FocusConfigurationStore()
-    
+
     private let userDefaults = UserDefaults.standard
     private let configurationsKey = "FocusConfigurations"
-    
+
     func save(_ configuration: FocusConfiguration, for focusMode: FocusMode) {
         var configurations = loadAll()
         configurations[focusMode.rawValue] = configuration
@@ -343,11 +343,11 @@ class FocusConfigurationStore: ObservableObject {
             userDefaults.set(data, forKey: configurationsKey)
         }
     }
-    
+
     func load(for focusMode: FocusMode) -> FocusConfiguration {
         loadAll()[focusMode.rawValue] ?? FocusConfiguration.default
     }
-    
+
     private func loadAll() -> [String: FocusConfiguration] {
         guard let data = userDefaults.data(forKey: configurationsKey),
               let configs = try? JSONDecoder().decode([String: FocusConfiguration].self, from: data) else {

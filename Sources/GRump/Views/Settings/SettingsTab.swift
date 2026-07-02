@@ -20,6 +20,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case openClaw
     case skills
     case soul
+    case brain
     #if os(macOS)
     case security
     #endif
@@ -39,14 +40,14 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         var list: [(icon: String, label: String, tabs: [SettingsTab])] = [
             ("person.crop.circle.fill", "Account", [.account, .billing]),
             ("cpu", "AI", [.providers, .presets, .behavior, .streaming, .advanced]),
-            ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul]),
+            ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul, .brain]),
             ("paintbrush.fill", "Appearance", [.appearance]),
             ("gearshape", "General", [.notifications, .shortcuts, .updates, .data, .memory, .privacy]),
             ("info.circle.fill", "About", [.about])
         ]
         #if os(macOS)
         if let idx = list.firstIndex(where: { $0.label == "Workspace" }) {
-            list[idx] = ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul, .security])
+            list[idx] = ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul, .brain, .security])
         }
         #endif
         return list
@@ -76,6 +77,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .openClaw: return "OpenClaw"
         case .skills: return "Skills"
         case .soul: return "Soul"
+        case .brain: return "Brain"
         case .data: return "Data"
         case .memory: return "Project Memory"
         case .privacy: return "Privacy & On-Device"
@@ -105,6 +107,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .openClaw: return "antenna.radiowaves.left.and.right"
         case .skills: return "brain.head.profile"
         case .soul: return "person.text.rectangle.fill"
+        case .brain: return "brain.filled.head.profile"
         case .data: return "square.and.arrow.up"
         case .memory: return "brain"
         case .privacy: return "lock.shield.fill"
@@ -129,11 +132,11 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         ]
         #if os(macOS)
         if let idx = list.firstIndex(where: { $0.0 == "Tools" }) {
-            list[idx] = ("Tools & Security", [.tools, .mcp, .openClaw, .skills, .soul, .security])
+            list[idx] = ("Tools & Security", [.tools, .mcp, .openClaw, .skills, .soul, .brain, .security])
         }
         #else
         if let idx = list.firstIndex(where: { $0.0 == "Tools" }) {
-            list[idx] = ("Tools", [.tools, .mcp, .openClaw, .skills, .soul])
+            list[idx] = ("Tools", [.tools, .mcp, .openClaw, .skills, .soul, .brain])
         }
         #endif
         return list

@@ -7,18 +7,18 @@ struct PanelLayoutView: View {
     @AppStorage("SelectedPanel") private var selectedPanelRaw: String = PanelTab.chat.rawValue
     @AppStorage("RightPanelCollapsed") private var rightPanelCollapsed = true
     @Binding var showSettings: Bool
-    
+
     let chatDetailView: AnyView
-    
+
     private var selectedPanel: PanelTab {
-        get { PanelTab(rawValue: selectedPanelRaw) ?? .chat }
+        PanelTab(rawValue: selectedPanelRaw) ?? .chat
     }
-    
+
     private var isZenMode: Bool { layoutOptions.zenMode }
     private var showRightPanel: Bool {
         layoutOptions.panelVisible && !isZenMode && !rightPanelCollapsed && selectedPanel != .chat
     }
-    
+
     var body: some View {
         Group {
             if showRightPanel {
@@ -43,9 +43,9 @@ struct PanelLayoutView: View {
             }
         }
     }
-    
+
     // MARK: - Right Panel Content
-    
+
     @ViewBuilder
     private var rightPanelContent: some View {
         switch selectedPanel {

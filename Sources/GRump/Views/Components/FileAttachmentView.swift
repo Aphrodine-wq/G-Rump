@@ -6,15 +6,15 @@ struct FileAttachmentView: View {
     let fileURL: URL
     let onRemove: () -> Void
     @EnvironmentObject var themeManager: ThemeManager
-    
+
     private var fileName: String {
         fileURL.lastPathComponent
     }
-    
+
     private var fileExtension: String {
         fileURL.pathExtension.lowercased()
     }
-    
+
     private var fileSize: String {
         do {
             let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
@@ -26,7 +26,7 @@ struct FileAttachmentView: View {
         }
         return "Unknown"
     }
-    
+
     private var fileIcon: String {
         switch fileExtension {
         case "txt", "md", "markdown": return "doc.text"
@@ -43,7 +43,7 @@ struct FileAttachmentView: View {
         default: return "doc"
         }
     }
-    
+
     private var fileType: FileType {
         if isImageFile { return .image }
         if isVideoFile { return .video }
@@ -53,35 +53,35 @@ struct FileAttachmentView: View {
         if isArchiveFile { return .archive }
         return .other
     }
-    
+
     private var isImageFile: Bool {
         ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp"].contains(fileExtension)
     }
-    
+
     private var isVideoFile: Bool {
         ["mp4", "mov", "avi", "mkv"].contains(fileExtension)
     }
-    
+
     private var isAudioFile: Bool {
         ["mp3", "wav", "m4a", "flac"].contains(fileExtension)
     }
-    
+
     private var isCodeFile: Bool {
         ["swift", "m", "h", "c", "cpp", "py", "js", "ts", "html", "css", "rs", "go", "java", "kt"].contains(fileExtension)
     }
-    
+
     private var isDocumentFile: Bool {
         ["txt", "md", "markdown", "pdf", "doc", "docx", "pages"].contains(fileExtension)
     }
-    
+
     private var isArchiveFile: Bool {
         ["zip", "rar", "7z", "tar", "gz"].contains(fileExtension)
     }
-    
+
     private enum FileType {
         case image, video, audio, code, document, archive, other
     }
-    
+
     var body: some View {
         HStack(spacing: Spacing.sm) {
             // File icon with preview
@@ -107,7 +107,7 @@ struct FileAttachmentView: View {
                         }
                     )
             }
-            
+
             // File info
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(fileName)
@@ -115,14 +115,14 @@ struct FileAttachmentView: View {
                     .foregroundColor(.textPrimary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                
+
                 Text(fileSize)
                     .font(Typography.micro)
                     .foregroundColor(.textMuted)
             }
-            
+
             Spacer()
-            
+
             // Remove button
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
@@ -146,7 +146,7 @@ struct FileAttachmentView: View {
         .scaleEffect(1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: fileURL)
     }
-    
+
     private var fileTypeBackgroundColor: Color {
         switch fileType {
         case .image: return themeManager.palette.effectiveAccent.opacity(0.1)
@@ -158,7 +158,7 @@ struct FileAttachmentView: View {
         case .other: return themeManager.palette.bgElevated
         }
     }
-    
+
     private var fileTypeForegroundColor: Color {
         switch fileType {
         case .image: return themeManager.palette.effectiveAccent
@@ -177,15 +177,15 @@ struct FileAttachmentView: View {
 struct AsyncImage<Content>: View where Content: View {
     private let url: URL
     private let content: (Image) -> Content
-    
+
     @State private var image: Image?
     @State private var isLoading = true
-    
+
     init(url: URL, @ViewBuilder content: @escaping (Image) -> Content) {
         self.url = url
         self.content = content
     }
-    
+
     var body: some View {
         Group {
             if let image = image {
@@ -204,11 +204,11 @@ struct AsyncImage<Content>: View where Content: View {
             }
         }
     }
-    
+
     @MainActor
     private func loadImage() async {
         isLoading = true
-        
+
         do {
             let data = try Data(contentsOf: url)
             #if os(macOS)
@@ -223,8 +223,7 @@ struct AsyncImage<Content>: View where Content: View {
         } catch {
             GRumpLogger.general.error("Failed to load image: \(error.localizedDescription)")
         }
-        
+
         isLoading = false
     }
 }
-

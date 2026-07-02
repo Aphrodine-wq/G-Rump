@@ -115,7 +115,7 @@ final class PromptBuildingTests: XCTestCase {
 
         vm.workingDirectory = tmpDir.path
         let extensions = vm.detectFileExtensions()
-        XCTAssertTrue(extensions.contains("swift"))
-        XCTAssertTrue(extensions.contains("md"))
+        XCTAssertTrue(extensions.contains(".swift"))
+        XCTAssertTrue(extensions.contains(".md"))
     }
 }

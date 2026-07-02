@@ -11,9 +11,9 @@ struct AgentTimelineView: View {
     @EnvironmentObject var themeManager: ThemeManager
     let toolCalls: [ToolCallStatus]
     let messages: [Message]
-    var onSelectMessage: ((UUID) -> Void)? = nil
+    var onSelectMessage: ((UUID) -> Void)?
 
-    @State private var hoveredToolId: String? = nil
+    @State private var hoveredToolId: String?
     @State private var timelineScale: CGFloat = 1.0
 
     private var timelineStart: Date {

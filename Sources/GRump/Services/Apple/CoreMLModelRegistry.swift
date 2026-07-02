@@ -106,7 +106,7 @@ final class CoreMLModelRegistryService: ObservableObject {
             parameterCount: "270M",
             contextLength: 2048,
             category: .apple
-        ),
+        )
     ]
 
     // MARK: - Init

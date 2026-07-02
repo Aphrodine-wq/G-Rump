@@ -21,11 +21,15 @@ struct MessageRow: View {
     var agentMode: AgentMode = .standard
     @State private var showCopyConfirm = false
     @State private var isHovered = false
-    @State private var reaction: MessageReaction? = nil
+    @State private var reaction: MessageReaction?
     @State private var isEditing = false
     @State private var editText = ""
     @State private var showAllTools = false
-    @State private var isCollapsed: Bool? = nil // nil = auto-detect on appear
+    @State private var isCollapsed: Bool? // nil = auto-detect on appear
+    @ObservedObject private var speech = SpeechOutputService.shared
+
+    /// Live brain config (cached read) for the TTS affordance.
+    private var brainConfig: BrainConfig { BrainConfigStore.shared.load() }
 
     /// Threshold for auto-collapsing long messages (line count)
     private static let collapseThreshold = 150
@@ -332,6 +336,11 @@ struct MessageRow: View {
             // Copy as Markdown
             copyMarkdownButton
 
+            // Speak (TTS) — only when enabled
+            if brainConfig.ttsEnabled {
+                speakButton
+            }
+
             // Regenerate
             Button(action: {
                 viewModel.retryLastMessage()
@@ -391,6 +400,22 @@ struct MessageRow: View {
         }
         .buttonStyle(ScaleButtonStyle())
         .accessibilityLabel(showCopyConfirm ? "Copied to clipboard" : "Copy message")
+    }
+
+    // MARK: - Speak (TTS)
+
+    private var speakButton: some View {
+        Button(action: { speech.toggle(message.content) }) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: speech.isSpeaking ? "stop.circle" : "speaker.wave.2")
+                    .font(Typography.micro)
+                Text(speech.isSpeaking ? "Stop" : "Speak")
+                    .font(Typography.micro)
+            }
+            .foregroundColor(speech.isSpeaking ? themeManager.palette.effectiveAccent : themeManager.palette.textMuted)
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .accessibilityLabel(speech.isSpeaking ? "Stop speaking" : "Speak message")
     }
 
     // MARK: - Copy as Markdown

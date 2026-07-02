@@ -173,8 +173,7 @@ extension SettingsView {
                     Toggle("", isOn: Binding(
                         get: { allEnabled },
                         set: { enable in
-                            if enable { pack.enable(allSkills: settingsSkills) }
-                            else { pack.disable(allSkills: settingsSkills) }
+                            if enable { pack.enable(allSkills: settingsSkills) } else { pack.disable(allSkills: settingsSkills) }
                             settingsSkillEnabledIds = SkillsSettingsStorage.loadAllowlist()
                         }
                     ))
@@ -303,8 +302,7 @@ extension SettingsView {
             Toggle("", isOn: Binding(
                 get: { settingsSkillEnabledIds.contains(skill.id) },
                 set: { enabled in
-                    if enabled { settingsSkillEnabledIds.insert(skill.id) }
-                    else { settingsSkillEnabledIds.remove(skill.id) }
+                    if enabled { settingsSkillEnabledIds.insert(skill.id) } else { settingsSkillEnabledIds.remove(skill.id) }
                     SkillsSettingsStorage.saveAllowlist(settingsSkillEnabledIds)
                 }
             ))

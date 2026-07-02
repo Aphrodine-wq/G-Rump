@@ -386,7 +386,7 @@ final class LSPService: ObservableObject {
 
     private func sendMessage(_ message: [String: Any]) {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: message),
-              let _ = String(data: jsonData, encoding: .utf8) else { return }
+              String(data: jsonData, encoding: .utf8) != nil else { return }
 
         let header = "Content-Length: \(jsonData.count)\r\n\r\n"
         guard let headerData = header.data(using: .utf8) else { return }

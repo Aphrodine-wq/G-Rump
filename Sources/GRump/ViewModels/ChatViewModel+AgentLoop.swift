@@ -30,7 +30,7 @@ extension ChatViewModel {
 
             let apiMessages = buildAPIMessages(cachedPrompt: cachedPrompt)
             let stream: AsyncThrowingStream<StreamEvent, Error>
-            
+
             stream = createProviderStream(messages: apiMessages, tools: tools)
 
             var finishReason = ""
@@ -198,10 +198,10 @@ extension ChatViewModel {
             let now = Date()
             activeToolCalls = sortedCalls.map { (_, call) in
                 ToolCallStatus(
-                    id: call.id, 
-                    name: call.name, 
-                    arguments: call.args, 
-                    status: .running, 
+                    id: call.id,
+                    name: call.name,
+                    arguments: call.args,
+                    status: .running,
                     result: nil,
                     progress: 0.0,
                     startTime: now,
@@ -426,6 +426,5 @@ extension ChatViewModel {
             isLoading = false
         }
     }
-    
 
 }

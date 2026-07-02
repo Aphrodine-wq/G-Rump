@@ -53,7 +53,7 @@ struct Message: Identifiable, Codable, Equatable, Sendable {
     var timestamp: Date = Date()
     var toolCallId: String?         // for role == .tool
     var toolCalls: [ToolCall]?      // for role == .assistant with tool use
-    
+
     // Threading support
     var parentMessageId: UUID?      // ID of the message this is a reply to
     var branchId: UUID?             // ID for branching conversations
@@ -61,7 +61,7 @@ struct Message: Identifiable, Codable, Equatable, Sendable {
     var isBranch: Bool = false      // Whether this message starts a new branch
     var branchName: String?         // Optional name for the branch
     var children: [UUID] = []       // IDs of child messages
-    
+
     enum Role: String, Codable, Sendable {
         case user
         case assistant
@@ -124,7 +124,7 @@ struct MessageThread: Identifiable, Codable, Equatable, Sendable {
     var updatedAt: Date = Date()
     var isActive: Bool = true
     var color: String? // Optional color for thread visualization
-    
+
     init(id: UUID = UUID(), name: String? = nil, rootMessageId: UUID) {
         self.id = id
         self.name = name
@@ -139,7 +139,7 @@ struct MessageBranch: Identifiable, Codable, Equatable, Sendable {
     let branchPointMessageId: UUID
     var createdAt: Date = Date()
     var isActive: Bool = true
-    
+
     init(id: UUID = UUID(), name: String, parentMessageId: UUID, branchPointMessageId: UUID) {
         self.id = id
         self.name = name
@@ -154,13 +154,13 @@ struct Conversation: Identifiable, Codable, Equatable, Sendable {
     var messages: [Message] = []
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
-    
+
     // Threading support
     var threads: [MessageThread] = []
     var branches: [MessageBranch] = []
     var activeThreadId: UUID?
     var viewMode: ConversationViewMode = .linear
-    
+
     enum ConversationViewMode: String, Codable, CaseIterable, Sendable {
         case linear = "linear"
         case threaded = "threaded"
@@ -179,47 +179,47 @@ struct Conversation: Identifiable, Codable, Equatable, Sendable {
             }
         }
     }
-    
+
     /// Get messages for the active thread
     func getActiveThreadMessages() -> [Message] {
         guard let activeThreadId = activeThreadId else { return messages }
-        
+
         let threadMessages = messages.filter { msg in
             msg.threadId == activeThreadId || msg.threadId == nil
         }
-        
+
         return threadMessages.sorted { $0.timestamp < $1.timestamp }
     }
-    
+
     /// Create a new thread from a message
     mutating func createThread(from messageId: UUID, name: String? = nil) -> UUID? {
-        guard let _ = messages.first(where: { $0.id == messageId }) else { return nil }
-        
+        guard messages.contains(where: { $0.id == messageId }) else { return nil }
+
         let thread = MessageThread(name: name, rootMessageId: messageId)
         threads.append(thread)
-        
+
         // Update the message and its descendants
         updateMessageAndDescendants(messageId: messageId, threadId: thread.id)
-        
+
         activeThreadId = thread.id
         return thread.id
     }
-    
+
     /// Create a branch from a message
     mutating func createBranch(from messageId: UUID, name: String) -> UUID? {
-        guard let _ = messages.first(where: { $0.id == messageId }) else { return nil }
-        
+        guard messages.contains(where: { $0.id == messageId }) else { return nil }
+
         let branch = MessageBranch(name: name, parentMessageId: messageId, branchPointMessageId: messageId)
         branches.append(branch)
-        
+
         return branch.id
     }
-    
+
     private mutating func updateMessageAndDescendants(messageId: UUID, threadId: UUID) {
         if let index = messages.firstIndex(where: { $0.id == messageId }) {
             messages[index].threadId = threadId
         }
-        
+
         // Recursively update children
         let children = messages.filter { $0.parentMessageId == messageId }
         for child in children {

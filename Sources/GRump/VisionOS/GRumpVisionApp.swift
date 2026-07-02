@@ -19,7 +19,7 @@ struct SpatialMessage: Identifiable {
 
 enum SpatialPanelLayout: CaseIterable {
     case arc, grid, stack, circle
-    
+
     func next() -> SpatialPanelLayout {
         switch self {
         case .arc: return .grid
@@ -47,15 +47,15 @@ import ARKit
 
 @MainActor
 class SpatialCodeViewModel: ObservableObject {
-    @Published var cursorPosition: SIMD3<Float>? = nil
+    @Published var cursorPosition: SIMD3<Float>?
     @Published var isAgentThinking = false
     @Published var messages: [SpatialMessage] = []
     @Published var inputText = ""
     @Published var layout: SpatialPanelLayout = .arc
-    
+
     func addCodePanel() {}
     func changeLayout() { layout = layout.next() }
-    
+
     func sendMessage() {
         guard !inputText.isEmpty else { return }
         let userMessage = SpatialMessage(id: UUID(), content: inputText, isUser: true, timestamp: Date())
@@ -63,7 +63,7 @@ class SpatialCodeViewModel: ObservableObject {
         isAgentThinking = true
         let text = inputText
         inputText = ""
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.messages.append(SpatialMessage(
                 id: UUID(),
@@ -81,12 +81,12 @@ class SpatialCodeViewModel: ObservableObject {
 // macOS/iOS stub
 @MainActor
 class SpatialCodeViewModel: ObservableObject {
-    @Published var cursorPosition: SIMD3<Float>? = nil
+    @Published var cursorPosition: SIMD3<Float>?
     @Published var isAgentThinking = false
     @Published var messages: [SpatialMessage] = []
     @Published var inputText = ""
     @Published var layout: SpatialPanelLayout = .arc
-    
+
     func addCodePanel() {}
     func changeLayout() { layout = layout.next() }
     func sendMessage() {}

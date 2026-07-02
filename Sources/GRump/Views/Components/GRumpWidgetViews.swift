@@ -220,7 +220,7 @@ struct WidgetViews_Previews: PreviewProvider {
                 conversations: [
                     (title: "Fix login bug", timeAgo: "2m", messageCount: 12),
                     (title: "Add dark mode", timeAgo: "1h", messageCount: 8),
-                    (title: "API integration", timeAgo: "3h", messageCount: 24),
+                    (title: "API integration", timeAgo: "3h", messageCount: 24)
                 ]
             )
             .frame(width: 340, height: 170)

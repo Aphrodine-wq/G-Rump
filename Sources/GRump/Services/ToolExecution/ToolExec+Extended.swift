@@ -373,8 +373,7 @@ extension ChatViewModel {
         }
         // Human-readable description
         output += "\nDescription: Runs"
-        if parts[0] == "*" { output += " every minute" }
-        else { output += " at minute \(parts[0])" }
+        if parts[0] == "*" { output += " every minute" } else { output += " at minute \(parts[0])" }
         if parts[1] != "*" { output += " of hour \(parts[1])" }
         if parts[2] != "*" { output += " on day \(parts[2])" }
         if parts[3] != "*" { output += " of month \(parts[3])" }

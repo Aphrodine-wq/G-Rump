@@ -28,7 +28,7 @@ extension ChatViewModel {
         let baseMax = min(1000, max(5, storedMax))
         let presetMax = appliedPresetMaxAgentSteps.map { min(1000, max(5, $0)) } ?? baseMax
         guard let cfg = projectConfig else {
-            var prompt = prependModeInstructions(to: prependSkillsContent(to: prependSoulContent(to: systemPrompt)))
+            var prompt = prependModeInstructions(to: prependSkillsContent(to: prependMindContent(to: prependSoulContent(to: systemPrompt))))
             if !workingDirectory.isEmpty {
                 prompt += "\n\nCurrent working directory: \(workingDirectory)"
             }
@@ -47,7 +47,7 @@ extension ChatViewModel {
             currentPrompt: systemPrompt,
             currentMaxSteps: presetMax
         )
-        var finalPrompt = prependModeInstructions(to: prependSkillsContent(to: prependSoulContent(to: prompt)))
+        var finalPrompt = prependModeInstructions(to: prependSkillsContent(to: prependMindContent(to: prependSoulContent(to: prompt))))
         if !workingDirectory.isEmpty {
             finalPrompt += "\n\nCurrent working directory: \(workingDirectory)"
         }

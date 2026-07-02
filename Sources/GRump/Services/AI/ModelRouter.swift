@@ -121,7 +121,7 @@ enum ModelRouter {
         (.web, ["web search", "look up", "fetch url", "http", "api call", "documentation", "curl"], 3),
         (.research, ["research", "investigate", "learn about", "deep dive", "survey", "state of the art"], 3),
         (.synthesis, ["summarize", "synthesize", "combine", "merge results", "consolidate"], 3),
-        (.writing, ["document", "write docs", "readme", "changelog", "describe", "draft", "blog post", "article"], 3),
+        (.writing, ["document", "write docs", "readme", "changelog", "describe", "draft", "blog post", "article"], 3)
     ]
 
     static func detectTaskType(from description: String) -> TaskType {

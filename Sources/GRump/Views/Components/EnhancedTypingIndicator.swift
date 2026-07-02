@@ -68,7 +68,7 @@ struct EnhancedTypingIndicator: View {
 struct CompactTypingIndicator: View {
     @EnvironmentObject var themeManager: ThemeManager
     @State private var animationPhase: Int = 0
-    
+
     var body: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(0..<3) { index in
@@ -84,7 +84,7 @@ struct CompactTypingIndicator: View {
             }
         }
     }
-    
+
     private func shouldHighlight(for index: Int) -> Bool {
         let cyclePosition = animationPhase % 3
         return cyclePosition == index
@@ -99,13 +99,13 @@ struct StatusTypingIndicator: View {
     let message: String?
     @State private var animationPhase: Int = 0
     @State private var animationTimer: Timer?
-    
+
     enum TypingStatus {
         case connecting
         case processing
         case generating
         case completing
-        
+
         var icon: String {
             switch self {
             case .connecting: return "wifi"
@@ -114,7 +114,7 @@ struct StatusTypingIndicator: View {
             case .completing: return "checkmark.circle"
             }
         }
-        
+
         var color: Color {
             switch self {
             case .connecting: return .orange
@@ -124,7 +124,7 @@ struct StatusTypingIndicator: View {
             }
         }
     }
-    
+
     var body: some View {
         HStack(spacing: Spacing.md) {
             // Status icon
@@ -132,19 +132,19 @@ struct StatusTypingIndicator: View {
                 Circle()
                     .fill(status.color.opacity(0.1))
                     .frame(width: 32, height: 32)
-                
+
                 Image(systemName: status.icon)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(status.color)
                     .scaleEffect(1.0)
             }
-            
+
             // Status text
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(statusText)
                     .font(Typography.captionSmallSemibold)
                     .foregroundColor(.textPrimary)
-                
+
                 if let message = message {
                     Text(message)
                         .font(Typography.micro)
@@ -152,9 +152,9 @@ struct StatusTypingIndicator: View {
                         .lineLimit(2)
                 }
             }
-            
+
             Spacer()
-            
+
             // Activity indicator
             HStack(spacing: Spacing.xs) {
                 ForEach(0..<3) { index in
@@ -198,15 +198,15 @@ struct StatusTypingIndicator: View {
         case .completing: return "Finalizing response..."
         }
     }
-    
+
     private func activityDotOpacity(for index: Int) -> CGFloat {
         let baseOpacity: CGFloat = 0.3
         let activeOpacity: CGFloat = 0.8
         let cyclePosition = animationPhase % 3
-        
+
         return cyclePosition == index ? activeOpacity : baseOpacity
     }
-    
+
     private func activityDotScale(for index: Int) -> CGFloat {
         let cyclePosition = animationPhase % 3
         return cyclePosition == index ? 1.2 : 1.0

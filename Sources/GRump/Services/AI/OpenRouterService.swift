@@ -4,7 +4,7 @@ import Foundation
 // Base URL: https://openrouter.ai/api/v1
 
 class OpenRouterService {
-    // swiftlint:disable:next force_unwrapping — compile-time constant, guaranteed valid
+    // Compile-time constant URL, guaranteed valid.
     private let openRouterURL = URL(string: "https://openrouter.ai/api/v1/chat/completions")!
 
     // MARK: - Streaming (OpenRouter or platform backend)
@@ -466,21 +466,9 @@ struct ToolCallDelta: Codable {
     let id: String?
     let type: String?
     let function: ToolCallFunctionDelta?
-
-    init(index: Int?, id: String?, type: String?, function: ToolCallFunctionDelta?) {
-        self.index = index
-        self.id = id
-        self.type = type
-        self.function = function
-    }
 }
 
 struct ToolCallFunctionDelta: Codable {
     let name: String?
     let arguments: String?
-
-    init(name: String?, arguments: String?) {
-        self.name = name
-        self.arguments = arguments
-    }
 }

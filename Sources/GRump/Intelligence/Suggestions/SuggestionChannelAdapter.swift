@@ -128,6 +128,7 @@ struct NotificationChannel: SuggestionChannel {
             trigger: nil
         )
 
+        guard GRumpRuntime.notificationsAvailable else { return .failed("notifications unavailable") }
         do {
             try await UNUserNotificationCenter.current().add(request)
             return .delivered

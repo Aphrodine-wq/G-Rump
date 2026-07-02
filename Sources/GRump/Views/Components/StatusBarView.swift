@@ -5,7 +5,7 @@ struct StatusBarView: View {
     @ObservedObject var viewModel: ChatViewModel
     @StateObject private var perfAdvisor = PerformanceAdvisor.shared
     @State private var showGitShortcuts = false
-    
+
     var body: some View {
         HStack(spacing: Spacing.xl) {
             // Left section - connection status
@@ -14,14 +14,14 @@ struct StatusBarView: View {
                     .fill(connectionColor)
                     .frame(width: 6, height: 6)
                     .accessibilityLabel(connectionStatus)
-                
+
                 Text(connectionStatus)
                     .font(Typography.micro)
                     .foregroundColor(themeManager.palette.textMuted)
             }
-            
+
             Spacer()
-            
+
             // Center section - git shortcuts
             if !viewModel.workingDirectory.isEmpty {
                 Button(action: { showGitShortcuts.toggle() }) {
@@ -43,7 +43,7 @@ struct StatusBarView: View {
                         .environmentObject(themeManager)
                 }
             }
-            
+
             // Performance indicator
             if perfAdvisor.isUnderPressure || perfAdvisor.appMemoryMB > 500 {
                 HStack(spacing: Spacing.sm) {
@@ -86,7 +86,7 @@ struct StatusBarView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                
+
                 if viewModel.isLoading {
                     HStack(spacing: Spacing.sm) {
                         ProgressView()
@@ -109,7 +109,7 @@ struct StatusBarView: View {
             alignment: .top
         )
     }
-    
+
     private func confidenceColor(_ level: ConfidenceLevel) -> Color {
         switch level {
         case .veryLow:  return .red
@@ -144,15 +144,15 @@ struct StatusBarView: View {
 struct GitShortcutsPopover: View {
     @EnvironmentObject var themeManager: ThemeManager
     let workingDirectory: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Git Shortcuts")
                 .font(Typography.captionSemibold)
                 .foregroundColor(themeManager.palette.textPrimary)
-            
+
             Divider()
-            
+
             GitShortcutButton(label: "Status", shortcut: "⌘⇧G S") {
                 runGitCommand(["status"])
             }
@@ -184,7 +184,7 @@ struct GitShortcutsPopover: View {
         .padding(Spacing.lg)
         .frame(width: showOutput ? 320 : 180)
     }
-    
+
     @State private var gitOutput: String = ""
     @State private var showOutput: Bool = false
 
@@ -225,7 +225,7 @@ struct GitShortcutButton: View {
     let label: String
     let shortcut: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {

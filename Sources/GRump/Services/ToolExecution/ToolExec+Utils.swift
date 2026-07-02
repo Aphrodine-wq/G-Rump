@@ -40,8 +40,7 @@ extension ChatViewModel {
 
     func executeCountWords(_ args: [String: Any]) -> String {
         var text: String
-        if let t = args["text"] as? String { text = t }
-        else if let p = args["path"] as? String {
+        if let t = args["text"] as? String { text = t } else if let p = args["path"] as? String {
             let resolved = resolvePath(p)
             guard let content = try? String(contentsOfFile: resolved, encoding: .utf8) else { return "Error: could not read file" }
             text = content
@@ -53,8 +52,7 @@ extension ChatViewModel {
 
     func executeExtractUrls(_ args: [String: Any]) -> String {
         var text: String
-        if let t = args["text"] as? String { text = t }
-        else if let p = args["path"] as? String {
+        if let t = args["text"] as? String { text = t } else if let p = args["path"] as? String {
             let resolved = resolvePath(p)
             guard let content = try? String(contentsOfFile: resolved, encoding: .utf8) else { return "Error: could not read file" }
             text = content
@@ -79,8 +77,7 @@ extension ChatViewModel {
 
     func executeYamlParse(_ args: [String: Any]) async -> String {
         var path: String?
-        if let p = args["path"] as? String { path = resolvePath(p) }
-        else if let y = args["yaml"] as? String {
+        if let p = args["path"] as? String { path = resolvePath(p) } else if let y = args["yaml"] as? String {
             let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".yaml")
             try? y.write(to: tmp, atomically: true, encoding: .utf8)
             path = tmp.path

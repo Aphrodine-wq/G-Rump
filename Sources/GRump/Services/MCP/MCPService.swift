@@ -611,9 +611,7 @@ final class WebSocketTransport: MCPTransport, @unchecked Sendable {
         // Check if this is a response (has id + result/error)
         if let idValue = json["id"] {
             let id: Int64
-            if let i = idValue as? Int64 { id = i }
-            else if let i = idValue as? Int { id = Int64(i) }
-            else { return }
+            if let i = idValue as? Int64 { id = i } else if let i = idValue as? Int { id = Int64(i) } else { return }
 
             pendingRequests.lock()
             let cont = continuations.removeValue(forKey: id)

@@ -197,7 +197,7 @@ final class AgentOrchestrator {
         let systemPrompt = """
         You are a task decomposition engine. Break the user's request into 2-5 parallel subtasks.
         Each subtask should be independently executable where possible.
-        
+
         Respond with ONLY valid JSON in this exact format:
         {
           "tasks": [
@@ -216,9 +216,9 @@ final class AgentOrchestrator {
           ],
           "synthesisInstruction": "Combine the code from t1 with the tests from t2 into a complete solution."
         }
-        
+
         Valid taskType values: reasoning, planning, file_ops, search, code_gen, synthesis, writing, web, research, testing, debugging, general
-        
+
         Rules:
         - Keep tasks focused and atomic
         - Use dependsOn only when truly necessary (prefer parallel execution)
@@ -385,9 +385,9 @@ final class AgentOrchestrator {
         let systemPrompt = """
         You are a synthesis agent. Multiple specialized sub-agents have worked on parts of a task.
         Your job: combine their results into a single, coherent, complete response to the user.
-        
+
         Synthesis instruction: \(graph.synthesisInstruction)
-        
+
         Be concise. Do not repeat what each agent said verbatim — synthesize and integrate.
         """
 

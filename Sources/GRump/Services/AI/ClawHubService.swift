@@ -147,7 +147,7 @@ final class ClawHubService: ObservableObject {
             name: "Code Quality",
             description: "Testing, refactoring, and review",
             skillNames: ["unit-testing", "code-review", "refactoring", "documentation", "performance-profiling"]
-        ),
+        )
     ]
 }
 

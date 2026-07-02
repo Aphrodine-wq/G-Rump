@@ -47,20 +47,20 @@ final class FrameLoopService: ObservableObject {
     /// Auto-starts the loop if it hasn't been started yet.
     func markActive(for duration: TimeInterval = 2.0) {
         idleDeadline = Date().addingTimeInterval(duration)
-        if !isRunning { 
-            isRunning = true 
-            startLoop() 
+        if !isRunning {
+            isRunning = true
+            startLoop()
         }
     }
-    
+
     /// Mark the loop as streaming - uses higher refresh rate.
     func markStreaming(for duration: TimeInterval = 1.0) {
         isStreaming = true
         currentInterval = Self.streamingInterval
         idleDeadline = Date().addingTimeInterval(duration)
-        if !isRunning { 
-            isRunning = true 
-            startLoop() 
+        if !isRunning {
+            isRunning = true
+            startLoop()
         }
     }
 

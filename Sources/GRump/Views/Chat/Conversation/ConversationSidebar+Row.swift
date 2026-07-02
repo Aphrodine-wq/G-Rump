@@ -13,10 +13,10 @@ struct ConversationRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     let conversation: Conversation
     let isSelected: Bool
-    var onSelect: (() -> Void)? = nil
+    var onSelect: (() -> Void)?
     let onDelete: () -> Void
     let onRename: () -> Void
-    var onDuplicate: (() -> Void)? = nil
+    var onDuplicate: (() -> Void)?
     @State private var isHovered = false
 
     var messageCount: Int { conversation.messages.count }

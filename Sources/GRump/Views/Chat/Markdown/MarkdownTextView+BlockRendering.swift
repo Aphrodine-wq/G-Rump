@@ -168,7 +168,7 @@ extension MarkdownTextView {
         case .header(1, _): return 24
         case .header(2, _): return 20
         case .header(3, _): return 16
-        case .header(_, _): return 14
+        case .header: return 14
         case .paragraph: return 12
         case .listItem: return 4
         case .codeBlock: return 16

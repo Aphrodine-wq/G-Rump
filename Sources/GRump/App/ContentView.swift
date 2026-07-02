@@ -164,7 +164,6 @@ struct ContentView: View {
 
     private var isZenMode: Bool { state.layoutOptions.zenMode }
 
-    
     private var mainLayout: some View {
         MainLayoutView(
             layoutOptions: LayoutOptions.shared,
@@ -193,7 +192,6 @@ struct ContentView: View {
         }
     }
 
-    
     private func runFolderPicker() {
         #if os(macOS)
         let panel = NSOpenPanel()
@@ -287,13 +285,13 @@ private struct AppleIntegrationHandlers: ViewModifier {
             }
             // Notification action: approve pending system_run
             .onReceive(NotificationCenter.default.publisher(for: .init("GRumpApproveAction"))) { note in
-                if let _ = note.userInfo?["approvalId"] as? String {
+                if note.userInfo?["approvalId"] is String {
                     viewModel.respondToSystemRunApproval(.allowOnce)
                 }
             }
             // Notification action: deny pending system_run
             .onReceive(NotificationCenter.default.publisher(for: .init("GRumpDenyAction"))) { note in
-                if let _ = note.userInfo?["approvalId"] as? String {
+                if note.userInfo?["approvalId"] is String {
                     viewModel.respondToSystemRunApproval(.deny)
                 }
             }
@@ -310,4 +308,3 @@ private struct AppleIntegrationHandlers: ViewModifier {
     }
 }
 #endif
-

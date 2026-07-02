@@ -5,7 +5,7 @@ struct AppearanceSettingsView: View {
     @ObservedObject var themeManager: ThemeManager
     @Binding var lineSpacingSetting: String
     @Binding var codeFontSetting: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
             settingsCard {
@@ -110,9 +110,9 @@ struct AppearanceSettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Helper Views (these would need to be shared or duplicated)
-    
+
     @ViewBuilder
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -124,7 +124,7 @@ struct AppearanceSettingsView: View {
         .overlay(RoundedRectangle(cornerRadius: Radius.xxl, style: .continuous)
             .stroke(themeManager.palette.borderSubtle, lineWidth: 1))
     }
-    
+
     @ViewBuilder
     private func sectionTitle(_ title: String, icon: String, accent: Color) -> some View {
         HStack(spacing: Spacing.sm) {
@@ -136,7 +136,7 @@ struct AppearanceSettingsView: View {
                 .foregroundColor(.textPrimary)
         }
     }
-    
+
     @ViewBuilder
     private func themeRow(_ theme: AppTheme) -> some View {
         Button(action: { themeManager.theme = theme }) {
@@ -165,7 +165,7 @@ struct AppearanceSettingsView: View {
         }
         .buttonStyle(.plain)
     }
-    
+
     @ViewBuilder
     private func accentChip(_ option: AccentColorOption) -> some View {
         Button(action: { themeManager.accentColor = option }) {

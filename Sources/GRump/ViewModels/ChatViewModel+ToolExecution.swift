@@ -66,6 +66,23 @@ extension ChatViewModel {
             return "Error: could not parse tool arguments as JSON"
         }
 
+        // Awareness: record tool usage (fail-soft).
+        AwarenessMonitor.shared.record(tool: name)
+
+        // Conscience gate: refuse mutating/sensitive tools before they run.
+        if Self.mutatingToolNames.contains(name),
+           let refusal = await conscienceRefusal(toolName: name, arguments: arguments) {
+            return refusal
+        }
+
+        // Daemon approve-every-write: every autonomous mutating tool needs user approval.
+        if isDaemonRunActive, Self.mutatingToolNames.contains(name) {
+            let approved = await DaemonApprovalCoordinator.shared.requestApproval(action: "\(name): \(arguments.prefix(200))")
+            if !approved {
+                return "Autonomous action denied by user: \(name)"
+            }
+        }
+
         switch name {
         case "read_file":
             return executeReadFile(args)

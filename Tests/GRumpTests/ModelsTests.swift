@@ -216,9 +216,10 @@ final class ModelsTests: XCTestCase {
     }
 
     func testConversationEquatable() {
-        let id = UUID()
-        let a = Conversation(id: id, title: "T")
-        let b = Conversation(id: id, title: "T")
+        // A value copy must be equal. (Two separate inits differ by sub-second
+        // createdAt/updatedAt timestamps, so don't construct b independently.)
+        let a = Conversation(id: UUID(), title: "T")
+        let b = a
         XCTAssertEqual(a, b)
     }
 

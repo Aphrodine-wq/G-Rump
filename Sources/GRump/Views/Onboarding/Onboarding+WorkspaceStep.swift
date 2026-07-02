@@ -148,7 +148,7 @@ extension OnboardingView {
             ("cargo", "gearshape", "cargo"),
             ("go", "gearshape.2", "go"),
             ("docker", "shippingbox", "docker"),
-            ("brew", "cup.and.saucer", "brew"),
+            ("brew", "cup.and.saucer", "brew")
         ]
         var results: [(name: String, icon: String, found: Bool)] = []
         for (name, icon, cmd) in tools {

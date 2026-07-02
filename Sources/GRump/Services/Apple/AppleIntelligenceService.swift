@@ -293,7 +293,7 @@ final class AppleIntelligenceService: ObservableObject {
         return """
         Apple Intelligence Capabilities:
         \(caps)
-        
+
         Sentence Embedding: \(embeddingStatus)
         Total capabilities: \(availableCapabilities.count)/\(AICapability.allCases.count)
         """

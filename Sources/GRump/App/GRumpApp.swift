@@ -36,6 +36,7 @@ struct GRumpApp: App {
         } catch {
             // Graceful fallback — app still launches; persistence degrades to JSON.
             // The error is surfaced in-app rather than crashing.
+            // swiftlint:disable:next force_try
             modelContainer = try! ModelContainer(for: Schema([]), configurations: [])
             _swiftDataError = State(initialValue: "[SwiftData] \(error.localizedDescription)")
         }
@@ -104,6 +105,13 @@ struct GRumpApp: App {
                     }
                     // Start ambient monitoring and global hotkey
                     ambientMonitor.startMonitoring()
+                    // Start ambient screen awareness (Eyes) if enabled + permission granted.
+                    Task { @MainActor in
+                        if BrainConfigStore.shared.load().eyesEnabled,
+                           await EyesEngine.shared.permissionGranted() {
+                            EyesEngine.shared.start()
+                        }
+                    }
                     globalHotkey.onActivate = { [weak viewModel] in
                         guard let vm = viewModel else { return }
                         QuickChatWindowController.shared.toggle(viewModel: vm, themeManager: themeManager)
@@ -114,6 +122,8 @@ struct GRumpApp: App {
                         activityStore: viewModel.activityStore,
                         ambientMonitor: ambientMonitor
                     )
+                    // Give the autonomous daemon a handle on the live view model.
+                    AutonomousLoop.shared.configure(viewModel: viewModel)
                     // Start MCP server if enabled
                     if enableMCPServer {
                         Task { try? await MCPServerHost.shared.start() }

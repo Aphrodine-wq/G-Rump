@@ -3,9 +3,9 @@ import SwiftUI
 // MARK: - Empty State Views
 @MainActor
 struct EmptyStateViews {
-    
+
     // MARK: - No Selection Empty State
-    
+
     static func noSelectionEmptyState(
         viewModel: ChatViewModel,
         themeManager: ThemeManager
@@ -57,9 +57,9 @@ struct EmptyStateViews {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.palette.bgDark)
     }
-    
+
     // MARK: - Onboarding Empty State
-    
+
     static func onboardingEmptyState(
         themeManager: ThemeManager,
         showSettings: Binding<Bool>,
@@ -113,9 +113,9 @@ struct EmptyStateViews {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.palette.bgDark)
     }
-    
+
     // MARK: - Empty State View
-    
+
     static func emptyStateView(
         themeManager: ThemeManager,
         showQuestionSuggestions: Binding<Bool>,
@@ -192,9 +192,9 @@ struct EmptyStateViews {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(themeManager.palette.bgDark)
     }
-    
+
     // MARK: - Helper Views
-    
+
     @ViewBuilder
     private static func promptChip(icon: String, text: String, color: Color, onTap: @escaping (String) -> Void = { _ in }) -> some View {
         Button(action: {

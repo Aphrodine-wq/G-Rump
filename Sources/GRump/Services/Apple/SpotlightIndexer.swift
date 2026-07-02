@@ -41,7 +41,7 @@ final class SpotlightIndexer {
             GRumpLogger.spotlight.info("Indexing not available")
             return
         }
-        
+
         let id = conversation.id.uuidString
         let attributeSet = CSSearchableItemAttributeSet(contentType: .text)
         attributeSet.title = conversation.title
@@ -88,7 +88,7 @@ final class SpotlightIndexer {
             GRumpLogger.spotlight.info("Indexing not available")
             return
         }
-        
+
         let items: [CSSearchableItem] = conversations.map { conversation in
             let id = conversation.id.uuidString
             let attributeSet = CSSearchableItemAttributeSet(contentType: .text)

@@ -66,32 +66,32 @@ import RealityKit
 
 @MainActor
 final class HandGestureController: ObservableObject {
-    
-    @Published var leftHandPosition: SIMD3<Float>? = nil
-    @Published var rightHandPosition: SIMD3<Float>? = nil
-    @Published var currentGesture: HandGestureInfo? = nil
+
+    @Published var leftHandPosition: SIMD3<Float>?
+    @Published var rightHandPosition: SIMD3<Float>?
+    @Published var currentGesture: HandGestureInfo?
     @Published var gestureState: GestureState = .idle
     @Published var isHandTrackingAvailable = false
     @Published var pinchStrength: Float = 0.0
     @Published var isPinching = false
-    
+
     private var gestureHistory: [GestureEvent] = []
     private let pinchThreshold: Float = 0.8
-    
+
     var spatialTapGesture: SpatialTapGesture { SpatialTapGesture() }
-    
+
     init() {
         isHandTrackingAvailable = false
     }
-    
+
     func enableGestureVisualization() {
         NotificationCenter.default.post(name: .showGestureVisualization, object: nil)
     }
-    
+
     func disableGestureVisualization() {
         NotificationCenter.default.post(name: .hideGestureVisualization, object: nil)
     }
-    
+
     func calibrateGestures() {
         gestureState = .calibrating
         NotificationCenter.default.post(name: .startCalibration, object: nil)
@@ -103,13 +103,13 @@ final class HandGestureController: ObservableObject {
 // macOS/iOS stub
 @MainActor
 final class HandGestureController: ObservableObject {
-    @Published var leftHandPosition: SIMD3<Float>? = nil
-    @Published var rightHandPosition: SIMD3<Float>? = nil
+    @Published var leftHandPosition: SIMD3<Float>?
+    @Published var rightHandPosition: SIMD3<Float>?
     @Published var gestureState: GestureState = .idle
     @Published var isHandTrackingAvailable = false
     @Published var pinchStrength: Float = 0.0
     @Published var isPinching = false
-    
+
     init() {}
     func enableGestureVisualization() {}
     func disableGestureVisualization() {}

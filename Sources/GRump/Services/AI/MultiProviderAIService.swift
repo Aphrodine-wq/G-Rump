@@ -10,16 +10,16 @@ class MultiProviderAIService: ObservableObject {
     @Published var currentModel: EnhancedAIModel?
     @Published var availableModels: [EnhancedAIModel] = []
     @Published var isConfigured: Bool = false
-    
+
     let modelRegistry = AIModelRegistry.shared
     private var coreMLService: CoreMLInferenceService?
     private var cancellables = Set<AnyCancellable>()
-    
+
     init() {
         self.coreMLService = CoreMLInferenceService()
         loadConfiguration()
         refreshModels()
-        
+
         // Auto-refresh local models when provider changes
         $currentProvider
             .sink { [weak self] provider in
@@ -42,33 +42,33 @@ class MultiProviderAIService: ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
+
     // MARK: - Configuration
-    
+
     private func loadConfiguration() {
         if let providerString = UserDefaults.standard.string(forKey: "CurrentAIProvider"),
            let provider = AIProvider(rawValue: providerString) {
             currentProvider = provider
         }
-        
+
         if let modelID = UserDefaults.standard.string(forKey: "CurrentAIModel") {
             currentModel = modelRegistry.getModel(by: modelID)
         }
-        
+
         updateConfigurationStatus()
     }
-    
+
     private func saveConfiguration() {
         UserDefaults.standard.set(currentProvider.rawValue, forKey: "CurrentAIProvider")
         UserDefaults.standard.set(currentModel?.id, forKey: "CurrentAIModel")
     }
-    
+
     private func updateConfigurationStatus() {
         isConfigured = modelRegistry.isProviderConfigured(currentProvider)
     }
-    
+
     // MARK: - Model Management
-    
+
     func refreshModels() {
         if currentProvider == .onDevice {
             // On-device models come from CoreMLInferenceService, not the registry
@@ -76,7 +76,7 @@ class MultiProviderAIService: ObservableObject {
         } else {
             availableModels = modelRegistry.getModels(for: currentProvider)
         }
-        
+
         // If current model is not in the available models, select the first one
         if let currentModel = currentModel,
            !availableModels.contains(where: { $0.id == currentModel.id }) {
@@ -84,21 +84,21 @@ class MultiProviderAIService: ObservableObject {
         } else if currentModel == nil {
             currentModel = availableModels.first
         }
-        
+
         updateConfigurationStatus()
     }
-    
+
     func selectProvider(_ provider: AIProvider) {
         currentProvider = provider
         refreshModels()
         saveConfiguration()
     }
-    
+
     func selectModel(_ model: EnhancedAIModel) {
         currentModel = model
         saveConfiguration()
     }
-    
+
     func configureProvider(_ provider: AIProvider, apiKey: String?, baseURL: String?) {
         let config = ProviderConfiguration(
             provider: provider,
@@ -106,14 +106,14 @@ class MultiProviderAIService: ObservableObject {
             baseURL: baseURL
         )
         modelRegistry.setProviderConfig(config)
-        
+
         if provider == currentProvider {
             updateConfigurationStatus()
         }
     }
-    
+
     // MARK: - Chat Completions
-    
+
     func streamMessage(
         messages: [Message],
         tools: [[String: Any]]? = nil
@@ -121,16 +121,16 @@ class MultiProviderAIService: ObservableObject {
         guard let model = currentModel else {
             return AsyncThrowingStream { $0.finish(throwing: AIServiceError.noModelSelected) }
         }
-        
+
         // On-device inference does not need a provider config
         if model.provider == .onDevice {
             return streamOnDevice(messages: messages, model: model)
         }
-        
+
         guard let config = modelRegistry.getProviderConfig(for: model.provider) else {
             return AsyncThrowingStream { $0.finish(throwing: AIServiceError.providerNotConfigured) }
         }
-        
+
         switch model.provider {
         case .openRouter:
             return streamOpenRouter(messages: messages, model: model, config: config, tools: tools)
@@ -146,9 +146,9 @@ class MultiProviderAIService: ObservableObject {
             return streamOnDevice(messages: messages, model: model) // Already handled above
         }
     }
-    
+
     // MARK: - Provider-Specific Streaming
-    
+
     func streamOpenRouter(
         messages: [Message],
         model: EnhancedAIModel,
@@ -163,7 +163,7 @@ class MultiProviderAIService: ObservableObject {
             tools: tools
         )
     }
-    
+
     nonisolated func streamOpenAI(
         messages: [Message],
         model: EnhancedAIModel,
@@ -181,17 +181,17 @@ class MultiProviderAIService: ObservableObject {
                         tools: tools,
                         stream: true
                     )
-                    
+
                     let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
-                    
+
                     guard let httpResponse = response as? HTTPURLResponse else {
                         throw AIServiceError.networkError
                     }
-                    
+
                     guard httpResponse.statusCode == 200 else {
                         throw AIServiceError.apiError(httpResponse.statusCode)
                     }
-                    
+
                     try await SSELineParser.parseOpenAICompatible(bytes: bytes, continuation: continuation)
                     continuation.finish()
                 } catch {
@@ -200,7 +200,7 @@ class MultiProviderAIService: ObservableObject {
             }
         }
     }
-    
+
     nonisolated func streamAnthropic(
         messages: [Message],
         model: EnhancedAIModel,
@@ -218,17 +218,17 @@ class MultiProviderAIService: ObservableObject {
                         tools: tools,
                         stream: true
                     )
-                    
+
                     let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
-                    
+
                     guard let httpResponse = response as? HTTPURLResponse else {
                         throw AIServiceError.networkError
                     }
-                    
+
                     guard httpResponse.statusCode == 200 else {
                         throw AIServiceError.apiError(httpResponse.statusCode)
                     }
-                    
+
                     try await SSELineParser.parseAnthropic(bytes: bytes, continuation: continuation)
                     continuation.finish()
                 } catch {
@@ -237,7 +237,7 @@ class MultiProviderAIService: ObservableObject {
             }
         }
     }
-    
+
     nonisolated func streamOllama(
         messages: [Message],
         model: EnhancedAIModel,
@@ -254,17 +254,17 @@ class MultiProviderAIService: ObservableObject {
                         tools: tools,
                         stream: true
                     )
-                    
+
                     let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
-                    
+
                     guard let httpResponse = response as? HTTPURLResponse else {
                         throw AIServiceError.networkError
                     }
-                    
+
                     guard httpResponse.statusCode == 200 else {
                         throw AIServiceError.apiError(httpResponse.statusCode)
                     }
-                    
+
                     try await SSELineParser.parseOllamaNDJSON(bytes: bytes, continuation: continuation)
                     continuation.finish()
                 } catch {
@@ -273,7 +273,7 @@ class MultiProviderAIService: ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Google Gemini Streaming
 
     nonisolated func streamGoogle(
@@ -324,7 +324,7 @@ class MultiProviderAIService: ObservableObject {
         }
         return service.streamMessage(messages: messages, maxTokens: model.maxOutput)
     }
-    
+
 }
 
 // MARK: - Error Types
@@ -335,7 +335,7 @@ enum AIServiceError: LocalizedError {
     case networkError
     case apiError(Int)
     case invalidResponse
-    
+
     var errorDescription: String? {
         switch self {
         case .noModelSelected:

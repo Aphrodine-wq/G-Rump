@@ -14,9 +14,9 @@ import UIKit
 // used across all tool execution domains.
 
 extension ChatViewModel {
-    
+
     // MARK: - Process Execution
-    
+
     func runShellCommand(_ command: String, cwd: String?, timeoutSeconds: Int = 60) async -> String {
         #if os(macOS)
         return await withCheckedContinuation { continuation in
@@ -26,15 +26,15 @@ extension ChatViewModel {
             if let cwd = cwd {
                 process.currentDirectoryURL = URL(fileURLWithPath: cwd)
             }
-            
+
             let pipe = Pipe()
             let errPipe = Pipe()
             process.standardOutput = pipe
             process.standardError = errPipe
-            
+
             do {
                 try process.run()
-                
+
                 // Kill process after timeout
                 let timeoutTask = Task {
                     try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds) * 1_000_000_000)
@@ -42,13 +42,13 @@ extension ChatViewModel {
                         process.terminate()
                     }
                 }
-                
+
                 let outData = pipe.fileHandleForReading.readDataToEndOfFile()
                 let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
                 process.waitUntilExit()
                 timeoutTask.cancel()
                 var result = String(data: outData, encoding: .utf8) ?? ""
-                
+
                 // Truncate very long output
                 if result.count > 30000 {
                     let head = String(result.prefix(15000))
@@ -65,7 +65,7 @@ extension ChatViewModel {
         return await runProcess(executablePath: "/bin/sh", arguments: ["-c", command], cwd: cwd, stdoutLimitLines: nil)
         #endif
     }
-    
+
     func runProcess(executablePath: String, arguments: [String], cwd: String?, stdoutLimitLines: Int?) async -> String {
         #if os(macOS)
         return await withCheckedContinuation { continuation in
@@ -105,9 +105,9 @@ extension ChatViewModel {
         return "Error: process execution not available on iOS"
         #endif
     }
-    
+
     // MARK: - Path Resolution
-    
+
     func resolvePath(_ path: String) -> String {
         if path.hasPrefix("/") {
             return path
@@ -118,15 +118,15 @@ extension ChatViewModel {
         let base = workingDirectory.isEmpty ? FileManager.default.currentDirectoryPath : workingDirectory
         return URL(fileURLWithPath: base).appendingPathComponent(path).path
     }
-    
+
     // MARK: - Utility Functions
-    
+
     func formatFileSize(_ bytes: UInt64) -> String {
         if bytes < 1024 { return "\(bytes) B" }
         if bytes < 1024 * 1024 { return "\(bytes / 1024) KB" }
         return String(format: "%.1f MB", Double(bytes) / (1024 * 1024))
     }
-    
+
     func isTransientToolError(_ result: String) -> Bool {
         let lower = result.lowercased()
         return lower.contains("error") && (

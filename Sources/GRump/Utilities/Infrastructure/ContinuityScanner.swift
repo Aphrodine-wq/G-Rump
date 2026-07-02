@@ -16,21 +16,21 @@ import SwiftUI
 
 @MainActor
 final class ContinuityScannerService: NSObject, ObservableObject {
-    
+
     static let shared = ContinuityScannerService()
-    
+
     @Published var isScanningAvailable = false
     @Published var isScanning = false
     @Published var scannedDocuments: [ScannedDocument] = []
     @Published var scannerState: ScannerState = .idle
-    
+
     private override init() {
         super.init()
         checkScanningAvailability()
     }
-    
+
     // MARK: - Availability Check
-    
+
     private func checkScanningAvailability() {
         #if os(macOS)
         if #available(macOS 13.0, *) {
@@ -38,9 +38,9 @@ final class ContinuityScannerService: NSObject, ObservableObject {
         }
         #endif
     }
-    
+
     // MARK: - Document Scanning
-    
+
     func startDocumentScanning() async throws -> ScannedDocument? {
         #if os(macOS)
         guard isScanningAvailable else {
@@ -128,38 +128,38 @@ final class ContinuityScannerService: NSObject, ObservableObject {
         throw ScannerError.notAvailable
         #endif
     }
-    
+
     // MARK: - Document Processing
-    
+
     /// Process scanned document with OCR
     func processDocument(_ image: CGImage) async throws -> ProcessedDocument {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
         request.recognitionLanguages = ["en-US", "en-GB", "zh-Hans", "zh-Hant", "ja", "ko", "es", "fr", "de", "it"]
-        
+
         let handler = VNImageRequestHandler(cgImage: image, options: [:])
         try handler.perform([request])
-        
+
         guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
             throw ScannerError.noTextFound
         }
-        
+
         var recognizedText = ""
         var confidence: Float = 0
-        
+
         for observation in observations {
             guard let topCandidate = observation.topCandidates(1).first else { continue }
             recognizedText += topCandidate.string + "\n"
             confidence += topCandidate.confidence
         }
-        
+
         confidence /= Float(observations.count)
-        
+
         // Detect code blocks and diagrams
         let codeBlocks = extractCodeBlocks(from: recognizedText)
         let diagrams = detectDiagrams(in: image)
-        
+
         return ProcessedDocument(
             text: recognizedText,
             confidence: confidence,
@@ -168,23 +168,23 @@ final class ContinuityScannerService: NSObject, ObservableObject {
             timestamp: Date()
         )
     }
-    
+
     // MARK: - Text Analysis
-    
+
     private func extractCodeBlocks(from text: String) -> [CodeBlock] {
         var codeBlocks: [CodeBlock] = []
-        
+
         // Pattern to detect code blocks
         let codeBlockPattern = #"(?s)(```[\s\S]*?```|`[^`]+`)"#
-        
+
         let regex = try? NSRegularExpression(pattern: codeBlockPattern, options: [])
         let matches = regex?.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
-        
+
         for match in matches ?? [] {
             if let range = Range(match.range, in: text) {
                 let codeText = String(text[range])
                 let language = detectLanguage(for: codeText)
-                
+
                 codeBlocks.append(CodeBlock(
                     text: codeText,
                     language: language,
@@ -192,10 +192,10 @@ final class ContinuityScannerService: NSObject, ObservableObject {
                 ))
             }
         }
-        
+
         return codeBlocks
     }
-    
+
     private func detectLanguage(for code: String) -> String {
         let patterns: [String: String] = [
             "func ": "swift",
@@ -214,23 +214,23 @@ final class ContinuityScannerService: NSObject, ObservableObject {
             "class ": "java",
             "interface ": "typescript"
         ]
-        
+
         for (pattern, language) in patterns {
             if code.contains(pattern) {
                 return language
             }
         }
-        
+
         return "text"
     }
-    
+
     private func detectDiagrams(in image: CGImage) -> [Diagram] {
         var diagrams: [Diagram] = []
-        
+
         // Use Vision to detect rectangles (potential diagrams/flowcharts)
-        let request = VNDetectRectanglesRequest { request, error in
+        let request = VNDetectRectanglesRequest { request, _ in
             guard let observations = request.results as? [VNRectangleObservation] else { return }
-            
+
             for observation in observations {
                 if observation.confidence > 0.8 {
                     // Extract the rectangle region
@@ -243,15 +243,15 @@ final class ContinuityScannerService: NSObject, ObservableObject {
                 }
             }
         }
-        
+
         let handler = VNImageRequestHandler(cgImage: image, options: [:])
         try? handler.perform([request])
-        
+
         return diagrams
     }
-    
+
     // MARK: - Integration with G-Rump
-    
+
     /// Send scanned document to G-Rump for processing
     func sendToGRump(_ document: ScannedDocument) {
         NotificationCenter.default.post(
@@ -297,7 +297,7 @@ struct Diagram {
         case mindMap
         case unknown
     }
-    
+
     let type: DiagramType
     let boundingBox: CGRect
     let confidence: Float
@@ -317,7 +317,7 @@ enum ScannerError: LocalizedError {
     case scanningFailed(Error)
     case ocrFailed(Error)
     case noTextFound
-    
+
     var errorDescription: String? {
         switch self {
         case .notAvailable:
@@ -349,10 +349,10 @@ class CameraWindow: NSWindow {
             backing: .buffered,
             defer: false
         )
-        
+
         title = "Document Scanner"
         level = .floating
-        
+
         // Create preview view
         let previewView = NSView(frame: NSRect(x: 0, y: 40, width: 640, height: 480))
         previewView.layer = previewLayer
@@ -361,7 +361,7 @@ class CameraWindow: NSWindow {
         let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 520))
         containerView.addSubview(previewView)
         contentView = containerView
-        
+
         // Add capture button
         let captureButton = NSButton(
             title: "Capture",
@@ -381,17 +381,17 @@ class CameraWindow: NSWindow {
         cancelButton.bezelStyle = .rounded
         cancelButton.frame = NSRect(x: 210, y: 5, width: 100, height: 30)
         containerView.addSubview(cancelButton)
-        
+
         // Store references
         self.captureSession = captureSession
         self.photoOutput = photoOutput
         self.previewLayer = previewLayer
     }
-    
+
     private var captureSession: AVCaptureSession?
     private var photoOutput: AVCapturePhotoOutput?
     private var previewLayer: AVCaptureVideoPreviewLayer?
-    
+
     @objc private func capturePhoto() {
         let settings = AVCapturePhotoSettings()
         photoOutput?.capturePhoto(with: settings, delegate: self)
@@ -410,7 +410,7 @@ class CameraWindow: NSWindow {
 }
 
 extension CameraWindow: AVCapturePhotoCaptureDelegate {
-    
+
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error = error {
             GRumpLogger.capture.error("Photo capture error: \(error.localizedDescription)")
@@ -419,7 +419,7 @@ extension CameraWindow: AVCapturePhotoCaptureDelegate {
             onCancelled?()
             return
         }
-        
+
         guard let imageData = photo.fileDataRepresentation(),
               let dataProvider = CGDataProvider(data: imageData as CFData),
               let image = CGImage(pngDataProviderSource: dataProvider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else {
@@ -428,7 +428,7 @@ extension CameraWindow: AVCapturePhotoCaptureDelegate {
             onCancelled?()
             return
         }
-        
+
         // Process the image
         Task {
             do {
@@ -444,7 +444,7 @@ extension CameraWindow: AVCapturePhotoCaptureDelegate {
                     self.close()
                     self.onDocumentCaptured?(scannedDocument)
                 }
-                
+
             } catch {
                 DispatchQueue.main.async {
                     self.captureSession?.stopRunning()

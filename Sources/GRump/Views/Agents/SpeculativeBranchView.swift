@@ -23,7 +23,7 @@ struct SpeculativeBranchView: View {
                     .foregroundColor(themeManager.palette.textPrimary)
                 Spacer()
                 if branches.allSatisfy({ $0.status == .completed || $0.status == .failed }) {
-                    if let _ = winnerIndex {
+                    if winnerIndex != nil {
                         Label("Evaluated", systemImage: "checkmark.circle.fill")
                             .font(Typography.captionSmall)
                             .foregroundColor(.green)

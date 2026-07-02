@@ -10,11 +10,11 @@ struct MessageListView: View {
     @EnvironmentObject var viewModel: ChatViewModel
     @EnvironmentObject var frameLoop: FrameLoopService
     @EnvironmentObject var ambientService: AmbientCodeAwarenessService
-    
+
     @State private var lastScrollTime: Date = .distantPast
     @State private var lastStreamingLength: Int = 0
     @State private var expandedMessageIds: Set<UUID> = []
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Conversation search bar (Cmd+F)
@@ -60,9 +60,9 @@ struct MessageListView: View {
         }
         } // end VStack
     }
-    
+
     // MARK: - Content
-    
+
     private var messagesListContent: some View {
         LazyVStack(alignment: .leading, spacing: Spacing.lg) {
             // Intent continuity banner — shows active cross-session goal
@@ -184,7 +184,7 @@ struct MessageListView: View {
         }
         .padding(.vertical, Spacing.xl)
     }
-    
+
     private var todayDivider: some View {
         HStack(spacing: Spacing.xl) {
             Rectangle().fill(themeManager.palette.borderCrisp.opacity(0.7)).frame(height: Border.thin)
@@ -197,9 +197,9 @@ struct MessageListView: View {
         .padding(.horizontal, Spacing.colossal)
         .padding(.vertical, Spacing.xxl)
     }
-    
+
     // MARK: - Message Row
-    
+
     @ViewBuilder
     private func messageRowView(for message: Message) -> some View {
         if message.role == .tool {
@@ -249,29 +249,29 @@ struct MessageListView: View {
                 }
         }
     }
-    
+
     // Helper function for tool result context
     private func toolResultContext(for message: Message, messages: [Message]) -> (name: String, argSummary: String)? {
         guard let toolCallId = message.toolCallId,
-              let toolCallMessage = messages.first(where: { 
-                  $0.toolCalls?.contains(where: { $0.id == toolCallId }) == true 
+              let toolCallMessage = messages.first(where: {
+                  $0.toolCalls?.contains(where: { $0.id == toolCallId }) == true
               }),
               let toolCall = toolCallMessage.toolCalls?.first(where: { $0.id == toolCallId }) else {
             return nil
         }
-        
+
         let argSummary: String
         if toolCall.arguments.count > 50 {
             argSummary = String(toolCall.arguments.prefix(47)) + "..."
         } else {
             argSummary = toolCall.arguments
         }
-        
+
         return (name: toolCall.name, argSummary: argSummary)
     }
-    
+
     // MARK: - Scrolling
-    
+
     private func scrollToBottom(_ proxy: ScrollViewProxy) {
         withAnimation(.easeOut(duration: Anim.smooth)) {
             proxy.scrollTo("bottom", anchor: .bottom)

@@ -134,7 +134,7 @@ struct InlineFileChatView: View {
         var actions = [
             QuickAction(label: "Summarize", prompt: "Read and summarize the file `\(relativePath)`. Explain its purpose and key components."),
             QuickAction(label: "Find bugs", prompt: "Read `\(relativePath)` and identify any potential bugs, issues, or improvements."),
-            QuickAction(label: "Explain", prompt: "Read `\(relativePath)` and explain how it works step by step."),
+            QuickAction(label: "Explain", prompt: "Read `\(relativePath)` and explain how it works step by step.")
         ]
 
         if ["swift", "py", "js", "ts", "tsx", "jsx", "rs", "go", "java", "kt", "rb"].contains(ext) {

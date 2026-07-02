@@ -49,7 +49,7 @@ extension AIModelRegistry {
                     ModelMode(id: "standard", displayName: "Standard"),
                     ModelMode(id: "thinking", displayName: "Thinking"),
                     ModelMode(id: "fast", displayName: "Fast", apiModelID: "claude-opus-4-6-fast-20250827"),
-                    ModelMode(id: "1m", displayName: "1M Context", overrideContextWindow: 1_000_000),
+                    ModelMode(id: "1m", displayName: "1M Context", overrideContextWindow: 1_000_000)
                 ]
             ),
 
@@ -67,7 +67,7 @@ extension AIModelRegistry {
                 modes: [
                     ModelMode(id: "standard", displayName: "Standard"),
                     ModelMode(id: "thinking", displayName: "Thinking"),
-                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "claude-sonnet-4-6-fast-20250827"),
+                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "claude-sonnet-4-6-fast-20250827")
                 ]
             ),
 
@@ -119,7 +119,7 @@ extension AIModelRegistry {
                 modes: [
                     ModelMode(id: "standard", displayName: "Standard"),
                     ModelMode(id: "reasoning", displayName: "Reasoning", apiModelID: "codex-5.3-reasoning"),
-                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "codex-5.3-fast"),
+                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "codex-5.3-fast")
                 ]
             ),
 
@@ -237,7 +237,7 @@ extension AIModelRegistry {
                     ModelMode(id: "standard", displayName: "Standard"),
                     ModelMode(id: "thinking", displayName: "Thinking"),
                     ModelMode(id: "fast", displayName: "Fast", apiModelID: "anthropic/claude-opus-4.6:fast"),
-                    ModelMode(id: "1m", displayName: "1M Context", overrideContextWindow: 1_000_000),
+                    ModelMode(id: "1m", displayName: "1M Context", overrideContextWindow: 1_000_000)
                 ]
             ),
 
@@ -255,7 +255,7 @@ extension AIModelRegistry {
                 modes: [
                     ModelMode(id: "standard", displayName: "Standard"),
                     ModelMode(id: "thinking", displayName: "Thinking"),
-                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "anthropic/claude-sonnet-4.6:fast"),
+                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "anthropic/claude-sonnet-4.6:fast")
                 ]
             ),
 
@@ -312,7 +312,7 @@ extension AIModelRegistry {
                 modes: [
                     ModelMode(id: "standard", displayName: "Standard"),
                     ModelMode(id: "reasoning", displayName: "Reasoning", apiModelID: "openai/codex-5.3-reasoning"),
-                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "openai/codex-5.3-fast"),
+                    ModelMode(id: "fast", displayName: "Fast", apiModelID: "openai/codex-5.3-fast")
                 ]
             ),
 
@@ -469,7 +469,7 @@ extension AIModelRegistry {
                 requiresPaidTier: false,
                 capabilities: ModelCapabilities.default,
                 pricing: nil
-            ),
+            )
         ]
     }
 }
