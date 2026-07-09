@@ -107,6 +107,24 @@ final class FileTreeService: ObservableObject {
         toggleInNodes(&rootNodes, id: node.id)
     }
 
+    /// Expands every ancestor directory of `path` so its node is visible
+    /// (Reveal in Navigator). No-op for paths outside the working directory.
+    func expandTo(path: String) {
+        guard !workingDirectory.isEmpty else { return }
+        let standardized = (path as NSString).standardizingPath
+        guard standardized.hasPrefix(workingDirectory + "/") || standardized == workingDirectory else { return }
+        expandAncestors(&rootNodes, target: standardized)
+    }
+
+    private func expandAncestors(_ nodes: inout [FileNode], target: String) {
+        for index in nodes.indices where nodes[index].isDirectory {
+            if target == nodes[index].path || target.hasPrefix(nodes[index].path + "/") {
+                nodes[index].isExpanded = true
+                expandAncestors(&nodes[index].children, target: target)
+            }
+        }
+    }
+
     private func toggleInNodes(_ nodes: inout [FileNode], id: String) {
         for i in nodes.indices {
             if nodes[i].id == id {
@@ -354,6 +372,12 @@ struct ProjectNavigatorView: View {
         }
         .onChange(of: viewModel.workingDirectory) { _, newDir in
             fileTree.setDirectory(newDir)
+        }
+        // Reveal in Navigator (build console issues, future callers).
+        .onReceive(NotificationCenter.default.publisher(for: .init("GRumpRevealFile"))) { note in
+            guard let path = note.userInfo?["path"] as? String else { return }
+            fileTree.expandTo(path: path)
+            selectedFilePath = (path as NSString).standardizingPath
         }
         .alert("New File", isPresented: $showNewFileDialog) {
             TextField("filename.swift", text: $newItemName)

@@ -175,6 +175,13 @@ struct GRumpApp: App {
             }
             #endif
             CommandGroup(after: .sidebar) {
+                #if os(macOS)
+                Button("Toggle Navigator") {
+                    NotificationCenter.default.post(name: .init("GRumpToggleNavigator"), object: nil)
+                }
+                .keyboardShortcut("0", modifiers: .command)
+                #endif
+
                 Button("Toggle Sidebar") {
                     NotificationCenter.default.post(name: .init("GRumpToggleSidebar"), object: nil)
                 }

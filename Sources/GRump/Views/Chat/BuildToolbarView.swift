@@ -31,6 +31,17 @@ struct BuildToolbarView: View {
         Group {
             if let project = projectStore.current {
                 HStack(spacing: Spacing.xl) {
+                    Button {
+                        NotificationCenter.default.post(name: .init("GRumpToggleNavigator"), object: nil)
+                    } label: {
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(themeManager.palette.textMuted)
+                            .frame(width: 24, height: 24)
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .help("Toggle Navigator (⌘0)")
+
                     runStopControls
 
                     projectMenu(project)

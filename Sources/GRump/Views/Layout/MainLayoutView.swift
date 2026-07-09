@@ -7,6 +7,10 @@ struct MainLayoutView: View {
     @AppStorage("SelectedPanel") private var selectedPanelRaw: String = PanelTab.chat.rawValue
     @AppStorage("RightPanelCollapsed") private var rightPanelCollapsed = true
     @AppStorage("SidebarCollapsed") private var sidebarCollapsed = false
+    #if os(macOS)
+    @AppStorage("NavigatorPaneVisible") private var navigatorPaneVisible = false
+    @AppStorage("NavigatorAutoCollapsedSidebarOnce") private var navigatorAutoCollapsedSidebarOnce = false
+    #endif
 
     let primarySidebarContent: AnyView
     let chatArea: AnyView
@@ -20,6 +24,17 @@ struct MainLayoutView: View {
 
     var body: some View {
         HStack(spacing: 0) {
+            #if os(macOS)
+            // Project navigator (leftmost fixed pane, ⌘0)
+            if navigatorPaneVisible && !isZenMode {
+                ProjectNavigatorView()
+                    .frame(width: 240)
+                Rectangle()
+                    .fill(themeManager.palette.borderCrisp)
+                    .frame(width: 1)
+            }
+            #endif
+
             // Left sidebar (if position == .left)
             if layoutOptions.primarySidebarPosition == .left {
                 primarySidebarContent
@@ -70,6 +85,23 @@ struct MainLayoutView: View {
             }
         }
         #if os(macOS)
+        .onReceive(NotificationCenter.default.publisher(for: .init("GRumpToggleNavigator"))) { _ in
+            withAnimation(.easeInOut(duration: Anim.quick)) {
+                navigatorPaneVisible.toggle()
+                // First enable trades the conversation sidebar for the navigator
+                // so the chat column doesn't get crushed. Once only.
+                if navigatorPaneVisible && !navigatorAutoCollapsedSidebarOnce {
+                    layoutOptions.primarySidebarVisible = false
+                    navigatorAutoCollapsedSidebarOnce = true
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("GRumpRevealFile"))) { _ in
+            // Revealing a file only makes sense with the navigator on screen.
+            withAnimation(.easeInOut(duration: Anim.quick)) {
+                navigatorPaneVisible = true
+            }
+        }
         .onChange(of: layoutOptions.fullScreenMode) { _, isFullScreen in
             if let window = NSApplication.shared.windows.first {
                 if isFullScreen && !window.styleMask.contains(.fullScreen) {
