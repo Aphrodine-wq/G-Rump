@@ -24,12 +24,14 @@ Sources/GRump/
 │   ├── +ToolExecution          # Tool dispatch and parallel execution
 │   └── +UIState                # UI state management
 ├── Views/                      # SwiftUI views (zero loose files)
-│   ├── Chat/                   # Chat input, messages, code blocks, diffs
-│   ├── Settings/               # 21 settings tabs in 6 groups + extensions
-│   ├── Onboarding/             # 6-step first-run flow
-│   ├── Panels/                 # 18 IDE panels
+│   ├── Chat/                   # Chat input, messages, code blocks, diffs, build toolbar
+│   ├── Settings/               # 21 settings tabs in 7 groups + Settings{} scene root
+│   ├── Onboarding/             # 6-step first-run flow (typed steps + gating)
+│   ├── Welcome/                # Xcode-style welcome window (recents, open/clone/new)
+│   ├── Profile/                # You | Your Agent (developer profile + SOUL editor)
+│   ├── Panels/                 # 19 IDE panels incl. the build console
 │   ├── Components/             # Reusable UI components
-│   ├── Layout/                 # Sidebar, main layout shells
+│   ├── Layout/                 # Sidebar, main layout shells, ⌘0 navigator pane
 │   ├── Overlays/               # Modals, keyboard shortcut overlay
 │   └── ...                     # DevTools, Git, Terminal, etc.
 ├── Services/
@@ -37,8 +39,8 @@ Sources/GRump/
 │   ├── MCP/                    # Model Context Protocol client & server
 │   ├── ToolExecution/          # 153 tool defs + executors by domain
 │   ├── Apple/                  # Spotlight, SecureEnclave, FocusFilter, Apple Intelligence
-│   ├── Developer/              # LSP, CodeApply, WritingTools
-│   └── System/                 # ConnectionMonitor, GlobalHotkey, Sparkle
+│   ├── Developer/              # LSP, BuildService, XcodeProjectInspector, CodeApply
+│   └── System/                 # ProjectStore, ConnectionMonitor, GlobalHotkey, Sparkle
 ├── Intelligence/
 │   ├── Memory/                 # MemoryStore, ActivityStore, MemoryGraph
 │   ├── Brain/                  # Vault (markdown notes), config, paths
@@ -52,21 +54,27 @@ Sources/GRump/
 └── Resources/                  # Skills, assets, localization, privacy manifest
 ```
 
-## Onboarding (pre-app)
+## Onboarding (pre-app) + Welcome window
 
 Onboarding runs **before** the main app. It never appears inside the Chat Interface.
 
 - **Gate:** `AppRootView` checks `HasCompletedOnboarding` (UserDefaults). If `false`, it shows only `OnboardingView` (full-screen). Sidebar and chat are not shown until onboarding is finished.
-- **Flow:** Splash → (if not completed) OnboardingView (3 slides, "Finish onboarding" / "Open Settings") → on finish, `HasCompletedOnboarding = true` → main app (`ContentView` with sidebar + chat).
+- **Flow:** Splash → six typed steps (`OnboardingStep`: welcome → provider → model → skills → appearance → security) with a pure `canAdvance` gate — welcome needs privacy consent, provider needs a saved key or an explicit "I'll add a key later" deferral. Skill packs apply exactly once at completion via `SkillPack.mergedAllowlist` — a UNION into any existing allowlist, so onboarding can never wipe a returning user's skills.
 - **Existing users:** If the user already has an API key (e.g. after upgrade), `AppRootView.onAppear` sets `HasCompletedOnboarding = true` so they are not blocked.
+- **Welcome window:** After onboarding (and on any launch with no project open, gated by `ShowWelcomeWindowOnLaunch`), a 780×480 `Window` scene (id `"welcome"`, ⇧⌘1) offers Open / Clone / New Project plus pinned recents from `ProjectStore` (`~/.grump/recent-projects.json`). Every open path funnels through `ChatViewModel.setWorkingDirectory`, which feeds `ProjectStore`.
 
-## Settings (tabbed)
+## Settings (window scene)
 
-Settings are split into **tabs** instead of a single long scroll.
+- **Scene:** On macOS Settings is a real `Settings{}` scene (`SettingsSceneRoot`) — native ⌘, and app-menu item, min 940×640 with detail content capped at 720pt. iOS keeps the sheet.
+- **Entry points:** Legacy callers still flip `state.showSettings`; `ContentView` bridges that into `openSettings()`. A requested tab rides `SettingsRouter.pendingTab`, which `SettingsView` consumes on appear and live via `onReceive` (the window persists across opens).
+- **Tabs:** 21 tabs across 7 disclosure groups — Account · AI · Project (project/tools/MCP/security) · Agent (skills/soul/brain/memory) · Appearance · General · About. See `SettingsTab.swift`.
 
-- **Tabs:** 21 tabs across 6 disclosure groups — providers/models, project, behavior, tools, MCP, skills, soul, brain, memory, security, appearance, notifications, shortcuts, data, privacy, and about. See `SettingsTab.swift`.
-- **UI:** `SettingsView` uses `NavigationSplitView`: sidebar list of tabs, detail shows the selected section. Same bindings and behavior as before; only the layout is tabbed.
-- **Opening to a tab:** Callers can pass `initialTab: SettingsTab?` (e.g. `.model`) so the sheet opens on that tab (e.g. from the chat toolbar model badge).
+## Build engine (build → run → logs)
+
+- **`BuildService`** (`Services/Developer/`) drives `xcodebuild` (or `swift build` for SPM packages) for the open project: a legal state machine `idle → building → succeeded/failed/cancelled`, with a run intent continuing `succeeded → installing → launching → running(app) → idle`. Console output streams through chunk-safe line buffering into a 10k-line ring buffer with 100ms/50-line batched flushes; issues parse via `BuildErrorParserEngine` on completion.
+- **`XcodeProjectInspector`** owns nonisolated project parsing plus `buildSettings()` (`xcodebuild -showBuildSettings -json`, 10s watchdog) — the product path/bundle id the run pipeline installs and launches.
+- **Run pipeline:** `simctl bootstatus -b` → `simctl install` → `simctl launch --terminate-running-process` → a second process streams the app's `log stream` into the same console. Stop kills the stream and terminates the app. Step seams are injectable for tests.
+- **Surfaces:** the build toolbar above the chat (⌘R / ⌘⇧., project/scheme/destination chips, status pill), the Build dock panel (Log + Issues tabs, Fix-with-G-Rump, Reveal in Navigator, `xed --line`), and the ⌘0 left navigator with `FileTreeService.expandTo` for reveals. Failures auto-open the console; the agent drives the same loop through `xcrun_simctl` (list/boot/bootstatus/install/launch/terminate/app_log).
 
 ## 250fps target (high-frequency loop + smooth display)
 
@@ -82,6 +90,10 @@ The app targets a **250Hz internal update loop** and smooth display output (60/1
 - **⌘N** New Chat  
 - **⌘,** Settings  
 - **⌘.** Stop generation  
+- **⌘R** Run (build, then run-to-simulator when the destination is a sim)  
+- **⌘⇧.** Stop build / running app  
+- **⌘0** Toggle project navigator  
+- **⇧⌘1** Welcome window  
 - **⌘L** Focus message input  
 - **⌘E** Export current conversation as Markdown  
 

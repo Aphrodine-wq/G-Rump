@@ -56,7 +56,7 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 
 ### Swift App Structure (`Sources/GRump/`)
 
-**Entry point**: `GRumpApp.swift` → `ContentView.swift` (main chat UI with sidebar). `AppDelegate.swift` enforces single-instance to prevent SQLite lock freezes.
+**Entry point**: `GRumpApp.swift` → `ContentView.swift` (main chat UI with sidebar). `AppDelegate.swift` enforces single-instance to prevent SQLite lock freezes. Additional macOS scenes: `Settings{}` (`SettingsSceneRoot` + `SettingsRouter` for tab routing — legacy `showSettings` flips are bridged to `openSettings()` in ContentView) and the `"welcome"` Window (⇧⌘1).
 
 **ChatViewModel** is the central state manager, split into extensions:
 - `ChatViewModel+Streaming.swift` — provider streaming responses (dispatched per provider)
@@ -93,7 +93,18 @@ Three scopes: `builtIn` (bundled `Resources/Skills/skill-*.md`), `global` (`~/.g
 
 ### Soul System
 
-AI personality via `~/.grump/SOUL.md` (global) and `.grump/SOUL.md` (project, overrides global). YAML frontmatter (`name:`, `version:`) + markdown body. Default persona is "Rump". Editable in Settings → Soul.
+AI personality via `~/.grump/SOUL.md` (global) and `.grump/SOUL.md` (project, overrides global). YAML frontmatter (`name:`, `version:`) + markdown body. Default persona is "Rump". Editable in Settings → Soul (or Profile → Your Agent).
+
+### Developer Profile
+
+`DeveloperProfile` (`~/.grump/profile.json`, edited in Profile → You) injects a capped block into the system prompt. Final prompt layer order: `[Mode][Skills][Mind][DevProfile][Soul][Base]` — built in `ChatViewModel+Helpers.effectiveAgentConfig()`. Empty profile injects nothing.
+
+### Project + Build Engine
+
+- `ProjectStore` (`Services/System/`): current project + pinned recents (`~/.grump/recent-projects.json`), kind detection (workspace > xcodeproj > Package.swift > plain). The ONE mutation point is `ChatViewModel.setWorkingDirectory` — every open path feeds it. The Welcome window (`Window` id `"welcome"`, ⇧⌘1, shown when onboarded with no project open) reads it.
+- `BuildService` (`Services/Developer/`): ⌘R builds via xcodebuild/`swift build`; on a simulator destination a successful build continues installing → launching → running(app) with the app's `log stream` in the build console. ⌘⇧. stops. State machine transitions are legality-checked (`BuildPhase.isLegalTransition`). Failures auto-open the Build panel's Issues tab.
+- `XcodeProjectInspector`: nonisolated project parsing + `xcodebuild -showBuildSettings -json` (10s watchdog) for product path/bundle id, cached per scheme|config.
+- Surfaces: build toolbar above chat, `PanelTab.build` console (Log|Issues, Fix-with-G-Rump, Reveal in Navigator, `xed --line`), ⌘0 left navigator (`FileTreeService.expandTo` handles reveals). The agent drives the same loop via `xcrun_simctl` (bootstatus/install/launch/terminate/app_log).
 
 ### Key Services
 

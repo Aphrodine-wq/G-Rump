@@ -44,9 +44,10 @@ no telemetry middleman, and no backend.
 | Models | Claude Opus 4.8 (default), Fable 5, Sonnet 5, Haiku 4.5, GPT-5.2, GPT-5.3-Codex, Gemini 3 Pro, and OpenRouter routes |
 | Memory | 3-tier store (session / project / global), hybrid vector + keyword + recency recall, deliberate forgetting |
 | Skills | 73 bundled `SKILL.md` skills in 21 packs, plus your own global and per-project skills with relevance scoring |
-| IDE surface | 18 dock panels — project navigator, git, terminal, simulator, tests, logs, profiling — with live SourceKit-LSP diagnostics |
+| Build & run | Xcode-style toolbar — ⌘R builds (xcodebuild/SPM) and runs to a booted simulator with live app logs; streamed build console with parsed, fixable issues |
+| IDE surface | 19 dock panels + a ⌘0 project navigator — build console, git, terminal, simulator, tests, logs, profiling — with live SourceKit-LSP diagnostics |
 | Autonomy | An opt-in daemon that works queued goals on a scratch branch, behind approval gates, and never pushes |
-| Tests | 1,400+ tests, SwiftLint strict, CI on every push |
+| Tests | 1,500+ tests, SwiftLint strict, CI on every push |
 
 ## Quick start
 
@@ -141,8 +142,9 @@ No dates. In order:
    into persistent, confidence-scored memory; outcome tracking across sessions; and
    agent-proposed skills you approve as diffs. The substrate (memory, skills,
    outcome signals) ships today; the closed loop is in active development.
-3. **Deeper Xcode-grade iOS tooling** — build/run toolbar, streaming build console,
-   run-to-simulator loop.
+3. **Deeper debugging** — the build/run toolbar, streaming build console, and
+   run-to-simulator loop shipped; next up is breakpoint-level debugging and
+   on-device runs.
 
 ## Contributing
 
