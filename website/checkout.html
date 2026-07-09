@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Complete your G-Rump purchase." />
+    <title>Checkout | G-Rump</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-bg"></div>
+
+    <header class="site-header">
+      <div class="nav-glass">
+        <nav class="nav-inner" aria-label="Primary navigation">
+          <a class="brand" href="index.html">
+            <span class="brand-mark">G</span>
+            <span>G-Rump</span>
+          </a>
+          <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="download.html">Download</a>
+          </div>
+          <a class="nav-cta" href="download.html">Get Started</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="checkout-page">
+        <div class="checkout-header">
+          <span class="eyebrow">Checkout</span>
+          <h1>Complete your purchase</h1>
+          <p class="subtitle" style="margin:12px auto 0">You're one step away from supercharging your workflow.</p>
+        </div>
+
+        <div class="checkout-grid">
+          <div class="glass-card checkout-form">
+            <div class="form-section">
+              <h3>Account</h3>
+              <div class="form-row">
+                <div>
+                  <label class="form-label" for="email">Email address</label>
+                  <input class="form-input" type="email" id="email" placeholder="you@example.com" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div>
+                  <label class="form-label" for="first-name">First name</label>
+                  <input class="form-input" type="text" id="first-name" placeholder="James" />
+                </div>
+                <div>
+                  <label class="form-label" for="last-name">Last name</label>
+                  <input class="form-input" type="text" id="last-name" placeholder="Walton" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>Payment Method</h3>
+              <div class="payment-methods">
+                <button class="payment-method active" onclick="selectPayment(this)">Card</button>
+                <button class="payment-method" onclick="selectPayment(this)">Apple Pay</button>
+                <button class="payment-method" onclick="selectPayment(this)">PayPal</button>
+              </div>
+              <div id="card-fields">
+                <div class="form-row">
+                  <div>
+                    <label class="form-label" for="card-number">Card number</label>
+                    <input class="form-input" type="text" id="card-number" placeholder="1234 5678 9012 3456" />
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div>
+                    <label class="form-label" for="expiry">Expiry date</label>
+                    <input class="form-input" type="text" id="expiry" placeholder="MM / YY" />
+                  </div>
+                  <div>
+                    <label class="form-label" for="cvc">CVC</label>
+                    <input class="form-input" type="text" id="cvc" placeholder="123" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>Billing Address</h3>
+              <div class="form-row">
+                <div>
+                  <label class="form-label" for="country">Country</label>
+                  <input class="form-input" type="text" id="country" placeholder="United States" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div>
+                  <label class="form-label" for="zip">ZIP / Postal code</label>
+                  <input class="form-input" type="text" id="zip" placeholder="90210" />
+                </div>
+                <div>
+                  <label class="form-label" for="state">State</label>
+                  <input class="form-input" type="text" id="state" placeholder="California" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card checkout-summary">
+            <div class="summary-plan">
+              <div class="summary-plan-icon">G</div>
+              <div class="summary-plan-info">
+                <h4 id="summary-plan-name">G-Rump Pro</h4>
+                <span>Monthly subscription</span>
+              </div>
+            </div>
+            <div class="summary-line">
+              <span id="summary-item-label">Pro plan</span>
+              <span id="summary-item-price">$19.00</span>
+            </div>
+            <div class="summary-line">
+              <span>Tax</span>
+              <span>$0.00</span>
+            </div>
+            <div class="summary-line total">
+              <span>Total</span>
+              <span id="summary-total">$19.00</span>
+            </div>
+            <button class="btn btn-primary checkout-submit" onclick="handleCheckout()">Pay Now</button>
+            <div class="secure-note">
+              <span>&#128274;</span>
+              <span>Secured with 256-bit SSL encryption</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>G-Rump &mdash; AI coding agent for macOS.</p>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="download.html">Download</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="https://github.com/Aphrodine-wq/G-Rump">GitHub</a>
+      </div>
+    </footer>
+
+    <script>
+      var plans = {
+        pro:  { name: 'G-Rump Pro',  label: 'Pro plan',  price: '$19.00' },
+        team: { name: 'G-Rump Team', label: 'Team plan', price: '$39.00' }
+      };
+      var params = new URLSearchParams(window.location.search);
+      var planKey = params.get('plan') || 'pro';
+      var plan = plans[planKey] || plans.pro;
+      document.getElementById('summary-plan-name').textContent = plan.name;
+      document.getElementById('summary-item-label').textContent = plan.label;
+      document.getElementById('summary-item-price').textContent = plan.price;
+      document.getElementById('summary-total').textContent = plan.price;
+
+      function selectPayment(btn) {
+        document.querySelectorAll('.payment-method').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var isCard = btn.textContent === 'Card';
+        document.getElementById('card-fields').style.display = isCard ? 'block' : 'none';
+      }
+
+      function handleCheckout() {
+        var btn = document.querySelector('.checkout-submit');
+        btn.textContent = 'Processing...';
+        btn.style.opacity = '0.7';
+        btn.style.pointerEvents = 'none';
+        setTimeout(function() {
+          btn.textContent = 'Payment Successful!';
+          btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+          btn.style.opacity = '1';
+        }, 2000);
+      }
+    </script>
+  </body>
+</html>
