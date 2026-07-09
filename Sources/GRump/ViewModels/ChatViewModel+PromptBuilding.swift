@@ -58,6 +58,44 @@ extension ChatViewModel {
         return block + basePrompt
     }
 
+    /// Appends the top learned lessons for this request (learning loop).
+    /// Injected ids are stashed on the view model so the post-run outcome can
+    /// attribute wins/losses back to exactly the lessons the model saw.
+    /// Hard cap ~800 tokens; kill switch = BrainConfig.learningEnabled.
+    func appendLessons(to prompt: inout String) {
+        let config = BrainConfigStore.shared.load()
+        guard config.learningEnabled else {
+            lastInjectedLessonIds = []
+            return
+        }
+        let query = currentConversation?.messages.last(where: { $0.role == .user })?.content ?? ""
+        let picked = LessonStore.shared.relevant(
+            for: query.isEmpty ? prompt : query,
+            limit: max(1, min(10, config.lessonInjectionCount))
+        )
+        guard !picked.isEmpty else {
+            lastInjectedLessonIds = []
+            return
+        }
+
+        var block = "\n\n## Learned Lessons\nLessons distilled from previous runs — apply when relevant:\n"
+        var injectedIds: [String] = []
+        let characterBudget = 800 * 4   // ~4 chars/token
+        for lesson in picked {
+            let line = "- \(lesson.text)\n"
+            guard block.count + line.count <= characterBudget else { break }
+            block += line
+            injectedIds.append(lesson.id)
+        }
+        guard !injectedIds.isEmpty else {
+            lastInjectedLessonIds = []
+            return
+        }
+        prompt += block
+        lastInjectedLessonIds = injectedIds
+        LessonStore.shared.recordInjection(ids: injectedIds)
+    }
+
     /// Prepends MIND.md identity content as the outermost foundation layer (before Soul).
     func prependMindContent(to basePrompt: String) -> String {
         guard let mind = MindStorage.loadMind(workingDirectory: workingDirectory) else { return basePrompt }

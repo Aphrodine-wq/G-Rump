@@ -442,6 +442,10 @@ extension ChatViewModel {
             return await executeXcodebuild(args)
         case "xcrun_simctl":
             return await executeXcrunSimctl(args)
+        case "record_lesson":
+            return await executeRecordLesson(args)
+        case "remember":
+            return await executeRemember(args)
         case "swift_format":
             return await executeSwiftFormat(args)
         case "swift_lint":

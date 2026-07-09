@@ -203,7 +203,10 @@ struct ToolDefinitions {
         spmResolve,
         appStoreChecklist,
         // User interaction
-        askUser
+        askUser,
+        // Learning loop (self-direction)
+        recordLesson,
+        rememberTool
     ]
 
     // Individual tool schema definitions are in extension files:
@@ -211,6 +214,7 @@ struct ToolDefinitions {
     // - ToolDefs+ShellSystem.swift   (shell, system, clipboard, screen)
     // - ToolDefs+GitDevOps.swift     (git, web, code intel, build, docker, browser, cloud, AI)
     // - ToolDefs+UtilsApple.swift    (utilities, Apple-native, media, network, IDE tools)
+    // - ToolDefs+Learning.swift      (learning loop: lessons, memory, reflection)
 
     static func toolsJSONData() throws -> Data {
         return try JSONSerialization.data(withJSONObject: allTools, options: [])

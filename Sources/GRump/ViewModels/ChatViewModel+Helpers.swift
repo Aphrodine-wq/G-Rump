@@ -37,6 +37,7 @@ extension ChatViewModel {
             appendTemporalIntelligence(to: &prompt)
             appendIntentContext(to: &prompt)
             appendConfidenceWarning(to: &prompt)
+            appendLessons(to: &prompt)
             let allowlist = appliedPresetToolAllowlist ?? nil
             let userDenylist = ToolsSettingsStorage.loadDenylist()
             let tools = ToolDefinitions.toolsFiltered(allowlist: allowlist, userDenylist: userDenylist)
@@ -58,6 +59,7 @@ extension ChatViewModel {
         appendTemporalIntelligence(to: &finalPrompt)
         appendIntentContext(to: &finalPrompt)
         appendConfidenceWarning(to: &finalPrompt)
+        appendLessons(to: &finalPrompt)
         let allowlist = appliedPresetToolAllowlist ?? toolAllowlist
         let userDenylist = ToolsSettingsStorage.loadDenylist()
         let tools = ToolDefinitions.toolsFiltered(allowlist: allowlist, userDenylist: userDenylist)

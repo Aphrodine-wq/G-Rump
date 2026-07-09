@@ -129,14 +129,17 @@ actor OutcomeLedger {
     }
 
     /// Two-stage success: the user's next message was a correction, so the
-    /// previous run didn't actually succeed.
-    func amendLastOutcome(corrections: [String]) {
-        guard !corrections.isEmpty, var last = outcomes.last else { return }
+    /// previous run didn't actually succeed. Returns the amended run's
+    /// injected lesson ids so their confidence can take the loss too.
+    @discardableResult
+    func amendLastOutcome(corrections: [String]) -> [String] {
+        guard !corrections.isEmpty, var last = outcomes.last else { return [] }
         last.success = false
         last.amended = true
         last.userCorrections.append(contentsOf: corrections)
         outcomes[outcomes.count - 1] = last
         save()
+        return last.injectedLessonIds
     }
 
     func consumeReflectionCounter() {

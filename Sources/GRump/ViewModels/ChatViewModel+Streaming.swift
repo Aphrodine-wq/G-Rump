@@ -48,7 +48,10 @@ extension ChatViewModel {
         )
         approvalDenialsSinceLastRun = 0
         if !corrections.isEmpty {
-            Task { await outcomeLedger.amendLastOutcome(corrections: corrections) }
+            Task { @MainActor in
+                let amendedLessonIds = await outcomeLedger.amendLastOutcome(corrections: corrections)
+                LessonStore.shared.recordOutcome(ids: amendedLessonIds, success: false)
+            }
         }
 
         // Apple Intelligence: classify intent and detect frustration

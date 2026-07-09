@@ -80,6 +80,8 @@ class ChatViewModel: ObservableObject {
     let outcomeLedger = OutcomeLedger()
     /// Approvals denied since the last agent run (a correction signal).
     var approvalDenialsSinceLastRun = 0
+    /// Lesson ids injected into the current run's prompt (for attribution).
+    var lastInjectedLessonIds: [String] = []
     /// Tracks code changes made during the current agent run for adversarial review.
     var currentRunCodeChanges: [CodeChange] = []
 

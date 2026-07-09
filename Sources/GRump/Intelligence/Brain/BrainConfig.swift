@@ -25,6 +25,14 @@ struct BrainConfig: Codable, Equatable {
     var daemonEnabled: Bool = false
     /// Text-to-speech output (Phase 1).
     var ttsEnabled: Bool = false
+    /// Learning loop: outcome reflection, lesson injection, skill proposals.
+    var learningEnabled: Bool = true
+    /// Post lesson add/weaken notices to the conversation (transparency).
+    var learningNoticesEnabled: Bool = true
+    /// Reflection cadence: also reflect every N runs even without failures.
+    var reflectionEveryNRuns: Int = 5
+    /// How many lessons ride along in the system prompt.
+    var lessonInjectionCount: Int = 5
 
     // MARK: - Personality / Voice
 
@@ -43,6 +51,33 @@ struct BrainConfig: Codable, Equatable {
     var elevenLabsModelId: String = "eleven_turbo_v2_5"
 
     static let `default` = BrainConfig()
+
+    init() {}
+
+    // Tolerant decode: fields added in later versions fall back to their
+    // defaults instead of failing the whole file (which would silently reset
+    // every flag to factory settings).
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = BrainConfig()
+        vaultEnabled = try container.decodeIfPresent(Bool.self, forKey: .vaultEnabled) ?? defaults.vaultEnabled
+        eyesEnabled = try container.decodeIfPresent(Bool.self, forKey: .eyesEnabled) ?? defaults.eyesEnabled
+        eyesIgnoredBundleIDs = try container.decodeIfPresent([String].self, forKey: .eyesIgnoredBundleIDs) ?? defaults.eyesIgnoredBundleIDs
+        eyesCaptureIntervalSeconds = try container.decodeIfPresent(Int.self, forKey: .eyesCaptureIntervalSeconds) ?? defaults.eyesCaptureIntervalSeconds
+        conscienceEnabled = try container.decodeIfPresent(Bool.self, forKey: .conscienceEnabled) ?? defaults.conscienceEnabled
+        daemonEnabled = try container.decodeIfPresent(Bool.self, forKey: .daemonEnabled) ?? defaults.daemonEnabled
+        ttsEnabled = try container.decodeIfPresent(Bool.self, forKey: .ttsEnabled) ?? defaults.ttsEnabled
+        learningEnabled = try container.decodeIfPresent(Bool.self, forKey: .learningEnabled) ?? defaults.learningEnabled
+        learningNoticesEnabled = try container.decodeIfPresent(Bool.self, forKey: .learningNoticesEnabled) ?? defaults.learningNoticesEnabled
+        reflectionEveryNRuns = try container.decodeIfPresent(Int.self, forKey: .reflectionEveryNRuns) ?? defaults.reflectionEveryNRuns
+        lessonInjectionCount = try container.decodeIfPresent(Int.self, forKey: .lessonInjectionCount) ?? defaults.lessonInjectionCount
+        displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? defaults.displayName
+        voiceIdentifier = try container.decodeIfPresent(String.self, forKey: .voiceIdentifier) ?? defaults.voiceIdentifier
+        useElevenLabs = try container.decodeIfPresent(Bool.self, forKey: .useElevenLabs) ?? defaults.useElevenLabs
+        elevenLabsKeychainKey = try container.decodeIfPresent(String.self, forKey: .elevenLabsKeychainKey) ?? defaults.elevenLabsKeychainKey
+        elevenLabsVoiceId = try container.decodeIfPresent(String.self, forKey: .elevenLabsVoiceId) ?? defaults.elevenLabsVoiceId
+        elevenLabsModelId = try container.decodeIfPresent(String.self, forKey: .elevenLabsModelId) ?? defaults.elevenLabsModelId
+    }
 }
 
 // MARK: - BrainConfigStore (synchronous, lock-guarded source of truth)

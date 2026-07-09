@@ -129,9 +129,11 @@ extension ChatViewModel {
             loopPivots: loopPivots,
             regressionSummary: regressionSummary,
             adversarialCriticals: adversarialCriticals,
-            injectedLessonIds: [],   // wired when lesson injection lands
+            injectedLessonIds: lastInjectedLessonIds,
             success: !hasErrors
         )
+        LessonStore.shared.recordOutcome(ids: lastInjectedLessonIds, success: !hasErrors)
+        lastInjectedLessonIds = []
         Task { await outcomeLedger.record(outcome) }
 
         flushSync() // Ensure final state is persisted immediately
