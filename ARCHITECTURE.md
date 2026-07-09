@@ -14,9 +14,9 @@ Sources/GRump/
 │   ├── +AgentPostRun           # Post-run cleanup and follow-up
 │   ├── +ExportImport           # Export (JSON, Markdown) and import
 │   ├── +Helpers                # API message building, token estimation
+│   ├── +Conscience             # Fail-closed gate ahead of mutating tools
 │   ├── +Memory                 # Memory retrieval and injection
 │   ├── +Messages               # Message management
-│   ├── +ParallelAgents         # Parallel multi-agent and speculative branching
 │   ├── +Persistence            # Conversation save/load/flush
 │   ├── +PromptBuilding         # System prompt construction per mode
 │   ├── +Streaming              # Streaming event handling
@@ -25,22 +25,26 @@ Sources/GRump/
 │   └── +UIState                # UI state management
 ├── Views/                      # SwiftUI views (zero loose files)
 │   ├── Chat/                   # Chat input, messages, code blocks, diffs
-│   ├── Settings/               # 8 settings tabs + extensions
-│   ├── Onboarding/             # 3-slide first-run flow
-│   ├── Panels/                 # 17 IDE panels
+│   ├── Settings/               # 21 settings tabs in 6 groups + extensions
+│   ├── Onboarding/             # 6-step first-run flow
+│   ├── Panels/                 # 18 IDE panels
 │   ├── Components/             # Reusable UI components
 │   ├── Layout/                 # Sidebar, main layout shells
 │   ├── Overlays/               # Modals, keyboard shortcut overlay
 │   └── ...                     # DevTools, Git, Terminal, etc.
 ├── Services/
-│   ├── AI/                     # Multi-provider (OpenRouter, Ollama, CoreML)
+│   ├── AI/                     # Multi-provider (Anthropic, OpenAI, Google, OpenRouter)
 │   ├── MCP/                    # Model Context Protocol client & server
-│   ├── ToolExecution/          # 100+ tool defs + executors by domain
-│   ├── Apple/                  # CoreML, Spotlight, SecureEnclave, FocusFilter
+│   ├── ToolExecution/          # 153 tool defs + executors by domain
+│   ├── Apple/                  # Spotlight, SecureEnclave, FocusFilter, Apple Intelligence
 │   ├── Developer/              # LSP, CodeApply, WritingTools
 │   └── System/                 # ConnectionMonitor, GlobalHotkey, Sparkle
 ├── Intelligence/
 │   ├── Memory/                 # MemoryStore, ActivityStore, MemoryGraph
+│   ├── Brain/                  # Vault (markdown notes), config, paths
+│   ├── Mind/                   # MIND.md identity + ConscienceGate values
+│   ├── Daemon/                 # Autonomous goal loop (scratch-branch, gated)
+│   ├── Eyes/                   # Opt-in screen perception (off by default)
 │   ├── Suggestions/            # SuggestionEngine, types, lifecycle
 │   ├── CodeIntel/              # AmbientCodeAwareness, ContextResolver
 │   └── Analysis/               # CognitiveLoopDetector, ConfidenceCalibration
@@ -60,7 +64,7 @@ Onboarding runs **before** the main app. It never appears inside the Chat Interf
 
 Settings are split into **tabs** instead of a single long scroll.
 
-- **Tabs:** Account (API Key), Appearance (Theme + Accent), Model, Project (Working Directory), Behavior (System Prompt), Tools (active tools list), About.
+- **Tabs:** 21 tabs across 6 disclosure groups — providers/models, project, behavior, tools, MCP, skills, soul, brain, memory, security, appearance, notifications, shortcuts, data, privacy, and about. See `SettingsTab.swift`.
 - **UI:** `SettingsView` uses `NavigationSplitView`: sidebar list of tabs, detail shows the selected section. Same bindings and behavior as before; only the layout is tabbed.
 - **Opening to a tab:** Callers can pass `initialTab: SettingsTab?` (e.g. `.model`) so the sheet opens on that tab (e.g. from the chat toolbar model badge).
 

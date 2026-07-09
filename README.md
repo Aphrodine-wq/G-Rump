@@ -1,180 +1,155 @@
 # G-Rump
 
-**An autonomous AI coding agent for macOS** -- 54K lines of Swift, a persistent cross-session memory, 100+ local tools, MCP integration, agent modes, and an approval-gated autonomous daemon.
+**The grumpy, open-source coding agentic harness for macOS.**
 
-G-Rump is a native macOS AI coding agent built with Swift and SwiftUI, powered by **Anthropic Claude (default), OpenAI, Google Gemini, or OpenRouter** with your own API keys. It executes over 100 local tools (file operations, shell, git, Docker, browser, Apple-native APIs), implements the full Model Context Protocol, and runs an autonomous daemon that works coding goals on a scratch branch behind human approval gates.
+[![CI](https://github.com/Aphrodine-wq/G-Rump/actions/workflows/ci.yml/badge.svg)](https://github.com/Aphrodine-wq/G-Rump/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black)
+![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange)
 
-Its defining feature is a **persistent, cross-session brain**: G-Rump accumulates experience, recalls the most relevant memories *within a fixed token budget*, and *forgets* stale context on purpose -- a memory that behaves like a brain rather than an append-only vector log.
+G-Rump is a coding agentic harness — the agent loop, tool system, provider layer,
+memory, and safety gates that let an LLM actually do work on your machine — shipped
+as a native macOS app. Think Claude Code, Aider, or OpenHands, except it's 62K lines
+of Swift instead of a terminal, it remembers what it learned last week, and it has
+opinions about your code.
 
-> Originally built for the Global AI Hackathon with Qwen Cloud -- **Track 1: MemoryAgent**. The optional [`backend/`](./backend) proxy still speaks Qwen/DashScope; the app now calls providers directly by default.
+Bring a key from **Anthropic (default), OpenAI, Google, or OpenRouter**. Keys live in
+the macOS Keychain, requests go straight to the provider, and there are no accounts,
+no telemetry middleman, and no backend.
 
----
+## Why another coding agent
 
-## Features
+- **Native macOS, not Electron, not a terminal.** Real SwiftUI, real Keychain, real
+  Apple-native tools — Spotlight, OCR, Calendar, `xcodebuild`, `simctl`.
+- **A brain, not a chat log.** Cross-session memory ranks by relevance × recency ×
+  salience, recalls within a fixed token budget, and *forgets stale context on
+  purpose*. It behaves like a memory, not an append-only vector dump.
+- **Local-first and BYOK.** Your keys, your machine, your data. The app calls
+  providers directly with their native wire formats.
+- **A security model built for the job.** This app runs shell commands an LLM asked
+  for. The [Security model](#security-model) section says exactly what stands between
+  the model and your machine.
+- **The grump.** `SOUL.md` and `MIND.md` define the agent's personality and values,
+  globally and per project. The default persona is grumpy. That's a feature.
 
-- **Multi-Provider AI** -- Anthropic Claude (Opus 4.8 default; Fable 5, Sonnet 5, Haiku 4.5), OpenAI GPT-5.x, Google Gemini, and OpenRouter passthroughs, with provider-aware task routing across the tiers
-- **Persistent Cognitive Memory** -- cross-session memory that ranks by relevance x recency x salience, recalls within a fixed token budget, and consolidates/forgets stale memories (Track 1: MemoryAgent)
-- **Autonomous Daemon** -- works pending goals on a scratch branch with a Conscience safety gate and per-write approval
-- **100+ Local Tools** -- File, shell, git, Docker, browser, cloud deploy, Apple-native (Spotlight, Keychain, Calendar, OCR, xcodebuild), and more
-- **MCP Client & Server** -- 58 pre-configured MCP servers (GitHub, Postgres, Slack, Supabase, Figma, Playwright, Stripe, etc.) with Keychain-backed credential vault. Also exposes tools as an MCP server on TCP port 18790
-- **Agent Modes** -- Chat, Plan, Build, Debate, Spec, Parallel -- each with tailored execution strategies
-- **IDE Panels** -- 17 built-in panels: File Navigator, Git, Tests, Assets, Localization, Profiling, Logs, Terminal, App Store Tools, Apple Docs
-- **Skills System** -- 40+ bundled skill files (SwiftUI, async/await, Kubernetes, code review, etc.) plus custom global and per-project skills with relevance scoring
-- **SOUL.md Personality** -- Define global and per-project AI personality with templates
-- **Apple Intelligence Integration** -- Native macOS AI features where available
-- **Ambient Code Awareness** -- Watches your project for changes and maintains context automatically
-- **LSP Integration** -- Live SourceKit-LSP diagnostics with error/warning badges
-- **Proactive Engine** -- Git polling (5 min), end-of-day review, morning brief
-- **Themes** -- Light, Dark, and Fun themes (ChatGPT, Claude, Gemini, Kiro, Perplexity)
-- **Layout Customization** -- Zen Mode, Activity Bar, customizable panels, keyboard shortcuts
-- **Global Hotkey** -- Double-tap Ctrl+Space for floating quick chat
+## What's in the harness
 
-## Quick Start
+| | |
+|---|---|
+| Agent loop | Multi-turn streaming tool use, parallel tool execution, retries with backoff. Default 200 steps, configurable 5–1000 |
+| Tools | **153 native tools** — files, shell, git, Docker, deploy, HTTP, SQLite, OCR/vision, Apple-native |
+| MCP | Client (stdio / http / websocket) **and** server — 68 one-click presets, plus G-Rump exposes its own tools on TCP 18790 |
+| Agent modes | Plan, Build, Spec — each swaps the system strategy |
+| Providers | Anthropic, OpenAI, Google, OpenRouter — native Anthropic + Gemini wire formats, streaming tool calls everywhere |
+| Models | Claude Opus 4.8 (default), Fable 5, Sonnet 5, Haiku 4.5, GPT-5.2, GPT-5.3-Codex, Gemini 3 Pro, and OpenRouter routes |
+| Memory | 3-tier store (session / project / global), hybrid vector + keyword + recency recall, deliberate forgetting |
+| Skills | 73 bundled `SKILL.md` skills in 21 packs, plus your own global and per-project skills with relevance scoring |
+| IDE surface | 18 dock panels — project navigator, git, terminal, simulator, tests, logs, profiling — with live SourceKit-LSP diagnostics |
+| Autonomy | An opt-in daemon that works queued goals on a scratch branch, behind approval gates, and never pushes |
+| Tests | 1,400+ tests, SwiftLint strict, CI on every push |
+
+## Quick start
+
+Requires **macOS 14+** and **Swift 5.9+** (Xcode or Command Line Tools).
 
 ```bash
-# Build and run (debug)
+git clone https://github.com/Aphrodine-wq/G-Rump.git
+cd G-Rump
 make run
-
-# Build release .app bundle
-make app
-
-# Build release .app + .dmg
-make dmg
-
-# Run tests
-swift test --parallel
-
-# Reset app state for fresh-boot testing
-make reset
 ```
 
-Or double-click `G-Rump.command` to build and launch.
+Or double-click `G-Rump.command`. Onboarding asks for an API key — it's validated on
+save and stored in the Keychain. Other useful targets:
 
-Requires **macOS 14+** and **Swift 5.9+**.
+```bash
+make app              # release .app bundle
+make dmg              # .app + .dmg
+swift test --parallel # the test suite
+make reset            # wipe app state for a fresh-boot run (keeps your keys)
+```
 
 ## Architecture
 
 ```
-G-Rump/
-├── Sources/GRump/              # Swift application (54K+ LOC)
-│   ├── GRumpApp.swift          # Entry point
-│   ├── ContentView.swift       # Main chat UI with sidebar
-│   ├── ChatViewModel+*.swift   # Central state manager (streaming, tools, memory, messages, UI)
-│   ├── ToolDefs+*.swift        # Tool definitions by domain (FileOps, Shell, Git, Apple)
-│   ├── ToolExec+*.swift        # Tool execution by domain
-│   ├── MCPService.swift        # MCP client (stdio, http, websocket transports)
-│   ├── MCPServerHost.swift     # MCP server (exposes tools to external clients)
-│   ├── Skills/                 # Skills system (built-in, global, project scopes)
-│   ├── Models.swift            # Message, ToolCall, Conversation, Thread, Branch
-│   └── SwiftDataModels.swift   # Persistence (SwiftData for Xcode, JSON for SPM)
-├── Resources/Skills/           # 40+ bundled SKILL.md files
-├── backend/                    # Node.js Qwen proxy (deploys on Alibaba Cloud)
-│   ├── server.js               # Express API: health, chat, embeddings
-│   ├── alibaba.js              # The Alibaba Cloud / Qwen (DashScope) call site
-│   ├── Dockerfile              # Container for Alibaba ECS / Function Compute
-│   └── README-DEPLOY.md        # Alibaba Cloud deployment runbook
-├── Tests/                      # Swift test suite
-├── Makefile                    # Build automation
-├── Package.swift               # Swift Package Manager manifest
-└── project.yml                 # XcodeGen project definition
+Sources/GRump/
+├── App/           # entry point, app delegate, root views
+├── Models/        # messages, tools, skills, agent modes, panels
+├── ViewModels/    # ChatViewModel — the agent loop lives here (+AgentLoop, +ToolExecution, …)
+├── Views/         # SwiftUI surfaces: chat, panels, settings, onboarding
+├── Services/      # AI providers, tool execution, MCP, LSP, exec approvals
+├── Intelligence/  # memory, brain/vault, daemon, analysis, eyes
+├── Utilities/     # shared helpers
+└── Resources/     # bundled skills, assets, privacy manifest
 ```
 
-## Backend
+The flow: `runAgentLoop()` streams from the selected provider
+(`MultiProviderAIService` — native Anthropic/Gemini formats,
+OpenAI-compatible transport for the rest), executes tool calls in parallel
+(`ToolExec+*`), feeds results back, and writes what mattered to memory. Deeper
+tour in [ARCHITECTURE.md](./ARCHITECTURE.md) and [docs/](./docs).
 
-A minimal, stateless Node.js + Express proxy to **Qwen on Alibaba Cloud** (DashScope). All Alibaba Cloud calls live in `backend/alibaba.js`. Endpoints: `/api/health`, `/api/v1/chat/completions` (SSE streaming, tool calls preserved), `/api/v1/embeddings`. Deploy it on Alibaba Cloud ECS or Function Compute -- see [`backend/README-DEPLOY.md`](./backend/README-DEPLOY.md).
+## Security model
 
-```bash
-cd backend
-npm install
-QWEN_API_KEY=sk-... npm start   # http://localhost:3042
-npm test                        # Run tests
-```
+This app executes LLM-directed shell commands. Here is exactly what stands between
+the model and your machine:
 
-## Exec Approvals
+- **Exec approvals** — four levels per binary: Deny (default), Ask, Allowlist, Allow,
+  with Strict / Balanced / Permissive presets. Config lives at
+  `~/Library/Application Support/GRump/exec-approvals.json`.
+- **The Conscience gate** — a deterministic, fail-closed check that runs *before* any
+  mutating tool: it refuses destructive shell patterns, pushes to protected branches,
+  writes to secret paths, and actions while a sensitive surface (password field,
+  payment page) is on screen. Values come from `MIND.md`.
+- **The daemon is off by default** — when you enable it, it works one goal at a time
+  on an isolated `grump-daemon/*` scratch branch, asks approval for every write, and
+  has no code path that pushes.
+- **MCP server host refuses `run_command`** — external clients get tools, not your shell.
+- **Keys in the Keychain only** — never UserDefaults, never on disk, never proxied.
+- **No sandbox, stated plainly** — shell execution, LSP, and file tools require it.
+  That trade-off is documented, not hidden. See [SECURITY.md](./SECURITY.md) for the
+  threat model and how to report.
 
-`system_run` executes shell commands with user-controlled security:
+## How it compares
 
-- **Config**: `~/Library/Application Support/GRump/exec-approvals.json`
-- **Levels**: Deny (default), Ask, Allowlist, Allow
-- When **Ask** is on, a dialog lets you choose: Run Once, Always Allow, or Deny
+| | G-Rump | Claude Code | Aider | OpenHands |
+|---|---|---|---|---|
+| Runs as | native macOS app | terminal CLI | terminal CLI | web UI + sandbox |
+| Written in | Swift | TypeScript | Python | Python |
+| License | MIT | proprietary | Apache-2.0 | MIT |
+| BYOK multi-provider | 4 providers | Anthropic-centric | yes | yes |
+| Cross-session memory built in | yes | project files | no | no |
 
-Configure in **Settings > Security**.
+All four are good tools. G-Rump's bet is that a coding agent should be a first-class
+Mac citizen with a memory, not a process in a terminal.
 
-## Project Config
+## Roadmap
 
-Add `.grump/config.json` in your project root:
+No dates. In order:
 
-```json
-{
-  "model": "qwen-coder-plus",
-  "systemPrompt": "Custom instructions for this project...",
-  "toolAllowlist": ["read_file", "run_command", "web_search"],
-  "projectFacts": ["Uses Swift 5.9", "SwiftLint enabled"],
-  "maxAgentSteps": 30,
-  "contextFile": ".grump/context.md"
-}
-```
+1. **GRumpKit** — extract the harness into a SwiftPM library so you can build your
+   own surface on it: provider layer + model catalog first, then tool definitions +
+   MCP client, then tool execution behind a context protocol, then the loop itself as
+   an `AgentSession` event stream. Today, building on the harness means forking the
+   app; this plan is how that stops being true.
+2. **Recursive self-learning loops** — post-task reflection that distills lessons
+   into persistent, confidence-scored memory; outcome tracking across sessions; and
+   agent-proposed skills you approve as diffs. The substrate (memory, skills,
+   outcome signals) ships today; the closed loop is in active development.
+3. **Deeper Xcode-grade iOS tooling** — build/run toolbar, streaming build console,
+   run-to-simulator loop.
 
-Add `.grump/context.md` for persistent project context injected into every conversation.
+## Contributing
 
-## Distribution
+PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for the build setup (there's
+one SwiftData/SPM gotcha worth reading about), the hard rules (no `print()`,
+SwiftLint strict), and how to run the suite. Bugs and ideas go to
+[issues](https://github.com/Aphrodine-wq/G-Rump/issues); security reports go through
+[SECURITY.md](./SECURITY.md).
 
-Distributed outside the Mac App Store (requires shell execution, LSP, and file tools -- no sandbox):
-
-- **Code signing** -- Developer ID certificate
-- **Notarization** -- Apple notary service via `notarytool`
-- **Packaging** -- DMG installer
-- **Updates** -- Sparkle framework for in-app updates
-
-```bash
-make sign             # Signed .app (needs DEVELOPER_ID env)
-make package          # Signed .dmg (needs DEVELOPER_ID env)
-make notarize         # Full distribution (needs DEVELOPER_ID, APPLE_ID, TEAM_ID, APP_PASSWORD)
-```
-
-## CI/CD
-
-GitHub Actions pipeline runs on push/PR to `main`:
-
-- Swift build and test (`swift test --parallel`)
-- SwiftLint strict mode (no `print()` statements -- use `GRumpLogger`)
-- Backend tests (`npm test`)
-- Release build with signing and notarization
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Frontend | Swift 5.9+ / SwiftUI |
-| Backend | Node.js / Express (optional legacy Qwen proxy) |
-| Models | Claude Opus 4.8 (default) / Fable 5 / Sonnet 5 / Haiku 4.5 · GPT-5.2 · Gemini 3 Pro / 2.5 Flash · OpenRouter routes |
-| Embeddings | Qwen text-embedding (Apple NLEmbedding offline fallback) |
-| Protocol | Model Context Protocol (MCP) |
-| Persistence | SwiftData (Xcode) / JSON (SPM) |
-| LSP | SourceKit-LSP |
-| Updates | Sparkle |
-| CI | GitHub Actions |
-| Platform | macOS 14+ (Sonoma) |
-
-## macOS Permissions
-
-- **Notifications** -- System Settings > Notifications > G-Rump
-- **Screen Recording** -- System Settings > Privacy & Security > Screen Recording
-- **Accessibility** -- System Settings > Privacy & Security > Accessibility (for global hotkey)
-
-## Testing & evaluation
-
-**You don't need a Mac to verify G-Rump runs on Qwen.** With a Qwen key on any OS:
-
-```bash
-node scripts/judge-verify.mjs   # proves chat + multi-turn tool calling + embeddings on Qwen
-node scripts/agent-eval.mjs     # scores Qwen on a 4-task agent battery (real tool loop, mock repo)
-```
-
-On macOS, the full automated suites: `swift test -j 12` (1,437 checks incl. the
-cognitive-memory eval) and `cd backend && npm test`. Full methodology and a
-no-Mac testing path are in [docs/EVALS.md](./docs/EVALS.md).
+> G-Rump started as a hackathon build (Global AI Hackathon with Qwen Cloud, Track 1:
+> MemoryAgent) and kept the memory obsession. The historical write-ups live in
+> [docs/history/](./docs/history).
 
 ## License
 
-MIT -- see [LICENSE](./LICENSE).
+MIT — see [LICENSE](./LICENSE). Copyright (c) 2025–2026 James Walton.
