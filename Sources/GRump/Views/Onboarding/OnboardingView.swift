@@ -10,10 +10,6 @@
 //   • Onboarding+SecurityStep.swift    – exec-approval presets
 
 import SwiftUI
-import OSLog
-#if os(macOS)
-import AppKit
-#endif
 
 // MARK: - Onboarding Steps
 
