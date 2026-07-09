@@ -1,6 +1,6 @@
 JOBS := $(shell sysctl -n hw.ncpu)
 
-.PHONY: run build build-debug build-release clean reset app dmg sign notarize package help
+.PHONY: run build build-debug build-release clean reset app zip release-zip dmg sign notarize package help
 
 # ── Development ───────────────────────────────────────
 
@@ -22,6 +22,12 @@ clean: ## Remove all build artifacts
 
 app: ## Build release + create .app bundle in dist/
 	./scripts/package.sh
+
+zip: ## Build release + downloadable .zip of the .app in dist/
+	./scripts/package.sh --zip
+
+release-zip: ## Build + sign + notarize + .zip — the release artifact (requires DEVELOPER_ID, APPLE_ID, TEAM_ID, APP_PASSWORD)
+	./scripts/package.sh --sign --notarize --zip
 
 dmg: ## Build release + create .app + .dmg in dist/
 	./scripts/package.sh --dmg

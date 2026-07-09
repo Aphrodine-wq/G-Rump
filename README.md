@@ -50,7 +50,13 @@ no telemetry middleman, and no backend.
 
 ## Quick start
 
-Requires **macOS 14+** and **Swift 5.9+** (Xcode or Command Line Tools).
+**Download:** grab `G-Rump-<version>.zip` from the
+[latest release](https://github.com/Aphrodine-wq/G-Rump/releases/latest), unzip, and
+drag **G-Rump.app** to Applications. Until releases are notarized, macOS will warn on
+first launch — use System Settings → Privacy & Security → **Open Anyway**, or clear
+the quarantine flag: `xattr -dr com.apple.quarantine /Applications/G-Rump.app`.
+
+**Or build from source** — macOS 14+ and Swift 5.9+ (Xcode or Command Line Tools):
 
 ```bash
 git clone https://github.com/Aphrodine-wq/G-Rump.git
@@ -63,7 +69,7 @@ save and stored in the Keychain. Other useful targets:
 
 ```bash
 make app              # release .app bundle
-make dmg              # .app + .dmg
+make zip              # downloadable .zip of the .app
 swift test --parallel # the test suite
 make reset            # wipe app state for a fresh-boot run (keeps your keys)
 ```

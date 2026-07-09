@@ -8,20 +8,20 @@ Distributing G-Rump outside the Mac App Store (direct download, website, Homebre
 # Just build the .app (no signing)
 make app
 
-# Build + create .dmg (requires create-dmg)
-make dmg
+# Build + downloadable .zip of the .app — the release artifact
+make zip
 
-# Build + sign + .dmg (requires Apple Developer account)
-make package
-
-# Build + sign + .dmg + notarize (full distribution-ready)
-make notarize
+# Build + sign + notarize + .zip (full distribution-ready)
+make release-zip
 
 # Reset app state for fresh-boot testing
 make reset
 ```
 
-Output goes to `dist/G-Rump.app` and `dist/G-Rump.dmg`.
+Output goes to `dist/G-Rump.app` and `dist/G-Rump.zip`. Releases ship the zip —
+tagged builds (`v*`) get one attached automatically by CI, signed and notarized
+when the signing secrets are configured, ad-hoc otherwise. DMG targets
+(`make dmg` / `package` / `notarize`) still exist if you want a disk image.
 
 ## Prerequisites
 
@@ -55,8 +55,10 @@ Tip: add these to a `.env.local` file (gitignored) and `source .env.local` befor
 | Target | What it does |
 |---|---|
 | `make app` | Release build → `.app` bundle in `dist/` |
-| `make dmg` | Release build → `.app` → `.dmg` (requires `create-dmg`) |
+| `make zip` | Release build → `.app` → downloadable `.zip` |
+| `make release-zip` | Release build → signed `.app` → notarized + stapled → `.zip` |
 | `make sign` | Release build → signed `.app` |
+| `make dmg` | Release build → `.app` → `.dmg` (requires `create-dmg`) |
 | `make package` | Release build → signed `.app` → signed `.dmg` |
 | `make notarize` | Release build → signed `.app` → signed `.dmg` → notarized + stapled |
 | `make reset` | Wipe UserDefaults + app data for fresh-boot testing |

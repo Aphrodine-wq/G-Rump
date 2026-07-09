@@ -41,18 +41,21 @@ DO_DMG=false
 DO_NOTARIZE=false
 DO_CLEAN=false
 SKIP_BUILD=false
+DO_ZIP=false
 
 for arg in "$@"; do
     case "$arg" in
         --sign) DO_SIGN=true ;;
         --dmg) DO_DMG=true ;;
+        --zip) DO_ZIP=true ;;
         --notarize) DO_NOTARIZE=true ;;
         --clean) DO_CLEAN=true ;;
         --skip-build) SKIP_BUILD=true ;;
         --help|-h)
-            echo "Usage: $0 [--sign] [--dmg] [--notarize] [--clean] [--skip-build]"
+            echo "Usage: $0 [--sign] [--zip] [--dmg] [--notarize] [--clean] [--skip-build]"
             echo ""
             echo "  --sign       Code sign with Developer ID (requires DEVELOPER_ID env var)"
+            echo "  --zip        Create a distributable .zip of the .app (after signing/stapling)"
             echo "  --dmg        Create .dmg disk image (requires create-dmg)"
             echo "  --notarize   Submit to Apple for notarization (requires APPLE_ID, TEAM_ID, APP_PASSWORD)"
             echo "  --clean      Force clean rebuild (removes .build and dist)"
@@ -426,6 +429,18 @@ if $DO_NOTARIZE; then
     echo ""
 fi
 
+# ── Step 7: Distributable zip ────────────────────────
+# Runs after signing and stapling so the notarization ticket travels with
+# the archive. ditto preserves resource forks and extended attributes.
+ZIP_PATH="$DIST_DIR/${APP_NAME}.zip"
+if $DO_ZIP; then
+    echo "▸ Creating distributable zip..."
+    rm -f "$ZIP_PATH"
+    ditto -c -k --keepParent "$APP_BUNDLE" "$ZIP_PATH"
+    echo "✓ Zip created: $ZIP_PATH"
+    echo ""
+fi
+
 # ── Summary ───────────────────────────────────────────
 APP_SIZE=$(du -sh "$APP_BUNDLE" | cut -f1)
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -435,6 +450,10 @@ echo "  .app → $APP_BUNDLE ($APP_SIZE)"
 if $DO_DMG && [ -f "$DMG_PATH" ]; then
     DMG_SIZE=$(du -h "$DMG_PATH" | cut -f1)
     echo "  .dmg → $DMG_PATH ($DMG_SIZE)"
+fi
+if $DO_ZIP && [ -f "$ZIP_PATH" ]; then
+    ZIP_SIZE=$(du -h "$ZIP_PATH" | cut -f1)
+    echo "  .zip → $ZIP_PATH ($ZIP_SIZE)"
 fi
 SIGN_TYPE="ad-hoc"
 if $DO_SIGN; then SIGN_TYPE="Developer ID"; fi

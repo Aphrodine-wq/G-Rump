@@ -233,18 +233,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-v2-
 
-      - name: Install create-dmg
-        run: brew install create-dmg || true
-
       - name: Import Developer ID certificate
         env:
           CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
         run: |
           if [ -z "${CERTIFICATE_P12:-}" ]; then
-            echo "::error::DEVELOPER_ID_CERTIFICATE_P12 secret is required for tagged releases."
-            exit 1
+            echo "::warning::No signing certificate configured — releasing an unsigned (ad-hoc) build."
+            echo "SIGNING_AVAILABLE=false" >> "$GITHUB_ENV"
+            exit 0
           fi
+          echo "SIGNING_AVAILABLE=true" >> "$GITHUB_ENV"
 
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
           KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
@@ -276,55 +275,76 @@ jobs:
           echo "DEVELOPER_ID=$IDENTITY" >> "$GITHUB_ENV"
           echo "Imported signing identity: $IDENTITY"
 
-      - name: Build, sign, DMG, and notarize
+      - name: Build and package zip
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-        run: make notarize
+        run: |
+          if [ "${SIGNING_AVAILABLE:-false}" = "true" ]; then
+            echo "Building signed + notarized release zip..."
+            make release-zip
+          else
+            echo "Building unsigned (ad-hoc) release zip..."
+            make zip
+          fi
 
       - name: Verify notarization
+        if: env.SIGNING_AVAILABLE == 'true'
         run: |
           echo "=== Gatekeeper Assessment ==="
           spctl --assess --type execute --verbose=2 dist/G-Rump.app 2>&1 || true
           echo ""
           echo "=== Staple Validation ==="
           xcrun stapler validate dist/G-Rump.app 2>&1
-          if [ -f dist/G-Rump.dmg ]; then
-            xcrun stapler validate dist/G-Rump.dmg 2>&1
-          fi
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          mv dist/G-Rump.zip "dist/G-Rump-$VERSION.zip"
 
-          # Zip the .app for GitHub release (directories can't be uploaded directly)
-          cd dist && ditto -c -k --keepParent G-Rump.app G-Rump-App.zip && cd ..
+          if [ "${SIGNING_AVAILABLE:-false}" = "true" ]; then
+            RELEASE_NOTES="## G-Rump $TAG
 
-          RELEASE_NOTES="## G-Rump $TAG
-
-          ### Installation (recommended)
-          1. Download **G-Rump.dmg** below
-          2. Open the DMG and drag G-Rump to Applications
-          3. Launch from Applications (no Gatekeeper warning — app is notarized)
-
-          ### Alternative
-          Download **G-Rump-App.zip**, unzip, and move to Applications.
+          ### Install
+          1. Download **G-Rump-$VERSION.zip** below
+          2. Unzip and drag **G-Rump.app** to Applications
+          3. Launch — no Gatekeeper warning; the app is signed and notarized
 
           ### Requirements
           - macOS 14.0 (Sonoma) or later
           - Apple Silicon or Intel Mac (universal binary)
 
           ---
-          *Signed with Developer ID and notarized by Apple.*"
+          *Signed with Developer ID and notarized by Apple. Full changes in [CHANGELOG.md](https://github.com/Aphrodine-wq/G-Rump/blob/main/CHANGELOG.md).*"
+          else
+            RELEASE_NOTES="## G-Rump $TAG
+
+          ### Install
+          1. Download **G-Rump-$VERSION.zip** below
+          2. Unzip and drag **G-Rump.app** to Applications
+          3. First launch: this build is not yet notarized, so macOS will warn.
+             Either open **System Settings → Privacy & Security → Open Anyway**
+             after the first attempt, or clear the quarantine flag:
+             \`xattr -dr com.apple.quarantine /Applications/G-Rump.app\`
+
+          Prefer not to trust a downloaded binary? Build from source: \`git clone\` + \`make run\` (see the README).
+
+          ### Requirements
+          - macOS 14.0 (Sonoma) or later
+          - Apple Silicon or Intel Mac (universal binary)
+
+          ---
+          *Full changes in [CHANGELOG.md](https://github.com/Aphrodine-wq/G-Rump/blob/main/CHANGELOG.md).*"
+          fi
 
           gh release create "$TAG" \
             --title "G-Rump $TAG" \
             --notes "$RELEASE_NOTES" \
-            dist/G-Rump.dmg \
-            dist/G-Rump-App.zip
+            "dist/G-Rump-$VERSION.zip"
 
       - name: Cleanup keychain
         if: always() && env.KEYCHAIN_PATH != ''

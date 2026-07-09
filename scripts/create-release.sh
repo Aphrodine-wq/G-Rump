@@ -31,12 +31,19 @@ else
     git push origin "$TAG"
 fi
 
-# 4. Build the DMG if it doesn't exist
-DMG_PATH="dist/G-Rump.dmg"
-if [ ! -f "$DMG_PATH" ]; then
-    echo "Building DMG..."
-    make dmg
+# 4. Build the release zip if it doesn't exist
+ZIP_PATH="dist/G-Rump.zip"
+if [ ! -f "$ZIP_PATH" ]; then
+    echo "Building release zip..."
+    if [ -n "${DEVELOPER_ID:-}" ]; then
+        make release-zip
+    else
+        echo "Warning: DEVELOPER_ID not set — building an unsigned (ad-hoc) zip."
+        make zip
+    fi
 fi
+VERSION="${TAG#v}"
+cp "$ZIP_PATH" "dist/G-Rump-$VERSION.zip"
 
 # 5. Create the GitHub release
 echo "Creating GitHub release..."
@@ -44,7 +51,7 @@ gh release create "$TAG" \
     --repo "$REPO" \
     --title "G-Rump $TAG" \
     --notes-file RELEASE_NOTES.md \
-    $DMG_PATH
+    "dist/G-Rump-$VERSION.zip"
 
 echo ""
 echo "=== Release created! ==="
