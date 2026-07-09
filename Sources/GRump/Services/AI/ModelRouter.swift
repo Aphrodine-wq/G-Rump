@@ -17,6 +17,7 @@ enum TaskType: String, Codable, CaseIterable {
     case research     = "research"
     case testing      = "testing"
     case debugging    = "debugging"
+    case reflection   = "reflection"
     case general      = "general"
 
     var displayName: String {
@@ -32,6 +33,7 @@ enum TaskType: String, Codable, CaseIterable {
         case .research:   return "Research"
         case .testing:    return "Testing"
         case .debugging:  return "Debugging"
+        case .reflection: return "Reflection"
         case .general:    return "General"
         }
     }
@@ -49,6 +51,7 @@ enum TaskType: String, Codable, CaseIterable {
         case .research:   return "books.vertical"
         case .testing:    return "checkmark.circle"
         case .debugging:  return "ant"
+        case .reflection: return "graduationcap"
         case .general:    return "sparkles"
         }
     }
@@ -103,6 +106,9 @@ enum ModelRouter {
             preferredIDs = [sonnet, opus]
         case .web, .research:
             preferredIDs = [sonnet, haiku]
+        case .reflection:
+            // Post-run distillation is cheap, frequent background work.
+            preferredIDs = [haiku, sonnet]
         case .general:
             preferredIDs = []
         }

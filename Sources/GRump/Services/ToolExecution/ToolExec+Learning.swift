@@ -36,6 +36,35 @@ extension ChatViewModel {
         return "Lesson saved [\(lesson.id)] (\(scope.rawValue), \(category.rawValue)): \(lesson.text)"
     }
 
+    func executeReflect(_ args: [String: Any]) async -> String {
+        guard BrainConfigStore.shared.load().learningEnabled else {
+            return "Learning is disabled in Settings → Brain."
+        }
+        guard let outcome = await outcomeLedger.outcomes.last else {
+            return "No completed runs to reflect on yet."
+        }
+        let focus = (args["focus"] as? String) ?? ""
+        let injected = LessonStore.shared.lessons.filter { outcome.injectedLessonIds.contains($0.id) }
+        var tail = (currentConversation?.messages.suffix(6) ?? [])
+            .map { "\($0.role == .user ? "user" : "assistant"): \(String($0.content.prefix(800)))" }
+            .joined(separator: "\n---\n")
+        if !focus.isEmpty {
+            tail = "FOCUS: \(focus)\n\n" + tail
+        }
+        await outcomeLedger.consumeReflectionCounter()
+        guard let result = await ReflectionEngine.shared.reflect(
+            outcome: outcome,
+            transcriptTail: tail,
+            injectedLessons: injected,
+            rejectedProposalNames: [],
+            primaryModel: effectiveModel,
+            trigger: "manual"
+        ) else {
+            return "Reflection didn't run (already reflecting, or the pass failed)."
+        }
+        return result.noticeText ?? "Reflection ran — no changes were warranted."
+    }
+
     func executeRemember(_ args: [String: Any]) async -> String {
         guard let content = args["content"] as? String,
               !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

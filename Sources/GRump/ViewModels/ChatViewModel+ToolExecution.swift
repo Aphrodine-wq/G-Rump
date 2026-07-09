@@ -446,6 +446,8 @@ extension ChatViewModel {
             return await executeRecordLesson(args)
         case "remember":
             return await executeRemember(args)
+        case "reflect":
+            return await executeReflect(args)
         case "swift_format":
             return await executeSwiftFormat(args)
         case "swift_lint":

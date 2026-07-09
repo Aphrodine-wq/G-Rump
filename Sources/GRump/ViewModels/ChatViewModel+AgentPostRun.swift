@@ -120,6 +120,8 @@ extension ChatViewModel {
         } else {
             regressionSummary = nil
         }
+        let injectedIds = lastInjectedLessonIds
+        lastInjectedLessonIds = []
         let outcome = RunOutcome(
             conversationId: conversationId,
             taskType: TaskType.classify(from: userRequest).rawValue,
@@ -129,12 +131,42 @@ extension ChatViewModel {
             loopPivots: loopPivots,
             regressionSummary: regressionSummary,
             adversarialCriticals: adversarialCriticals,
-            injectedLessonIds: lastInjectedLessonIds,
+            injectedLessonIds: injectedIds,
             success: !hasErrors
         )
-        LessonStore.shared.recordOutcome(ids: lastInjectedLessonIds, success: !hasErrors)
-        lastInjectedLessonIds = []
-        Task { await outcomeLedger.record(outcome) }
+        LessonStore.shared.recordOutcome(ids: injectedIds, success: !hasErrors)
+
+        // Record, then maybe reflect — sequenced so the cadence counter is settled.
+        let brainConfig = BrainConfigStore.shared.load()
+        let injectedLessons = LessonStore.shared.lessons.filter { injectedIds.contains($0.id) }
+        let transcriptTail = (currentConversation?.messages.suffix(6) ?? [])
+            .map { "\($0.role == .user ? "user" : "assistant"): \(String($0.content.prefix(800)))" }
+            .joined(separator: "\n---\n")
+        let primaryModel = effectiveModel
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.outcomeLedger.record(outcome)
+            guard brainConfig.learningEnabled else { return }
+            let runsSince = await self.outcomeLedger.runsSinceReflection
+            guard ReflectionEngine.shouldReflect(
+                outcome: outcome,
+                runsSinceReflection: runsSince,
+                cadence: brainConfig.reflectionEveryNRuns
+            ) else { return }
+            await self.outcomeLedger.consumeReflectionCounter()
+            let result = await ReflectionEngine.shared.reflect(
+                outcome: outcome,
+                transcriptTail: transcriptTail,
+                injectedLessons: injectedLessons,
+                rejectedProposalNames: [],   // proposal store lands with the Learning panel
+                primaryModel: primaryModel,
+                trigger: outcome.isReflectionWorthy ? "signal" : "cadence"
+            )
+            if brainConfig.learningNoticesEnabled, let notice = result?.noticeText {
+                self.currentConversation?.messages.append(Message(role: .assistant, content: notice))
+                self.syncConversation()
+            }
+        }
 
         flushSync() // Ensure final state is persisted immediately
         saveToProjectMemoryIfEnabled()

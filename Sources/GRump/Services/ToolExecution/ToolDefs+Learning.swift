@@ -26,6 +26,21 @@ extension ToolDefinitions {
         ] as [String: Any]
     ]
 
+    nonisolated(unsafe) static let reflectTool: [String: Any] = [
+        "type": "function",
+        "function": [
+            "name": "reflect",
+            "description": "Run a reflection pass over the most recent completed run: distill durable lessons, adjust existing lesson confidence, and (rarely) propose a skill for user approval. Use when you notice a pattern worth keeping, or when the user asks you to learn from what just happened.",
+            "parameters": [
+                "type": "object",
+                "properties": [
+                    "focus": ["type": "string", "description": "Optional: what to pay attention to (e.g. 'the build failures')"]
+                ],
+                "required": []
+            ] as [String: Any]
+        ] as [String: Any]
+    ]
+
     nonisolated(unsafe) static let rememberTool: [String: Any] = [
         "type": "function",
         "function": [
