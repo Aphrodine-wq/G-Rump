@@ -222,40 +222,6 @@ final class OpenAICompatibleServiceTransportTests: XCTestCase {
         XCTAssertEqual(msgs[0]["tool_call_id"] as? String, "tc1")
     }
 
-    // MARK: - Backend Request
-
-    func testBuildBackendRequestURL() throws {
-        let service = OpenAICompatibleService()
-        let messages = [Message(role: .user, content: "Hi")]
-        let request = try service.buildBackendRequest(
-            messages: messages, model: "m", maxTokens: 8192, stream: true,
-            backendBaseURL: "https://api.grump.app", appAPIKey: "tok123"
-        )
-        XCTAssertEqual(request.url?.host, "api.grump.app")
-        XCTAssertTrue(request.url?.path.contains("chat/completions") ?? false)
-    }
-
-    func testBuildBackendRequestAuth() throws {
-        let service = OpenAICompatibleService()
-        let messages = [Message(role: .user, content: "Hi")]
-        let request = try service.buildBackendRequest(
-            messages: messages, model: "m", maxTokens: 8192, stream: true,
-            backendBaseURL: "https://api.grump.app", appAPIKey: "tok123"
-        )
-        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer tok123")
-    }
-
-    func testBuildBackendRequestTrimsTrailingSlash() throws {
-        let service = OpenAICompatibleService()
-        let messages = [Message(role: .user, content: "Hi")]
-        let request = try service.buildBackendRequest(
-            messages: messages, model: "m", maxTokens: 8192, stream: true,
-            backendBaseURL: "https://api.grump.app/", appAPIKey: "tok"
-        )
-        // The base's trailing slash must be trimmed so the path has no "host//path".
-        XCTAssertFalse(request.url?.absoluteString.contains(".app//") ?? true)
-    }
-
     // MARK: - ServiceError
 
     func testServiceErrorMissingAPIKey() {

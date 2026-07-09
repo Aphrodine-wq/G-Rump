@@ -98,38 +98,11 @@ jobs:
       - name: Verify LICENSE exists
         run: test -f LICENSE
 
-  backend-tests:
-    name: Backend Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci || npm install
-
-      - name: Run backend tests
-        run: npm test
-        env:
-          NODE_ENV: test
-          JWT_SECRET: test-ci-secret-key
-          CORS_ORIGIN: http://localhost:3000
-
   release:
     name: Release Build
     runs-on: macos-14
     timeout-minutes: 30
-    needs: [critical-tests, lint, backend-tests]
+    needs: [critical-tests, lint]
     steps:
       - uses: actions/checkout@v4
 
@@ -238,7 +211,7 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 45
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [critical-tests, lint, backend-tests]
+    needs: [critical-tests, lint]
     permissions:
       contents: write
     steps:

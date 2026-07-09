@@ -22,9 +22,8 @@
 .env.local
 .env.production
 
-# Node.js (backend)
+# Node.js
 node_modules/
-backend/node_modules/
 
 # Removed reference repos
 openclaw-main/

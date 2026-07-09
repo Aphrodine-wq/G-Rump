@@ -35,9 +35,6 @@ struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State var selectedTab: SettingsTab = .account
-    @AppStorage("BackendURL") var backendURL: String = ""
-    @State var appAPIKeyInput: String = KeychainStorage.get(account: "AppAPIKey") ?? ""
-    @State var appAPIKeyVisible = false
     @AppStorage(SettingsKeys.maxAgentSteps) var maxAgentStepsStorage: Int = 200
     @AppStorage(SettingsKeys.compactToolResults) var compactToolResults: Bool = false
     @AppStorage(SettingsKeys.allowSystemNotifications) var allowSystemNotifications: Bool = true
@@ -312,63 +309,19 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Account (backend proxy)
+    // MARK: - Account
     // Per-provider API keys live in the Providers tab, not here.
 
     var accountSection: some View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
             settingsCard {
                 VStack(alignment: .leading, spacing: Spacing.xxl) {
-                    sectionTitle("Backend", icon: "server.rack", accent: themeManager.accentColor)
-                    Text("Optional: route requests through a slim backend proxy. Leave blank to call your AI provider directly with your API key.")
+                    sectionTitle("Account", icon: "person.crop.circle", accent: themeManager.accentColor)
+                    Text("G-Rump has no accounts. You bring your own API keys — they live in the macOS Keychain and are managed per provider in the Providers tab.")
                         .font(Typography.captionSmall)
                         .foregroundColor(.textMuted)
-                    TextField("https://your-backend.example.com", text: $backendURL)
-                        .font(Typography.bodySmall)
-                        .fontDesign(.monospaced)
-                        .textFieldStyle(.plain)
-                        .padding(Spacing.xl)
-                        .background(themeManager.palette.bgInput)
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
-                            .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-
-                    Text("Backend API key (APP_API_KEY)")
-                        .font(Typography.captionSmall)
-                        .foregroundColor(.textMuted)
-                    HStack(spacing: Spacing.xl) {
-                        if appAPIKeyVisible {
-                            TextField("Optional — leave blank in local dev", text: $appAPIKeyInput)
-                                .font(Typography.bodySmall)
-                                .fontDesign(.monospaced)
-                        } else {
-                            SecureField("Optional — leave blank in local dev", text: $appAPIKeyInput)
-                                .font(Typography.bodySmall)
-                                .fontDesign(.monospaced)
-                        }
-                        Button(action: { appAPIKeyVisible.toggle() }) {
-                            Image(systemName: appAPIKeyVisible ? "eye.slash" : "eye")
-                                .foregroundColor(.textMuted)
-                                .font(Typography.bodySmall)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(Spacing.xl)
-                    .background(themeManager.palette.bgInput)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
-                        .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-                    .onChange(of: appAPIKeyInput) { _, newValue in
-                        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if trimmed.isEmpty {
-                            KeychainStorage.delete(account: "AppAPIKey")
-                        } else {
-                            KeychainStorage.set(account: "AppAPIKey", value: trimmed)
-                        }
-                    }
                 }
             }
-
         }
     }
 

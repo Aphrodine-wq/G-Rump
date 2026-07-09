@@ -102,22 +102,6 @@ class OpenAICompatibleService {
         return streamWithRequest(req)
     }
 
-    /// Stream via the slim G-Rump backend proxy. Bearer auth uses the shared
-    /// APP_API_KEY (empty is allowed: the backend runs open in local dev).
-    func streamMessageViaBackend(
-        messages: [Message],
-        model: String,
-        maxTokens: Int,
-        backendBaseURL: String,
-        appAPIKey: String,
-        tools: [[String: Any]]? = nil
-    ) -> AsyncThrowingStream<StreamEvent, Error> {
-        guard let req = try? buildBackendRequest(messages: messages, model: model, maxTokens: maxTokens, stream: true, backendBaseURL: backendBaseURL, appAPIKey: appAPIKey, tools: tools) else {
-            return AsyncThrowingStream { $0.finish(throwing: ServiceError.networkError) }
-        }
-        return streamWithRequest(req)
-    }
-
     private func streamWithRequest(_ request: URLRequest) -> AsyncThrowingStream<StreamEvent, Error> {
         AsyncThrowingStream { continuation in
             Task {
@@ -177,31 +161,6 @@ class OpenAICompatibleService {
             request.addValue("ios-native", forHTTPHeaderField: "X-Client-Platform")
             #endif
         }
-        request.httpBody = try buildBody(messages: messages, model: model, maxTokens: maxTokens, stream: stream, tools: tools)
-        return request
-    }
-
-    func buildBackendRequest(
-        messages: [Message],
-        model: String,
-        maxTokens: Int,
-        stream: Bool,
-        backendBaseURL: String,
-        appAPIKey: String,
-        tools: [[String: Any]]? = nil
-    ) throws -> URLRequest {
-        let base = backendBaseURL.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        guard let url = URL(string: base + "/api/v1/chat/completions") else { throw ServiceError.networkError }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.timeoutInterval = 180
-        // Only attach the bearer when a key is set; the backend is open in local dev.
-        let key = appAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !key.isEmpty {
-            request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        }
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try buildBody(messages: messages, model: model, maxTokens: maxTokens, stream: stream, tools: tools)
         return request
     }

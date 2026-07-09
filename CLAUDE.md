@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI), multi-provider: **Anthropic (default), OpenAI, Google, and OpenRouter**. It provides chat-based AI assistance with 100+ local file system, shell, git, and system control tools, a persistent cognitive memory (Track 1: MemoryAgent), and an approval-gated autonomous daemon. Default model: **claude-opus-4-8**; Fable 5 is premium and never auto-routed. The Node.js backend is an optional legacy Qwen/DashScope proxy (re-pointing it is a follow-up ticket).
+G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI), multi-provider: **Anthropic (default), OpenAI, Google, and OpenRouter**. It provides chat-based AI assistance with 150+ local file system, shell, git, and system control tools, a persistent cognitive memory, and an approval-gated autonomous daemon. Default model: **claude-opus-4-8**; Fable 5 is premium and never auto-routed. The app calls providers directly — there is no backend.
 
 ### AI Providers
 
@@ -30,17 +30,6 @@ swift test --filter GRumpTests.ModelsTests/testMessageCreation  # Run one test m
 
 The build uses Swift Package Manager. Dependencies resolve automatically on first build. The local `.build` directory is used (not `~/Library`) to avoid permission issues.
 
-### Backend (Node.js)
-
-```bash
-cd backend && npm install   # Install dependencies
-cd backend && npm start     # Run on http://localhost:3042
-cd backend && npm run dev   # Watch mode
-cd backend && npm test      # Run backend tests
-```
-
-Backend lint check: `node --check backend/server.js backend/proxy.js backend/auth.js backend/db.js`
-
 ### Packaging
 
 ```bash
@@ -57,7 +46,7 @@ make notarize         # Full distribution (needs DEVELOPER_ID, APPLE_ID, TEAM_ID
 
 ## CI Rules
 
-CI runs 4 jobs on push/PR to `main`: tests, lint, backend tests, release build.
+CI runs 3 jobs on push/PR to `main`: tests, lint, release build (plus notarized distribution on `v*` tags).
 
 **Hard CI failure**: `print()` statements in `Sources/GRump/` — always use `GRumpLogger` instead (categories: `.general`, `.ai`, `.persistence`, `.skills`, `.memory`, `.proactive`, `.migration`, `.spotlight`, `.notifications`, `.coreml`, `.capture`, `.liveActivity`).
 
@@ -76,7 +65,7 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 - `ChatViewModel+Messages.swift` — Message management
 - `ChatViewModel+UIState.swift` — UI state management
 
-**Agent modes**: `standard`, `plan`, `fullStack`, `argue`, `spec`, `parallel`
+**Agent modes**: `plan`, `fullStack` ("Build"), `spec` (see `AgentMode.swift`)
 
 ### Tool System (4 definition files + 6 execution files)
 
@@ -129,13 +118,6 @@ SwiftData `@Model` macros do not expand under `swift build`. This is by design.
 ### Data Models
 
 `Models.swift`: `Message`, `ToolCall`, `Conversation`, `MessageThread`, `MessageBranch`. Supports linear, threaded, and branched conversation views.
-
-### Backend Structure (`backend/`)
-
-Minimal stateless Qwen proxy (deploys on Alibaba Cloud):
-- `server.js` — Express entry: `/api/health`, `/api/v1/chat/completions` (SSE passthrough, tool calls preserved), `/api/v1/embeddings`; optional `APP_API_KEY` bearer gate
-- `alibaba.js` — the single Alibaba Cloud / Qwen (DashScope) call site
-- `Dockerfile` + `README-DEPLOY.md` — container + Alibaba ECS / Function Compute runbook
 
 ## Key Conventions
 
