@@ -207,6 +207,67 @@ final class SimulatorService: ObservableObject {
             await self.refresh()
         }
     }
+
+    // MARK: - Run-pipeline helpers (BuildService)
+
+    /// Runs `xcrun simctl` off the caller's actor, capturing combined output.
+    /// A watchdog terminates commands that outlive `timeout`.
+    nonisolated static func runSimctlCapture(
+        _ args: [String],
+        timeout: TimeInterval
+    ) async -> (status: Int32, output: String) {
+        let task = Task.detached(priority: .userInitiated) { () -> (Int32, String) in
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+            process.arguments = ["simctl"] + args
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = pipe
+
+            do {
+                try process.run()
+            } catch {
+                return (-1, error.localizedDescription)
+            }
+
+            let killer = DispatchWorkItem { if process.isRunning { process.terminate() } }
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + timeout, execute: killer)
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            killer.cancel()
+
+            let output = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return (process.terminationStatus, output)
+        }
+        return await task.value
+    }
+
+    /// `simctl bootstatus <udid> -b`: boots the device if needed and blocks
+    /// until it's usable. Returns false on failure or 60s timeout.
+    nonisolated static func bootAndWait(udid: String) async -> Bool {
+        let result = await runSimctlCapture(["bootstatus", udid, "-b"], timeout: 60)
+        return result.status == 0
+    }
+
+    /// Installs an .app bundle. Returns nil on success, simctl's output on failure.
+    nonisolated static func installApp(udid: String, appPath: String) async -> String? {
+        let result = await runSimctlCapture(["install", udid, appPath], timeout: 60)
+        return result.status == 0 ? nil : result.output
+    }
+
+    /// Launches (relaunching if already running). Returns nil on success.
+    nonisolated static func launchApp(udid: String, bundleId: String) async -> String? {
+        let result = await runSimctlCapture(
+            ["launch", "--terminate-running-process", udid, bundleId],
+            timeout: 30
+        )
+        return result.status == 0 ? nil : result.output
+    }
+
+    nonisolated static func terminateApp(udid: String, bundleId: String) async {
+        _ = await runSimctlCapture(["terminate", udid, bundleId], timeout: 10)
+    }
     #endif
 }
 

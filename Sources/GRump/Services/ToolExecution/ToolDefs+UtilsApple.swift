@@ -589,13 +589,16 @@ extension ToolDefinitions {
         "type": "function",
         "function": [
             "name": "xcrun_simctl",
-            "description": "Manage iOS/watchOS/tvOS simulators via xcrun simctl. List, boot, shutdown, install apps, take screenshots.",
+            "description": "Manage iOS/watchOS/tvOS simulators via xcrun simctl. List, boot (bootstatus waits until usable), shutdown, install/launch/terminate apps, read an app's recent logs, take screenshots — the same loop the Run button drives.",
             "parameters": [
                 "type": "object",
                 "properties": [
-                    "action": ["type": "string", "description": "'list', 'boot', 'shutdown', 'install', 'screenshot', 'delete'"],
-                    "device_id": ["type": "string", "description": "Simulator device UUID (required for boot/shutdown/install/screenshot)"],
+                    "action": ["type": "string", "description": "'list', 'boot', 'bootstatus', 'shutdown', 'install', 'launch', 'terminate', 'app_log', 'screenshot', 'delete'"],
+                    "device_id": ["type": "string", "description": "Simulator device UUID (required for everything except list)"],
                     "app_path": ["type": "string", "description": "Path to .app bundle (required for install)"],
+                    "bundle_id": ["type": "string", "description": "App bundle identifier (required for launch/terminate)"],
+                    "process_name": ["type": "string", "description": "App process name (required for app_log)"],
+                    "last": ["type": "string", "description": "app_log lookback window, e.g. '2m', '30s', '1h' (default: 2m)"],
                     "output_path": ["type": "string", "description": "Screenshot output path (for screenshot action)"]
                 ],
                 "required": ["action"]

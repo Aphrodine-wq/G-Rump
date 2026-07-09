@@ -467,8 +467,40 @@ extension ChatViewModel {
             guard let deviceId = args["device_id"] as? String else { return "Error: missing device_id" }
             let safeId = deviceId.replacingOccurrences(of: "'", with: "'\\''")
             return await runShellCommand("xcrun simctl delete '\(safeId)' 2>&1", cwd: nil, timeoutSeconds: 10)
+        case "bootstatus":
+            guard let deviceId = args["device_id"] as? String else { return "Error: missing device_id" }
+            let safeId = deviceId.replacingOccurrences(of: "'", with: "'\\''")
+            return await runShellCommand("xcrun simctl bootstatus '\(safeId)' -b 2>&1", cwd: nil, timeoutSeconds: 60)
+        case "launch":
+            guard let deviceId = args["device_id"] as? String,
+                  let bundleId = args["bundle_id"] as? String else { return "Error: missing device_id or bundle_id" }
+            let safeId = deviceId.replacingOccurrences(of: "'", with: "'\\''")
+            let safeBundle = bundleId.replacingOccurrences(of: "'", with: "'\\''")
+            return await runShellCommand("xcrun simctl launch --terminate-running-process '\(safeId)' '\(safeBundle)' 2>&1", cwd: nil, timeoutSeconds: 30)
+        case "terminate":
+            guard let deviceId = args["device_id"] as? String,
+                  let bundleId = args["bundle_id"] as? String else { return "Error: missing device_id or bundle_id" }
+            let safeId = deviceId.replacingOccurrences(of: "'", with: "'\\''")
+            let safeBundle = bundleId.replacingOccurrences(of: "'", with: "'\\''")
+            return await runShellCommand("xcrun simctl terminate '\(safeId)' '\(safeBundle)' 2>&1", cwd: nil, timeoutSeconds: 10)
+        case "app_log":
+            guard let deviceId = args["device_id"] as? String,
+                  let processName = args["process_name"] as? String else { return "Error: missing device_id or process_name" }
+            let last = (args["last"] as? String) ?? "2m"
+            // Bounded lookback, never a live stream — agent calls must return.
+            guard last.range(of: #"^\d+[smhd]$"#, options: .regularExpression) != nil else {
+                return "Error: 'last' must look like 30s, 2m, or 1h"
+            }
+            let safeId = deviceId.replacingOccurrences(of: "'", with: "'\\''")
+            let safeProcess = processName
+                .replacingOccurrences(of: "\"", with: "")
+                .replacingOccurrences(of: "'", with: "'\\''")
+            return await runShellCommand(
+                "xcrun simctl spawn '\(safeId)' log show --last \(last) --style compact --predicate 'process == \"\(safeProcess)\"' 2>&1 | tail -200",
+                cwd: nil, timeoutSeconds: 30
+            )
         default:
-            return "Error: unknown action '\(action)'. Use 'list', 'boot', 'shutdown', 'install', 'screenshot', or 'delete'."
+            return "Error: unknown action '\(action)'. Use 'list', 'boot', 'bootstatus', 'shutdown', 'install', 'launch', 'terminate', 'app_log', 'screenshot', or 'delete'."
         }
         #else
         return "Error: xcrun simctl is only available on macOS"

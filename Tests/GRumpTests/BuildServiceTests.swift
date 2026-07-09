@@ -124,6 +124,107 @@ final class BuildServiceTests: XCTestCase {
         XCTAssertEqual(service.maxConsoleLines, 10_000)
     }
 
+    // MARK: - Run pipeline phases
+
+    func testRunPipelinePhaseLegality() {
+        XCTAssertTrue(BuildPhase.isLegalTransition(from: .succeeded(duration: 1, warnings: 0), to: .installing))
+        XCTAssertTrue(BuildPhase.isLegalTransition(from: .installing, to: .launching))
+        XCTAssertTrue(BuildPhase.isLegalTransition(from: .launching, to: .running(app: "SmokeApp")))
+        XCTAssertTrue(BuildPhase.isLegalTransition(from: .running(app: "SmokeApp"), to: .idle))
+        XCTAssertTrue(BuildPhase.isLegalTransition(from: .installing, to: .failed(errors: 0, warnings: 0)))
+        XCTAssertTrue(BuildPhase.isLegalTransition(from: .launching, to: .cancelled))
+        XCTAssertFalse(BuildPhase.isLegalTransition(from: .idle, to: .installing))
+        XCTAssertFalse(BuildPhase.isLegalTransition(from: .running(app: "A"), to: .building))
+        XCTAssertFalse(BuildPhase.isLegalTransition(from: .installing, to: .running(app: "A")),
+                       "launch must come between install and running")
+    }
+
+    func testPipelinePhasesAreActive() {
+        XCTAssertTrue(BuildPhase.installing.isActive)
+        XCTAssertTrue(BuildPhase.launching.isActive)
+        XCTAssertTrue(BuildPhase.running(app: "A").isActive)
+        XCTAssertFalse(BuildPhase.succeeded(duration: 1, warnings: 0).isActive)
+    }
+
+    // MARK: - Run pipeline sequencing (stubbed seams)
+
+    @MainActor
+    func testRunPipelineExecutesStepsInOrderAndEndsRunning() async {
+        let service = BuildService()
+        service.setPhaseForTesting(.installing)
+        var steps: [String] = []
+
+        let settings = XcodeProjectInspector.BuildSettings(
+            targetBuildDir: "/tmp/Products",
+            fullProductName: "SmokeApp.app",
+            bundleId: "com.example.SmokeApp",
+            productName: "SmokeApp"
+        )
+        let pipeline = BuildService.RunPipeline(
+            bootAndWait: { udid in steps.append("boot:\(udid)"); return true },
+            openSimulator: { steps.append("open") },
+            install: { _, path in steps.append("install:\(path)"); return nil },
+            launch: { _, bundleId in steps.append("launch:\(bundleId)"); return nil },
+            startLogStream: { _, processName in steps.append("stream:\(processName)") }
+        )
+
+        await service.executeRunPipeline(udid: "UDID-1", settings: settings, pipeline: pipeline)
+
+        XCTAssertEqual(steps, [
+            "boot:UDID-1", "open",
+            "install:/tmp/Products/SmokeApp.app",
+            "launch:com.example.SmokeApp",
+            "stream:SmokeApp"
+        ])
+        XCTAssertEqual(service.phase, .running(app: "SmokeApp"))
+    }
+
+    @MainActor
+    func testRunPipelineBootFailureEndsFailed() async {
+        let service = BuildService()
+        service.setPhaseForTesting(.installing)
+        var launched = false
+
+        let settings = XcodeProjectInspector.BuildSettings(
+            targetBuildDir: "/tmp", fullProductName: "A.app", bundleId: "b", productName: "A"
+        )
+        let pipeline = BuildService.RunPipeline(
+            bootAndWait: { _ in false },
+            openSimulator: {},
+            install: { _, _ in nil },
+            launch: { _, _ in launched = true; return nil },
+            startLogStream: { _, _ in }
+        )
+
+        await service.executeRunPipeline(udid: "U", settings: settings, pipeline: pipeline)
+
+        XCTAssertFalse(launched, "launch must not run after a boot failure")
+        XCTAssertEqual(service.phase, .failed(errors: 0, warnings: 0))
+    }
+
+    @MainActor
+    func testRunPipelineMissingBundleIdFailsBeforeLaunch() async {
+        let service = BuildService()
+        service.setPhaseForTesting(.installing)
+        var launched = false
+
+        let settings = XcodeProjectInspector.BuildSettings(
+            targetBuildDir: "/tmp", fullProductName: "A.app", bundleId: nil, productName: "A"
+        )
+        let pipeline = BuildService.RunPipeline(
+            bootAndWait: { _ in true },
+            openSimulator: {},
+            install: { _, _ in nil },
+            launch: { _, _ in launched = true; return nil },
+            startLogStream: { _, _ in }
+        )
+
+        await service.executeRunPipeline(udid: "U", settings: settings, pipeline: pipeline)
+
+        XCTAssertFalse(launched)
+        XCTAssertEqual(service.phase, .failed(errors: 0, warnings: 0))
+    }
+
     // MARK: - showBuildSettings JSON fixture
 
     func testParseBuildSettingsFixture() throws {

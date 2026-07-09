@@ -64,7 +64,7 @@ struct BuildToolbarView: View {
     private var runStopControls: some View {
         HStack(spacing: Spacing.sm) {
             Button {
-                buildService.build()
+                buildService.run()
             } label: {
                 Image(systemName: "play.fill")
                     .font(.system(size: 12, weight: .semibold))
@@ -234,14 +234,16 @@ struct BuildToolbarView: View {
         switch buildService.phase {
         case .idle:
             EmptyView()
-        case .building:
+        case .building, .installing, .launching:
             HStack(spacing: Spacing.md) {
                 ProgressView()
                     .controlSize(.small)
-                Text("Building…")
+                Text(phaseLabel)
                     .font(Typography.captionSmallMedium)
                     .foregroundColor(themeManager.palette.textSecondary)
             }
+        case .running(let app):
+            pill(icon: "play.circle.fill", color: .accentGreen, text: "Running \(app)")
         case .succeeded(let duration, let warnings):
             pill(
                 icon: "checkmark.circle.fill",
@@ -254,11 +256,24 @@ struct BuildToolbarView: View {
             pill(
                 icon: "xmark.circle.fill",
                 color: .red,
-                text: warnings > 0 ? "\(errors) errors · \(warnings) warnings" : "\(errors) errors"
+                text: failedText(errors: errors, warnings: warnings)
             )
         case .cancelled:
             pill(icon: "minus.circle.fill", color: themeManager.palette.textMuted, text: "Cancelled")
         }
+    }
+
+    private var phaseLabel: String {
+        switch buildService.phase {
+        case .installing: return "Installing…"
+        case .launching: return "Launching…"
+        default: return "Building…"
+        }
+    }
+
+    private func failedText(errors: Int, warnings: Int) -> String {
+        guard errors > 0 else { return "Failed" }   // pipeline failures parse no source errors
+        return warnings > 0 ? "\(errors) errors · \(warnings) warnings" : "\(errors) errors"
     }
 
     private func pill(icon: String, color: Color, text: String) -> some View {

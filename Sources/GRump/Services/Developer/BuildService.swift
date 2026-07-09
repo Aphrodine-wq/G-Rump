@@ -6,18 +6,28 @@ import AppKit
 
 // MARK: - Build Phase
 
-/// Build engine state machine. Session E's run pipeline extends the succeeded
-/// path with installing → launching → running(app).
+/// Build engine state machine. A run intent continues the succeeded path with
+/// installing → launching → running(app) → idle.
 enum BuildPhase: Equatable {
     case idle
     case building
     case succeeded(duration: TimeInterval, warnings: Int)
     case failed(errors: Int, warnings: Int)
     case cancelled
+    case installing
+    case launching
+    case running(app: String)
 
-    var isActive: Bool { self == .building }
+    /// True while a build or the run pipeline owns the engine — new builds no-op.
+    var isActive: Bool {
+        switch self {
+        case .building, .installing, .launching, .running: return true
+        case .idle, .succeeded, .failed, .cancelled: return false
+        }
+    }
 
-    /// Legal edges only: idle/terminal → building → terminal; terminal → idle.
+    /// Legal edges: idle/terminal → building → terminal; succeeded continues to
+    /// the run pipeline; pipeline steps can fail or be cancelled; running → idle.
     static func isLegalTransition(from: BuildPhase, to: BuildPhase) -> Bool {
         switch (from, to) {
         case (.idle, .building),
@@ -26,6 +36,13 @@ enum BuildPhase: Equatable {
         case (.building, .succeeded), (.building, .failed), (.building, .cancelled):
             return true
         case (.succeeded, .idle), (.failed, .idle), (.cancelled, .idle):
+            return true
+        case (.succeeded, .installing), (.installing, .launching), (.launching, .running):
+            return true
+        case (.installing, .failed), (.launching, .failed),
+             (.installing, .cancelled), (.launching, .cancelled):
+            return true
+        case (.running, .idle), (.running, .failed):
             return true
         default:
             return false
@@ -159,8 +176,20 @@ final class BuildService: ObservableObject {
     private var issueCandidates = ""
     private var wasCancelled = false
     private var buildStart: Date?
+    private var runIntentPending = false
+    private var activeRunIntent = false
+    private var activeRun: (udid: String, bundleId: String, appName: String)?
     #if os(macOS)
     private var process: Process?
+    private var logStreamProcess: Process?
+    #endif
+
+    #if DEBUG
+    /// Test seam: pipeline tests need to start from .succeeded without spawning
+    /// a real build.
+    func setPhaseForTesting(_ newPhase: BuildPhase) {
+        phase = newPhase
+    }
     #endif
 
     init() {
@@ -262,12 +291,24 @@ final class BuildService: ObservableObject {
         #endif
     }
 
+    // MARK: - Run
+
+    /// Build, and on success continue to the simulator run pipeline when the
+    /// destination is a simulator and the product is an app. For My Mac and
+    /// SPM packages this is just a build.
+    func run() {
+        runIntentPending = true
+        build()
+    }
+
     // MARK: - Build
 
     /// Kicks off a build of the selected scheme/config/destination.
     /// No-op while a build is already active.
     func build() {
         #if os(macOS)
+        let runIntent = runIntentPending
+        runIntentPending = false
         guard !phase.isActive, let project = currentProject else { return }
 
         let executable: String
@@ -290,6 +331,14 @@ final class BuildService: ObservableObject {
                 arguments += ["-destination", destination.xcodebuildArgument]
             }
             arguments.append("build")
+        }
+
+        // The run pipeline only makes sense for an Xcode product on a simulator.
+        if case .simulator = selectedDestination,
+           project.kind == .xcworkspace || project.kind == .xcodeproj {
+            activeRunIntent = runIntent
+        } else {
+            activeRunIntent = false
         }
 
         transition(to: .building)
@@ -357,12 +406,33 @@ final class BuildService: ObservableObject {
         #endif
     }
 
-    /// Terminates the active build. Safe to call when idle.
+    /// Stops whatever the engine is doing: terminates an active build, cancels
+    /// the run pipeline between steps, or kills the log stream and terminates
+    /// the running app. Safe to call when idle.
     func stop() {
         #if os(macOS)
-        guard phase.isActive else { return }
-        wasCancelled = true
-        process?.terminate()
+        switch phase {
+        case .building:
+            wasCancelled = true
+            process?.terminate()
+        case .installing, .launching:
+            // Pipeline steps check this flag between awaits.
+            wasCancelled = true
+        case .running:
+            let run = activeRun
+            logStreamProcess?.terminate()
+            logStreamProcess = nil
+            activeRun = nil
+            if let run {
+                Task.detached(priority: .userInitiated) {
+                    await SimulatorService.terminateApp(udid: run.udid, bundleId: run.bundleId)
+                }
+                appendLine("▸ Stopped \(run.appName).", isStderr: false)
+            }
+            transition(to: .idle)
+        case .idle, .succeeded, .failed, .cancelled:
+            break
+        }
         #endif
     }
 
@@ -395,6 +465,13 @@ final class BuildService: ObservableObject {
             UserDefaults.standard.set(false, forKey: "RightPanelCollapsed")
         }
         buildStart = nil
+
+        if case .succeeded = terminal, activeRunIntent {
+            activeRunIntent = false
+            startRunPipeline()
+        } else {
+            activeRunIntent = false
+        }
     }
 
     private func transition(to newPhase: BuildPhase) {
@@ -452,4 +529,179 @@ final class BuildService: ObservableObject {
             consoleLines.removeFirst(consoleLines.count - maxConsoleLines)
         }
     }
+
+    // MARK: - Run pipeline (boot → install → launch → log stream)
+
+    /// Injectable step seams so the pipeline's sequencing is testable without
+    /// spawning simctl.
+    struct RunPipeline {
+        var bootAndWait: @MainActor (_ udid: String) async -> Bool
+        var openSimulator: @MainActor () async -> Void
+        var install: @MainActor (_ udid: String, _ appPath: String) async -> String?
+        var launch: @MainActor (_ udid: String, _ bundleId: String) async -> String?
+        var startLogStream: @MainActor (_ udid: String, _ processName: String) -> Void
+    }
+
+    /// Continues a successful build into the simulator. Resolves build settings
+    /// (cached per scheme|config, fetched if missing) and hands off to
+    /// `executeRunPipeline`.
+    func startRunPipeline() {
+        #if os(macOS)
+        guard case .succeeded = phase,
+              let project = currentProject,
+              let container = project.containerPath,
+              let scheme = selectedScheme,
+              case .simulator(let udid, _, _) = selectedDestination else { return }
+
+        transition(to: .installing)
+        let key = "\(scheme)|\(selectedConfiguration)"
+        let isWorkspace = project.kind == .xcworkspace
+        let config = selectedConfiguration
+        Task { @MainActor in
+            var settings = cachedBuildSettings[key]
+            if settings == nil {
+                appendLine("▸ Resolving build settings…", isStderr: false)
+                settings = await XcodeProjectInspector.buildSettings(
+                    containerPath: container, isWorkspace: isWorkspace,
+                    scheme: scheme, configuration: config
+                )
+                if let settings { cachedBuildSettings[key] = settings }
+            }
+            guard let settings else {
+                failPipeline("Run failed: couldn't resolve build settings for \(scheme).")
+                return
+            }
+            await executeRunPipeline(udid: udid, settings: settings, pipeline: liveRunPipeline())
+        }
+        #endif
+    }
+
+    /// The sequenced pipeline. Expects phase == .installing on entry; checks
+    /// for user cancellation between every step.
+    func executeRunPipeline(
+        udid: String,
+        settings: XcodeProjectInspector.BuildSettings,
+        pipeline: RunPipeline
+    ) async {
+        appendLine("▸ Booting simulator…", isStderr: false)
+        let booted = await pipeline.bootAndWait(udid)
+        if pipelineCancelled() { return }
+        guard booted else {
+            failPipeline("Run failed: simulator did not reach a booted state.")
+            return
+        }
+        await pipeline.openSimulator()
+
+        appendLine("▸ Installing \(settings.fullProductName)…", isStderr: false)
+        if let error = await pipeline.install(udid, settings.productPath) {
+            failPipeline("Install failed: \(error)")
+            return
+        }
+        if pipelineCancelled() { return }
+
+        guard let bundleId = settings.bundleId else {
+            failPipeline("Run failed: no bundle identifier in build settings.")
+            return
+        }
+        transition(to: .launching)
+        appendLine("▸ Launching \(bundleId)…", isStderr: false)
+        if let error = await pipeline.launch(udid, bundleId) {
+            failPipeline("Launch failed: \(error)")
+            return
+        }
+        if pipelineCancelled() { return }
+
+        let appName = settings.productName ?? (settings.fullProductName as NSString).deletingPathExtension
+        activeRun = (udid: udid, bundleId: bundleId, appName: appName)
+        pipeline.startLogStream(udid, appName)
+        transition(to: .running(app: appName))
+        appendLine("▸ Running \(appName) — app logs stream below. Stop with ⌘⇧.", isStderr: false)
+    }
+
+    private func pipelineCancelled() -> Bool {
+        guard wasCancelled else { return false }
+        wasCancelled = false
+        appendLine("▸ Run cancelled.", isStderr: false)
+        transition(to: .cancelled)
+        return true
+    }
+
+    private func failPipeline(_ message: String) {
+        appendLine(message, isStderr: true)
+        transition(to: .failed(errors: 0, warnings: 0))
+        UserDefaults.standard.set("log", forKey: "BuildConsoleTab")
+        UserDefaults.standard.set(PanelTab.build.rawValue, forKey: "SelectedPanel")
+        UserDefaults.standard.set(false, forKey: "RightPanelCollapsed")
+    }
+
+    #if os(macOS)
+    private func liveRunPipeline() -> RunPipeline {
+        RunPipeline(
+            bootAndWait: { udid in
+                await SimulatorService.bootAndWait(udid: udid)
+            },
+            openSimulator: {
+                SimulatorService.shared.openSimulatorApp()
+            },
+            install: { udid, appPath in
+                await SimulatorService.installApp(udid: udid, appPath: appPath)
+            },
+            launch: { udid, bundleId in
+                await SimulatorService.launchApp(udid: udid, bundleId: bundleId)
+            },
+            startLogStream: { [weak self] udid, processName in
+                self?.startLogStream(udid: udid, processName: processName)
+            }
+        )
+    }
+
+    /// Attaches `simctl spawn <udid> log stream` for the launched app as a
+    /// second process feeding the same console. Ends via stop() or app quit.
+    private func startLogStream(udid: String, processName: String) {
+        let predicate = "process == \"\(processName)\""
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+            process.arguments = [
+                "simctl", "spawn", udid, "log", "stream",
+                "--level", "info", "--style", "compact", "--predicate", predicate
+            ]
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = pipe
+
+            pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+                let data = handle.availableData
+                guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else { return }
+                Task { @MainActor [weak self] in
+                    self?.consumeChunk(text, isStderr: false)
+                }
+            }
+
+            do {
+                try process.run()
+                await MainActor.run { [weak self] in
+                    self?.logStreamProcess = process
+                }
+                process.waitUntilExit()
+            } catch {
+                await MainActor.run { [weak self] in
+                    self?.appendLine("Log stream failed: \(error.localizedDescription)", isStderr: true)
+                }
+            }
+
+            pipe.fileHandleForReading.readabilityHandler = nil
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                // Stream died on its own (stop() already moved us off .running).
+                if case .running = self.phase {
+                    self.logStreamProcess = nil
+                    self.activeRun = nil
+                    self.appendLine("▸ Log stream ended.", isStderr: false)
+                    self.transition(to: .idle)
+                }
+            }
+        }
+    }
+    #endif
 }

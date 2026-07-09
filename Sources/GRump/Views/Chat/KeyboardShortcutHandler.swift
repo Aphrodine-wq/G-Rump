@@ -22,7 +22,7 @@ struct KeyboardShortcutHandler: View {
                 .keyboardShortcut("l", modifiers: .command)
             #if os(macOS)
             // Build engine: Run / Stop
-            Button(action: { BuildService.shared.build() }) { EmptyView() }
+            Button(action: { BuildService.shared.run() }) { EmptyView() }
                 .keyboardShortcut("r", modifiers: .command)
             Button(action: { BuildService.shared.stop() }) { EmptyView() }
                 .keyboardShortcut(".", modifiers: [.command, .shift])
