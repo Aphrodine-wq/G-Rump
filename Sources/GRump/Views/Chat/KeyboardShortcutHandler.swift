@@ -21,6 +21,11 @@ struct KeyboardShortcutHandler: View {
             Button(action: { messageFieldFocused = true }) { EmptyView() }
                 .keyboardShortcut("l", modifiers: .command)
             #if os(macOS)
+            // Build engine: Run / Stop
+            Button(action: { BuildService.shared.build() }) { EmptyView() }
+                .keyboardShortcut("r", modifiers: .command)
+            Button(action: { BuildService.shared.stop() }) { EmptyView() }
+                .keyboardShortcut(".", modifiers: [.command, .shift])
             Button(action: {
                 withAnimation(.easeInOut(duration: Anim.quick)) {
                     sidebarCollapsed.toggle()

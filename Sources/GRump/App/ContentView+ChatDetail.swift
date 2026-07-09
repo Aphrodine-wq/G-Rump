@@ -179,6 +179,10 @@ extension ContentView {
     var chatDetailStack: some View {
         VStack(spacing: 0) {
             if !state.isZenMode {
+                #if os(macOS)
+                BuildToolbarView()
+                #endif
+
                 ChatTopBarView(
                     viewModel: viewModel,
                     lspService: state.lspService,
