@@ -300,7 +300,7 @@ extension ChatViewModel {
         if let urlError = error as? URLError {
             return [.timedOut, .networkConnectionLost, .notConnectedToInternet, .cannotConnectToHost].contains(urlError.code)
         }
-        if let serviceError = error as? QwenService.ServiceError {
+        if let serviceError = error as? OpenAICompatibleService.ServiceError {
             if case .apiError(let code, _) = serviceError {
                 return [429, 500, 502, 503, 504].contains(code)
             }

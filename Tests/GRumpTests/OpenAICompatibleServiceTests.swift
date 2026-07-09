@@ -1,13 +1,14 @@
 import XCTest
 @testable import GRump
 
-/// Unit tests for the Qwen transport (`QwenService`), which targets
-/// Alibaba DashScope's OpenAI-compatible endpoint.
+/// Unit tests for the default (`.qwen`) configuration of
+/// `OpenAICompatibleService`, which targets Alibaba DashScope's
+/// OpenAI-compatible endpoint.
 ///
 /// We exercise the reachable public/internal surface: `buildRequest(...)` is
 /// internal, so `@testable import` lets us build a real `URLRequest` and inspect
 /// its URL, headers, and JSON body without hitting the network.
-final class QwenServiceTests: XCTestCase {
+final class OpenAICompatibleServiceTests: XCTestCase {
 
     private func sampleMessages() -> [Message] {
         [
@@ -22,14 +23,15 @@ final class QwenServiceTests: XCTestCase {
         return try XCTUnwrap(obj as? [String: Any], "Body should be a JSON object")
     }
 
-    // MARK: - URL targets DashScope
+    // MARK: - URL targets DashScope (default configuration)
 
     func testRequestTargetsDashScopeHost() throws {
-        let service = QwenService()
+        let service = OpenAICompatibleService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
-            model: AIModel.qwenCoderPlus.rawValue,
+            model: "qwen-coder-plus",
+            maxTokens: 65_536,
             stream: true,
             tools: nil
         )
@@ -41,11 +43,12 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - Authorization header
 
     func testRequestHasBearerAuthorizationHeader() throws {
-        let service = QwenService()
+        let service = OpenAICompatibleService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
-            model: AIModel.qwenCoderPlus.rawValue,
+            model: "qwen-coder-plus",
+            maxTokens: 65_536,
             stream: true,
             tools: nil
         )
@@ -57,7 +60,7 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - Body shape: tool_choice + tools, no OpenRouter/Anthropic fields
 
     func testBodyHasToolChoiceAutoAndToolsArray() throws {
-        let service = QwenService()
+        let service = OpenAICompatibleService()
         let tools: [[String: Any]] = [[
             "type": "function",
             "function": ["name": "read_file", "description": "read", "parameters": ["type": "object"]],
@@ -65,7 +68,8 @@ final class QwenServiceTests: XCTestCase {
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
-            model: AIModel.qwenCoderPlus.rawValue,
+            model: "qwen-coder-plus",
+            maxTokens: 65_536,
             stream: true,
             tools: tools
         )
@@ -74,15 +78,16 @@ final class QwenServiceTests: XCTestCase {
         XCTAssertEqual(body["tool_choice"] as? String, "auto")
         let bodyTools = try XCTUnwrap(body["tools"] as? [[String: Any]])
         XCTAssertFalse(bodyTools.isEmpty, "tools array should be present and non-empty")
-        XCTAssertEqual(body["model"] as? String, AIModel.qwenCoderPlus.rawValue)
+        XCTAssertEqual(body["model"] as? String, "qwen-coder-plus")
     }
 
     func testBodyDoesNotContainOpenRouterOrAnthropicFields() throws {
-        let service = QwenService()
+        let service = OpenAICompatibleService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
-            model: AIModel.qwenCoderPlus.rawValue,
+            model: "qwen-coder-plus",
+            maxTokens: 65_536,
             stream: true,
             tools: nil
         )
@@ -102,17 +107,18 @@ final class QwenServiceTests: XCTestCase {
     // MARK: - Missing API key path
 
     func testBuildRequestThrowsOnEmptyAPIKey() {
-        let service = QwenService()
+        let service = OpenAICompatibleService()
         XCTAssertThrowsError(
             try service.buildRequest(
                 messages: sampleMessages(),
                 apiKey: "",
-                model: AIModel.qwenCoderPlus.rawValue,
+                model: "qwen-coder-plus",
+                maxTokens: 65_536,
                 stream: true,
                 tools: nil
             )
         ) { error in
-            guard case QwenService.ServiceError.missingAPIKey = error else {
+            guard case OpenAICompatibleService.ServiceError.missingAPIKey = error else {
                 return XCTFail("Expected .missingAPIKey, got \(error)")
             }
         }

@@ -15,9 +15,10 @@ extension ChatViewModel {
         let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if !backendURL.isEmpty {
-            return qwenService.streamMessageViaBackend(
+            return openAICompatibleService.streamMessageViaBackend(
                 messages: messages,
                 model: effectiveModel.rawValue,
+                maxTokens: effectiveModel.maxOutput,
                 backendBaseURL: backendURL,
                 appAPIKey: KeychainStorage.get(account: "AppAPIKey") ?? "",
                 tools: tools.isEmpty ? nil : tools

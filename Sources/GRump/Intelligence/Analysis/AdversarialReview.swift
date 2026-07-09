@@ -166,7 +166,7 @@ final class AdversarialReviewEngine: ObservableObject {
     @Published private(set) var isReviewing = false
     @Published private(set) var lastReport: AdversarialReviewReport?
 
-    private let qwenService = QwenService()
+    private let openAICompatibleService = OpenAICompatibleService()
     private let logger = GRumpLogger.general
 
     /// Whether adversarial review is enabled (user toggle).
@@ -249,9 +249,10 @@ final class AdversarialReviewEngine: ObservableObject {
             let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if !backendURL.isEmpty {
-                let stream = qwenService.streamMessageViaBackend(
+                let stream = openAICompatibleService.streamMessageViaBackend(
                     messages: messages,
                     model: reviewModelId,
+                    maxTokens: reviewModel.maxOutput,
                     backendBaseURL: backendURL,
                     appAPIKey: appAPIKey ?? ""
                 )
@@ -259,10 +260,11 @@ final class AdversarialReviewEngine: ObservableObject {
                     if case .text(let chunk) = event { fullResponse += chunk }
                 }
             } else {
-                let stream = qwenService.streamMessage(
+                let stream = openAICompatibleService.streamMessage(
                     messages: messages,
                     apiKey: apiKey,
-                    model: reviewModelId
+                    model: reviewModelId,
+                    maxTokens: reviewModel.maxOutput
                 )
                 for try await event in stream {
                     if case .text(let chunk) = event { fullResponse += chunk }

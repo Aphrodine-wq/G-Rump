@@ -3,11 +3,10 @@ import Combine
 
 // MARK: - AI Service (Qwen Cloud)
 //
-// Single-provider service. All chat completions route through QwenService,
-// which targets Qwen Cloud (Alibaba DashScope, OpenAI-compatible) and carries the
-// tool-call-complete transport the agent loop depends on. The multi-provider
-// scaffolding (provider switch, per-provider builders, on-device CoreML) was
-// removed when G-Rump was rebuilt entirely on Qwen.
+// Single-provider service. All chat completions route through the
+// OpenAICompatibleService transport, configured for Qwen Cloud (Alibaba
+// DashScope, OpenAI-compatible), carrying the tool-call-complete body the agent
+// loop depends on. The multi-provider dispatch is restored in a later phase.
 
 @MainActor
 class QwenAIService: ObservableObject {
@@ -108,11 +107,12 @@ class QwenAIService: ObservableObject {
         config: ProviderConfiguration,
         tools: [[String: Any]]?
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        let service = QwenService()
+        let service = OpenAICompatibleService()
         return service.streamMessage(
             messages: messages,
             apiKey: config.apiKey ?? "",
             model: model.modelID,
+            maxTokens: model.maxOutput,
             tools: tools
         )
     }
@@ -144,7 +144,7 @@ enum AIServiceError: LocalizedError {
 }
 
 // MARK: - Stream Event
-// Uses the canonical StreamEvent enum defined in QwenService.swift
+// Uses the canonical StreamEvent enum defined in OpenAICompatibleService.swift
 
 // MARK: - Extensions
 

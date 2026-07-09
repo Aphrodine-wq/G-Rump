@@ -1,33 +1,111 @@
 import Foundation
 
-// MARK: - Qwen Service
-// Qwen Cloud (Alibaba DashScope) OpenAI-compatible endpoint.
-// The single Qwen transport (tool-call-complete buildBody): direct DashScope
-// calls or via the slim backend proxy.
+// MARK: - OpenAI-Compatible Transport
+//
+// Parameterized transport for any OpenAI-compatible chat-completions endpoint.
+// A `Configuration` selects the base URL, extra headers, the max-tokens field
+// name, OpenRouter routing hints, and whether to send `temperature`. This one
+// transport serves Qwen (Alibaba DashScope), OpenAI, and OpenRouter; the native
+// Anthropic and Google providers use their own request builders.
+//
+// The output-token cap arrives as an explicit `maxTokens` parameter — the caller
+// sources it from the selected model, so the transport no longer reaches back
+// into the legacy `AIModel` enum.
 
-class QwenService {
-    // Qwen DashScope OpenAI-compatible chat-completions endpoint. Override the
-    // base via the `QwenBaseURL` UserDefaults key (e.g. the mainland host
-    // https://dashscope.aliyuncs.com/compatible-mode/v1) without a rebuild.
-    private var qwenBaseURL: URL {
-        let configured = UserDefaults.standard.string(forKey: "QwenBaseURL")?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let base = (configured?.isEmpty == false ? configured! : "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
+class OpenAICompatibleService {
+
+    // MARK: - Configuration
+
+    /// Per-provider transport configuration. Pure value type — use one of the
+    /// static factories (`.qwen`, `.openAI`, `.openRouter`) or build a custom one.
+    struct Configuration {
+        /// The `/v1` root (no trailing slash, no `/chat/completions`).
+        var baseURL: String
+        /// Additional headers merged into every request.
+        var extraHeaders: [String: String]
+        /// JSON field carrying the output-token cap: `max_tokens` or
+        /// `max_completion_tokens` (newer OpenAI models require the latter).
+        var maxTokensField: String
+        /// When true, attach OpenRouter routing headers (HTTP-Referer, X-Title,
+        /// X-Client-Platform) and the `provider` routing block. DashScope 400s on
+        /// these, so it stays false for Qwen.
+        var includeOpenRouterRouting: Bool
+        /// When true, send `temperature`. Claude 4.7+/5 reject it, so the native
+        /// Anthropic builder omits it; here it gates OpenAI/OpenRouter/Qwen.
+        var includeTemperature: Bool
+        /// Human-readable provider name for logging/error copy.
+        var providerLabel: String
+
+        init(
+            baseURL: String,
+            extraHeaders: [String: String] = [:],
+            maxTokensField: String = "max_tokens",
+            includeOpenRouterRouting: Bool = false,
+            includeTemperature: Bool = true,
+            providerLabel: String = "AI"
+        ) {
+            self.baseURL = baseURL
+            self.extraHeaders = extraHeaders
+            self.maxTokensField = maxTokensField
+            self.includeOpenRouterRouting = includeOpenRouterRouting
+            self.includeTemperature = includeTemperature
+            self.providerLabel = providerLabel
+        }
+
+        /// Qwen Cloud (Alibaba DashScope). Honors the `QwenBaseURL` override so the
+        /// mainland host can be swapped in without a rebuild.
+        static var qwen: Configuration {
+            let configured = UserDefaults.standard.string(forKey: "QwenBaseURL")?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let base = (configured?.isEmpty == false ? configured! : "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
+            return Configuration(baseURL: base, providerLabel: "Qwen")
+        }
+
+        /// OpenAI. Newer models (gpt-5.x) require `max_completion_tokens`.
+        static var openAI: Configuration {
+            Configuration(
+                baseURL: "https://api.openai.com/v1",
+                maxTokensField: "max_completion_tokens",
+                providerLabel: "OpenAI"
+            )
+        }
+
+        /// OpenRouter. Restores the routing headers + `provider` block that the
+        /// Qwen build had to drop (DashScope rejected the unknown fields).
+        static var openRouter: Configuration {
+            Configuration(
+                baseURL: "https://openrouter.ai/api/v1",
+                includeOpenRouterRouting: true,
+                providerLabel: "OpenRouter"
+            )
+        }
+    }
+
+    let configuration: Configuration
+
+    init(configuration: Configuration = .qwen) {
+        self.configuration = configuration
+    }
+
+    /// The resolved chat-completions endpoint for this configuration.
+    private var chatCompletionsURL: URL {
+        let base = configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
             .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         return URL(string: base + "/chat/completions")
             ?? URL(string: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions")!
     }
 
-    // MARK: - Streaming (OpenRouter or platform backend)
+    // MARK: - Streaming
 
-    /// Stream from OpenRouter using a client API key (legacy).
+    /// Stream directly from the configured provider with the user's API key.
     func streamMessage(
         messages: [Message],
         apiKey: String,
         model: String,
+        maxTokens: Int,
         tools: [[String: Any]]? = nil
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        let request = try? buildRequest(messages: messages, apiKey: apiKey, model: model, stream: true, tools: tools)
+        let request = try? buildRequest(messages: messages, apiKey: apiKey, model: model, maxTokens: maxTokens, stream: true, tools: tools)
         guard let req = request else {
             return AsyncThrowingStream { $0.finish(throwing: ServiceError.missingAPIKey) }
         }
@@ -39,11 +117,12 @@ class QwenService {
     func streamMessageViaBackend(
         messages: [Message],
         model: String,
+        maxTokens: Int,
         backendBaseURL: String,
         appAPIKey: String,
         tools: [[String: Any]]? = nil
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        guard let req = try? buildBackendRequest(messages: messages, model: model, stream: true, backendBaseURL: backendBaseURL, appAPIKey: appAPIKey, tools: tools) else {
+        guard let req = try? buildBackendRequest(messages: messages, model: model, maxTokens: maxTokens, stream: true, backendBaseURL: backendBaseURL, appAPIKey: appAPIKey, tools: tools) else {
             return AsyncThrowingStream { $0.finish(throwing: ServiceError.networkError) }
         }
         return streamWithRequest(req)
@@ -78,31 +157,44 @@ class QwenService {
         }
     }
 
-    // MARK: - Request Builders (OpenRouter + backend proxy)
+    // MARK: - Request Builders
 
     func buildRequest(
         messages: [Message],
         apiKey: String,
         model: String,
+        maxTokens: Int,
         stream: Bool,
         tools: [[String: Any]]? = nil
     ) throws -> URLRequest {
         guard !apiKey.isEmpty else { throw ServiceError.missingAPIKey }
 
-        var request = URLRequest(url: qwenBaseURL)
+        var request = URLRequest(url: chatCompletionsURL)
         request.httpMethod = "POST"
         request.timeoutInterval = 180
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        // No HTTP-Referer / X-Title / X-Client-Platform — those are OpenRouter
-        // routing hints and DashScope rejects unexpected fields.
-        request.httpBody = try buildBody(messages: messages, model: model, stream: stream, tools: tools)
+        for (field, value) in configuration.extraHeaders {
+            request.addValue(value, forHTTPHeaderField: field)
+        }
+        // OpenRouter routing hints — off for DashScope, which rejects them.
+        if configuration.includeOpenRouterRouting {
+            request.addValue("https://www.g-rump.com", forHTTPHeaderField: "HTTP-Referer")
+            request.addValue("G-Rump", forHTTPHeaderField: "X-Title")
+            #if os(macOS)
+            request.addValue("macos-native", forHTTPHeaderField: "X-Client-Platform")
+            #else
+            request.addValue("ios-native", forHTTPHeaderField: "X-Client-Platform")
+            #endif
+        }
+        request.httpBody = try buildBody(messages: messages, model: model, maxTokens: maxTokens, stream: stream, tools: tools)
         return request
     }
 
     func buildBackendRequest(
         messages: [Message],
         model: String,
+        maxTokens: Int,
         stream: Bool,
         backendBaseURL: String,
         appAPIKey: String,
@@ -120,11 +212,11 @@ class QwenService {
             request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         }
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try buildBody(messages: messages, model: model, stream: stream, tools: tools)
+        request.httpBody = try buildBody(messages: messages, model: model, maxTokens: maxTokens, stream: stream, tools: tools)
         return request
     }
 
-    private func buildBody(messages: [Message], model: String, stream: Bool, tools: [[String: Any]]? = nil) throws -> Data {
+    private func buildBody(messages: [Message], model: String, maxTokens: Int, stream: Bool, tools: [[String: Any]]? = nil) throws -> Data {
         var apiMessages: [[String: Any]] = []
         for msg in messages {
             switch msg.role {
@@ -162,26 +254,29 @@ class QwenService {
             }
         }
 
-        let aiModel = AIModel(rawValue: model)
-        let maxTokens = aiModel?.maxOutput ?? 16384
-
-        let temp = UserDefaults.standard.object(forKey: "ModelTemperature") as? Double ?? 0.0
         var body: [String: Any] = [
             "model": model,
             "stream": stream,
             "messages": apiMessages,
-            "max_tokens": maxTokens,
-            "temperature": temp
+            configuration.maxTokensField: maxTokens
         ]
+
+        if configuration.includeTemperature {
+            let temp = UserDefaults.standard.object(forKey: "ModelTemperature") as? Double ?? 0.0
+            body["temperature"] = temp
+        }
 
         body["tools"] = tools ?? ToolDefinitions.allTools
         body["tool_choice"] = "auto"
-        // No OpenRouter `provider` routing block — DashScope 400s on unknown fields.
+        if configuration.includeOpenRouterRouting {
+            body["provider"] = [
+                "sort": "price",
+                "allow_fallbacks": true
+            ]
+        }
 
         return try JSONSerialization.data(withJSONObject: body, options: [])
     }
-
-    // MARK: - Minimal stream parse (now delegated to shared SSELineParser)
 
     // MARK: - Error parsing
 
@@ -208,16 +303,16 @@ class QwenService {
         var errorDescription: String? {
             switch self {
             case .missingAPIKey:
-                return "Missing API key. Please set your Qwen (DashScope) API key in Settings."
+                return "Missing API key. Add your provider's API key in Settings."
             case .networkError:
                 return "Network error. Please check your connection."
             case .apiError(let code, let message):
                 if let message = message, !message.isEmpty {
-                    return "Qwen API error (HTTP \(code)): \(message)"
+                    return "AI provider error (HTTP \(code)): \(message)"
                 }
-                return "Qwen API error (HTTP \(code)). Check your API key or model availability."
+                return "AI provider error (HTTP \(code)). Check your API key or model availability."
             case .invalidResponse:
-                return "Received an invalid response from Qwen."
+                return "Received an invalid response from the AI provider."
             }
         }
     }
@@ -244,7 +339,7 @@ enum StreamingNetwork {
 /// Replaces per-provider byte-by-byte parsing with efficient line-based parsing.
 enum SSELineParser {
 
-    /// Parse an OpenAI-compatible SSE stream (OpenAI, OpenRouter, Ollama via /v1).
+    /// Parse an OpenAI-compatible SSE stream (OpenAI, OpenRouter, Qwen, Ollama via /v1).
     /// Yields StreamEvents to the continuation. Returns when stream ends.
     static func parseOpenAICompatible(
         bytes: URLSession.AsyncBytes,
@@ -272,7 +367,7 @@ enum SSELineParser {
             }
         }
         if !sawEvent {
-            throw QwenService.ServiceError.invalidResponse
+            throw OpenAICompatibleService.ServiceError.invalidResponse
         }
     }
 

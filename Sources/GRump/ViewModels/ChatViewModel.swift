@@ -133,7 +133,7 @@ class ChatViewModel: ObservableObject {
     // New multi-provider system
     @Published var aiService = QwenAIService()
 
-    let qwenService = QwenService()
+    let openAICompatibleService = OpenAICompatibleService()
     let activityStore = ActivityStore()
     internal var streamTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
