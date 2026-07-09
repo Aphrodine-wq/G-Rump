@@ -7,7 +7,6 @@
 /.build
 /.build-dev
 /Packages
-Package.resolved
 
 # Xcode
 /xcuserdata
@@ -46,3 +45,14 @@ website
 
 # Parked WIP (removed)
 _wip-quarantine/
+
+# App runtime state (never commit the agent's own brain)
+.grump/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+smt.db
+
+# Local tooling state
+.claude/
+.planning/
