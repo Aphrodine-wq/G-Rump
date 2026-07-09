@@ -2,18 +2,51 @@
 //
 // Six-step onboarding flow shown before the main app.
 // Each step's UI lives in a focused extension file:
-//   • Onboarding+WelcomeStep.swift     – auth, provider picker, API key
+//   • Onboarding+WelcomeStep.swift     – brand + privacy consent
+//   • Onboarding+ProviderStep.swift    – provider picker, API key entry + validation
 //   • Onboarding+ModelStep.swift       – model selection cards
-//   • Onboarding+AppearanceStep.swift  – theme / accent picker
-//   • Onboarding+WorkspaceStep.swift   – folder picker, tool detection
-//   • Onboarding+SecurityStep.swift    – exec-approval presets
 //   • Onboarding+SkillsStep.swift      – skill-pack toggle grid
+//   • Onboarding+AppearanceStep.swift  – theme / accent picker
+//   • Onboarding+SecurityStep.swift    – exec-approval presets
 
 import SwiftUI
 import OSLog
 #if os(macOS)
 import AppKit
 #endif
+
+// MARK: - Onboarding Steps
+
+enum OnboardingStep: Int, CaseIterable, Equatable {
+    case welcome
+    case provider
+    case model
+    case skills
+    case appearance
+    case security
+
+    var isLast: Bool { self == Self.allCases.last }
+    var next: OnboardingStep? { OnboardingStep(rawValue: rawValue + 1) }
+    var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }
+
+    /// Pure gating rule: can the user move past `step`?
+    /// - welcome requires the privacy consent checkbox.
+    /// - provider requires a saved key OR an explicit "add a key later" deferral —
+    ///   probe outcome never gates (keys save first; invalid/indeterminate warn).
+    /// - every later step is informational and always passable.
+    static func canAdvance(
+        from step: OnboardingStep,
+        consentGiven: Bool,
+        hasSavedKey: Bool,
+        keyEntryDeferred: Bool
+    ) -> Bool {
+        switch step {
+        case .welcome: return consentGiven
+        case .provider: return hasSavedKey || keyEntryDeferred
+        case .model, .skills, .appearance, .security: return true
+        }
+    }
+}
 
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
@@ -22,25 +55,22 @@ struct OnboardingView: View {
 
     // MARK: - State (internal so extensions can access)
 
-    @State var currentStep = 0
-    @State var signInInProgress = false
-    @State var signInError: String?
+    @State var currentStep: OnboardingStep = .welcome
+    @State var direction: Edge = .trailing
+
+    // Provider step
+    @State var selectedOnboardingProvider: AIProvider = .anthropic
     @State var apiKeyInput = ""
     @State var keyValidationState: KeyValidationState = .idle
-    @State var showAPIKeyField = false
-    @State var direction: Edge = .trailing
-    @State var selectedOnboardingProvider: AIProvider = .anthropic
+    @State var hasSavedKey = false
+    @State var keyEntryDeferred = false
 
-    let totalSteps = 6
+    // Skills step — ios-dev + code-quality preselected; applied ONCE at completion.
+    @State var selectedSkillPacks: Set<String> = ["ios-dev", "code-quality"]
+    @State var showAllSkillPacks = false
+
     @State var selectedSecurityPreset: ExecSecurityPreset = .balanced
-    @State var selectedSkillPacks: Set<String> = []
     @AppStorage("PrivacyConsentGiven") var privacyConsentGiven = false
-
-    // Workspace step state
-    @State var detectedTools: [(name: String, icon: String, found: Bool)] = []
-    @State var toolDetectionDone = false
-    @State var isInstallingTools = false
-    @State var installToolsMessage: String?
 
     // MARK: - Body
 
@@ -67,13 +97,12 @@ struct OnboardingView: View {
 
                 Group {
                     switch currentStep {
-                    case 0: stepWelcomeAuth
-                    case 1: stepModelSelection
-                    case 2: stepThemeAppearance
-                    case 3: stepWorkspace
-                    case 4: stepSecurityPermissions
-                    case 5: stepSkillsQuickStart
-                    default: stepWelcomeAuth
+                    case .welcome: stepWelcome
+                    case .provider: stepProviderKey
+                    case .model: stepModelSelection
+                    case .skills: stepSkillsQuickStart
+                    case .appearance: stepThemeAppearance
+                    case .security: stepSecurityPermissions
                     }
                 }
                 .transition(.asymmetric(
@@ -90,15 +119,22 @@ struct OnboardingView: View {
             }
         }
         .animation(.easeInOut(duration: Anim.smooth), value: currentStep)
+        .onAppear {
+            // Restart-onboarding round trip: an already-configured provider counts
+            // as a saved key so the provider step doesn't demand re-entry.
+            if viewModel.isAIProviderConfigured {
+                hasSavedKey = true
+            }
+        }
     }
 
     // MARK: - Step Indicator
 
     private var stepIndicator: some View {
         HStack(spacing: Spacing.lg) {
-            ForEach(0..<totalSteps, id: \.self) { step in
+            ForEach(OnboardingStep.allCases, id: \.self) { step in
                 Capsule()
-                    .fill(step <= currentStep
+                    .fill(step.rawValue <= currentStep.rawValue
                           ? themeManager.palette.effectiveAccent
                           : themeManager.palette.borderCrisp.opacity(0.3))
                     .frame(width: step == currentStep ? 28 : 8, height: 8)
@@ -109,12 +145,21 @@ struct OnboardingView: View {
 
     // MARK: - Navigation Buttons
 
+    private var canAdvanceFromCurrentStep: Bool {
+        OnboardingStep.canAdvance(
+            from: currentStep,
+            consentGiven: privacyConsentGiven,
+            hasSavedKey: hasSavedKey,
+            keyEntryDeferred: keyEntryDeferred
+        )
+    }
+
     private var navigationButtons: some View {
         HStack {
-            if currentStep > 0 {
+            if let previous = currentStep.previous {
                 Button {
                     direction = .leading
-                    withAnimation { currentStep -= 1 }
+                    withAnimation { currentStep = previous }
                 } label: {
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: "chevron.left")
@@ -131,50 +176,43 @@ struct OnboardingView: View {
 
             Spacer()
 
-            if currentStep == 0 {
-                Button {
-                    direction = .trailing
-                    withAnimation { currentStep += 1 }
-                } label: {
-                    Text("Skip for now")
-                        .font(Typography.bodySmallMedium)
-                        .foregroundColor(themeManager.palette.textMuted)
-                }
-                .buttonStyle(.plain)
-                .padding(.trailing, Spacing.xl)
-            }
-
             Button {
-                if currentStep < totalSteps - 1 {
+                if let next = currentStep.next {
                     direction = .trailing
-                    withAnimation { currentStep += 1 }
+                    withAnimation { currentStep = next }
                 } else {
-                    hasCompletedOnboarding = true
+                    completeOnboarding()
                 }
             } label: {
-                Text(currentStep == totalSteps - 1 ? "Get started" : "Next")
+                Text(currentStep.isLast ? "Get started" : "Next")
                     .font(Typography.bodySemibold)
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.colossal)
                     .padding(.vertical, Spacing.xl)
-                    .background(themeManager.palette.effectiveAccent)
+                    .background(themeManager.palette.effectiveAccent
+                        .opacity(canAdvanceFromCurrentStep ? 1 : 0.35))
                     .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
             }
             .buttonStyle(.plain)
+            .disabled(!canAdvanceFromCurrentStep)
         }
     }
 
-    // MARK: - Helpers
+    // MARK: - Completion
 
-    #if os(macOS)
-    func runFolderPicker() {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.message = "Select your project's root directory"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        viewModel.setWorkingDirectory(url.path)
+    /// Applies the selected skill packs exactly once, as a UNION into whatever
+    /// allowlist already exists — selecting nothing changes nothing. Onboarding
+    /// must never wipe a returning user's allowlist.
+    func completeOnboarding() {
+        let existing = SkillsSettingsStorage.loadAllowlist()
+        let merged = SkillPack.mergedAllowlist(
+            selecting: selectedSkillPacks,
+            into: existing,
+            packs: SkillPack.builtInPacks
+        )
+        if merged != existing {
+            SkillsSettingsStorage.saveAllowlist(merged)
+        }
+        hasCompletedOnboarding = true
     }
-    #endif
 }

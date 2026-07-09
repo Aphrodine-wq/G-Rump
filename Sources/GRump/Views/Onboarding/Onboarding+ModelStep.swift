@@ -1,7 +1,7 @@
-// MARK: - Onboarding Step 2: Model Selection
+// MARK: - Onboarding Step 3: Model Selection
 //
-// Model picker with enhanced model cards, provider section headers,
-// and a teaser for configuring additional providers later.
+// Model picker with enhanced model cards and provider section headers,
+// driven by the provider chosen on the previous step.
 
 import SwiftUI
 
@@ -98,28 +98,6 @@ extension OnboardingView {
             Spacer()
         }
         .padding(.top, Spacing.lg)
-    }
-
-    var otherProvidersTeaser: some View {
-        HStack(spacing: Spacing.xl) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("OpenAI, Google, OpenRouter")
-                    .font(Typography.bodySmallMedium)
-                    .foregroundColor(themeManager.palette.textPrimary)
-                Text("Configure API keys in Settings → Providers after setup.")
-                    .font(Typography.captionSmall)
-                    .foregroundColor(themeManager.palette.textMuted)
-            }
-            Spacer()
-            Image(systemName: "arrow.right.circle")
-                .font(Typography.bodyMedium)
-                .foregroundColor(themeManager.palette.textMuted)
-        }
-        .padding(Spacing.xl)
-        .background(themeManager.palette.bgCard.opacity(0.4))
-        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-            .stroke(themeManager.palette.borderCrisp.opacity(0.2), lineWidth: 1))
     }
 
 }

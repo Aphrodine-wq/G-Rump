@@ -51,56 +51,6 @@
         }
       }
     },
-    "Billing" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Billing"
-          }
-        }
-      }
-    },
-    "Current Plan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Current Plan"
-          }
-        }
-      }
-    },
-    "Manage Subscription" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manage Subscription"
-          }
-        }
-      }
-    },
-    "credits remaining" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "credits remaining"
-          }
-        }
-      }
-    },
-    "Upgrade" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upgrade"
-          }
-        }
-      }
-    },
     "Free" : {
       "localizations" : {
         "en" : {
@@ -137,16 +87,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Team"
-          }
-        }
-      }
-    },
-    "Credit Packs" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Credit Packs"
           }
         }
       }

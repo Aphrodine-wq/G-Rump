@@ -151,6 +151,24 @@ struct SkillPack: Identifiable, Codable, Equatable {
         SkillsSettingsStorage.saveAllowlist(allowlist)
     }
 
+    /// Pure UNION merge used by onboarding: adds the selected packs' skills
+    /// (global scope) into an existing allowlist. Selecting nothing returns the
+    /// existing allowlist unchanged — onboarding must never wipe what a
+    /// returning user already enabled.
+    static func mergedAllowlist(
+        selecting selectedPackIds: Set<String>,
+        into existing: Set<String>,
+        packs: [SkillPack]
+    ) -> Set<String> {
+        var merged = existing
+        for pack in packs where selectedPackIds.contains(pack.id) {
+            for baseId in pack.skillBaseIds {
+                merged.insert("global:\(baseId)")
+            }
+        }
+        return merged
+    }
+
     /// Built-in skill packs.
     static let builtInPacks: [SkillPack] = [
         SkillPack(

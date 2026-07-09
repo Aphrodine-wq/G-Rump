@@ -73,6 +73,16 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openRouter: return "sk-or-..."
         }
     }
+
+    /// Where a user creates an API key for this provider ("Get a key" links).
+    var keyConsoleURL: URL? {
+        switch self {
+        case .anthropic: return URL(string: "https://console.anthropic.com/settings/keys")
+        case .openAI: return URL(string: "https://platform.openai.com/api-keys")
+        case .google: return URL(string: "https://aistudio.google.com/apikey")
+        case .openRouter: return URL(string: "https://openrouter.ai/settings/keys")
+        }
+    }
 }
 
 // MARK: - Enhanced AI Model
