@@ -104,7 +104,6 @@ AI personality via `~/.grump/SOUL.md` (global) and `.grump/SOUL.md` (project, ov
 - `ConnectionMonitor` — `NWPathMonitor` + periodic health checks to `openrouter.ai` (30s interval). Exposes `.connected`/`.degraded`/`.disconnected` status.
 - `GlobalHotkeyService` — Double-tap `⌃Space` (400ms window) opens `QuickChatPopover` (floating `NSPanel`). Requires Accessibility permission.
 - `MenuBarAgent` — Menu bar extra showing project name, agent status, recent tools, proactive suggestions. Toggle: `ShowMenuBarExtra` UserDefaults key.
-- `OpenClawService` — WebSocket device node connecting to `ws://127.0.0.1:18789` for external task routing (Slack, Discord, iMessage). Toggle: `OpenClaw_Enabled` UserDefaults.
 - `ProactiveEngine` — Cron-based suggestions (git poll 5min, end-of-day review 5:30pm, morning brief 8:30am). Toggle: `ProactiveEngineEnabled` UserDefaults.
 
 ### Persistence (dual-mode)

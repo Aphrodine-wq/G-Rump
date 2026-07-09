@@ -29,7 +29,6 @@ G-Rump has 20 settings tabs organized into categories.
 | **Skills** | Skill management, ClawHub integration |
 | **MCP** | MCP server configuration and credentials |
 | **Soul** | SOUL.md personality editor |
-| **OpenClaw** | OpenClaw integration settings |
 | **Tools** | Tool enable/disable, custom tool definitions |
 
 ### Data & Privacy
