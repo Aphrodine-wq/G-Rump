@@ -13,7 +13,7 @@ struct PrivacyDashboardView: View {
     @AppStorage("LocalOnlyMode") private var localOnlyMode = false
     @AppStorage("ShowPrivacyBadge") private var showPrivacyBadge = true
 
-    var currentProvider: AIProvider = .openRouter
+    var currentProvider: AIProvider = .anthropic
     var onDeviceAvailable: Bool = false
 
     var body: some View {
