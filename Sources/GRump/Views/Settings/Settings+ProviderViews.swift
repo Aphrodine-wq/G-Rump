@@ -25,13 +25,13 @@ extension SettingsView {
 
             ScrollView {
                 settingsCard {
-                    // Qwen is the only provider. One API key + the Qwen model list.
+                    // Detail pane for whichever provider is selected in the sidebar.
                     providerBlock(
-                        provider: .qwen,
-                        subtitle: "Direct access to Qwen Coder Plus, Max, Plus, and Turbo via Qwen Cloud (DashScope).",
+                        provider: selectedProvider,
+                        subtitle: selectedProvider.description,
                         registry: registry
                     ) {
-                        ForEach(registry.getModels(for: .qwen), id: \.id) { model in
+                        ForEach(registry.getModels(for: selectedProvider), id: \.id) { model in
                             enhancedModelRow(model)
                         }
                     }
@@ -128,7 +128,7 @@ extension SettingsView {
             if provider.requiresAPIKey {
                 Divider()
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    Text("Qwen / DashScope API Key")
+                    Text("\(provider.displayName) API Key")
                         .font(Typography.captionSemibold)
                         .foregroundColor(.textSecondary)
                     HStack(spacing: Spacing.md) {
@@ -169,9 +169,7 @@ extension SettingsView {
     }
 
     func providerIcon(_ provider: AIProvider) -> String {
-        switch provider {
-        case .qwen: return "sparkles"
-        }
+        provider.iconName
     }
 
     func enhancedModelRow(_ model: EnhancedAIModel) -> some View {
@@ -198,9 +196,9 @@ extension SettingsView {
                     .font(Typography.micro)
                     .foregroundColor(.textMuted)
             } else {
-                Text("Free / Local")
+                Text("—")
                     .font(Typography.micro)
-                    .foregroundColor(.accentGreen)
+                    .foregroundColor(.textMuted)
             }
         }
         .padding(Spacing.lg)

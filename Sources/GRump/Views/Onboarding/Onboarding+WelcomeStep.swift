@@ -31,13 +31,13 @@ extension OnboardingView {
             }
 
             VStack(spacing: Spacing.xl) {
-                // Qwen-only: enter the Qwen (DashScope) API key.
+                // Key entry for the selected provider (Anthropic by default).
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    Text("Qwen / DashScope API Key")
+                    Text("\(selectedOnboardingProvider.displayName) API Key")
                         .font(Typography.captionSemibold)
                         .foregroundColor(themeManager.palette.textMuted)
                     HStack(spacing: Spacing.md) {
-                        SecureField(apiKeyPlaceholder(for: .qwen), text: $apiKeyInput)
+                        SecureField(apiKeyPlaceholder(for: selectedOnboardingProvider), text: $apiKeyInput)
                             .textFieldStyle(.plain)
                             .font(Typography.bodySmall)
                             .padding(Spacing.lg)
@@ -113,17 +113,15 @@ extension OnboardingView {
     }
 
     func apiKeyPlaceholder(for provider: AIProvider) -> String {
-        switch provider {
-        case .qwen: return "sk-..."
-        }
+        provider.keyPlaceholder
     }
 
     func saveProviderKey() {
         let key = apiKeyInput.trimmingCharacters(in: .whitespaces)
         guard !key.isEmpty else { return }
-        let config = ProviderConfiguration(provider: .qwen, apiKey: key)
+        let config = ProviderConfiguration(provider: selectedOnboardingProvider, apiKey: key)
         AIModelRegistry.shared.setProviderConfig(config)
-        viewModel.selectProvider(.qwen)
+        viewModel.selectProvider(selectedOnboardingProvider)
         viewModel.apiKey = key
     }
 }

@@ -28,11 +28,12 @@ extension OnboardingView {
 
             ScrollView {
                 LazyVStack(spacing: Spacing.md) {
-                    // Qwen-only: show the available Qwen models.
-                    let providerModels = AIModelRegistry.shared.getModels(for: .qwen)
+                    // Models for the provider chosen on the welcome step.
+                    let providerModels = AIModelRegistry.shared.getModels(for: selectedOnboardingProvider)
 
                     if !providerModels.isEmpty {
-                        providerSectionHeader(AIProvider.qwen.displayName, icon: providerIconName(.qwen))
+                        providerSectionHeader(selectedOnboardingProvider.displayName,
+                                              icon: providerIconName(selectedOnboardingProvider))
                         ForEach(providerModels, id: \.id) { model in
                             enhancedModelCard(model)
                         }
@@ -46,9 +47,7 @@ extension OnboardingView {
     }
 
     func providerIconName(_ provider: AIProvider) -> String {
-        switch provider {
-        case .qwen: return "sparkles"
-        }
+        provider.iconName
     }
 
     func enhancedModelCard(_ model: EnhancedAIModel) -> some View {

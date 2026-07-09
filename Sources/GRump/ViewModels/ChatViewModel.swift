@@ -100,16 +100,8 @@ class ChatViewModel: ObservableObject {
     // Legacy properties for backward compatibility
     @Published var apiKey: String {
         didSet {
-            KeychainStorage.set(account: "QwenAPIKey", value: apiKey)
-            // Update Qwen provider configuration
-            if let config = aiService.modelRegistry.getProviderConfig(for: .qwen) {
-                let updatedConfig = ProviderConfiguration(
-                    provider: .qwen,
-                    apiKey: apiKey,
-                    baseURL: config.baseURL
-                )
-                aiService.modelRegistry.setProviderConfig(updatedConfig)
-            }
+            // Keychain (per-provider account) is the only key persistence.
+            aiService.modelRegistry.setAPIKey(apiKey, for: aiService.currentProvider)
         }
     }
     @Published var selectedModel: AIModel {
@@ -208,16 +200,10 @@ class ChatViewModel: ObservableObject {
         // Initialize AI service
         self.aiService = QwenAIService()
 
-        // Load the Qwen API key, migrating any key from the old provider account.
-        if let key = KeychainStorage.get(account: "QwenAPIKey") {
-            self.apiKey = key
-        } else if let legacy = KeychainStorage.get(account: "OpenRouterAPIKey") {
-            // One-time migration from the pre-Qwen build.
-            self.apiKey = legacy
-            KeychainStorage.set(account: "QwenAPIKey", value: legacy)
-        } else {
-            self.apiKey = ""
-        }
+        // Load the current provider's API key from its Keychain account.
+        // (didSet does not fire during init, so this is a read, not a write.)
+        let savedProvider = AIProvider(rawValue: UserDefaults.standard.string(forKey: "CurrentAIProvider") ?? "") ?? .anthropic
+        self.apiKey = KeychainStorage.get(account: savedProvider.keychainAccount) ?? ""
 
         // Load legacy model selection
         let savedModel = UserDefaults.standard.string(forKey: "SelectedModel") ?? AIModel.qwenCoderPlus.rawValue

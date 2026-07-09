@@ -28,7 +28,7 @@ struct OnboardingView: View {
     @State var apiKeyInput = ""
     @State var showAPIKeyField = false
     @State var direction: Edge = .trailing
-    @State var selectedOnboardingProvider: AIProvider = .qwen
+    @State var selectedOnboardingProvider: AIProvider = .anthropic
 
     let totalSteps = 6
     @State var selectedSecurityPreset: ExecSecurityPreset = .balanced

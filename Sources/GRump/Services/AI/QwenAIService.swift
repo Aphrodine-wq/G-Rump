@@ -1,17 +1,18 @@
 import Foundation
 import Combine
 
-// MARK: - AI Service (Qwen Cloud)
+// MARK: - AI Service (multi-provider)
 //
-// Single-provider service. All chat completions route through the
-// OpenAICompatibleService transport, configured for Qwen Cloud (Alibaba
-// DashScope, OpenAI-compatible), carrying the tool-call-complete body the agent
-// loop depends on. The multi-provider dispatch is restored in a later phase.
+// Orchestrates provider/model selection and dispatches chat completions.
+// OpenAI and OpenRouter ride the parameterized OpenAICompatibleService
+// transport; the native Anthropic and Google request builders are restored in
+// the next phase — until then those providers surface a clear error instead
+// of silently posting Anthropic payloads to the wrong host.
 
 @MainActor
 class QwenAIService: ObservableObject {
     static let shared = QwenAIService()
-    @Published var currentProvider: AIProvider = .qwen
+    @Published var currentProvider: AIProvider = .anthropic
     @Published var currentModel: EnhancedAIModel?
     @Published var availableModels: [EnhancedAIModel] = []
     @Published var isConfigured: Bool = false
@@ -27,8 +28,10 @@ class QwenAIService: ObservableObject {
     // MARK: - Configuration
 
     private func loadConfiguration() {
-        // Provider is always Qwen now; only the model selection is restored.
-        currentProvider = .qwen
+        if let saved = UserDefaults.standard.string(forKey: "CurrentAIProvider"),
+           let provider = AIProvider(rawValue: saved) {
+            currentProvider = provider
+        }
         if let modelID = UserDefaults.standard.string(forKey: "CurrentAIModel") {
             currentModel = modelRegistry.getModel(by: modelID)
         }
@@ -49,12 +52,13 @@ class QwenAIService: ObservableObject {
     func refreshModels() {
         availableModels = modelRegistry.getModels(for: currentProvider)
 
-        // If current model is not in the available models, select the first one
+        // If the current model doesn't belong to this provider, fall back to
+        // the provider's default (Opus 4.8 for Anthropic — never Fable).
         if let currentModel = currentModel,
            !availableModels.contains(where: { $0.id == currentModel.id }) {
-            self.currentModel = availableModels.first
+            self.currentModel = modelRegistry.defaultModel(for: currentProvider)
         } else if currentModel == nil {
-            currentModel = availableModels.first
+            currentModel = modelRegistry.defaultModel(for: currentProvider)
         }
 
         updateConfigurationStatus()
@@ -96,18 +100,35 @@ class QwenAIService: ObservableObject {
         guard let config = modelRegistry.getProviderConfig(for: model.provider) else {
             return AsyncThrowingStream { $0.finish(throwing: AIServiceError.providerNotConfigured) }
         }
-        return streamQwen(messages: messages, model: model, config: config, tools: tools)
+
+        switch model.provider {
+        case .openAI:
+            return streamOpenAICompatible(.openAI, messages: messages, model: model, config: config, tools: tools)
+        case .openRouter:
+            return streamOpenAICompatible(.openRouter, messages: messages, model: model, config: config, tools: tools)
+        case .anthropic, .google:
+            // Native request builders land in the next phase of the provider
+            // pivot. Failing loudly beats posting the wrong wire format.
+            let name = model.provider.displayName
+            return AsyncThrowingStream { $0.finish(throwing: AIServiceError.nativeProviderPending(name)) }
+        }
     }
 
-    // MARK: - Qwen Streaming (single transport)
+    // MARK: - OpenAI-Compatible Streaming (OpenAI, OpenRouter)
 
-    func streamQwen(
+    private func streamOpenAICompatible(
+        _ configuration: OpenAICompatibleService.Configuration,
         messages: [Message],
         model: EnhancedAIModel,
         config: ProviderConfiguration,
         tools: [[String: Any]]?
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        let service = OpenAICompatibleService()
+        var transportConfig = configuration
+        // Respect a per-provider base URL override from Settings.
+        if let baseURL = config.baseURL, !baseURL.isEmpty {
+            transportConfig.baseURL = baseURL
+        }
+        let service = OpenAICompatibleService(configuration: transportConfig)
         return service.streamMessage(
             messages: messages,
             apiKey: config.apiKey ?? "",
@@ -123,6 +144,7 @@ class QwenAIService: ObservableObject {
 enum AIServiceError: LocalizedError {
     case noModelSelected
     case providerNotConfigured
+    case nativeProviderPending(String)
     case networkError
     case apiError(Int)
     case invalidResponse
@@ -133,6 +155,8 @@ enum AIServiceError: LocalizedError {
             return "No AI model selected"
         case .providerNotConfigured:
             return "AI provider not configured"
+        case .nativeProviderPending(let name):
+            return "\(name) support is still being wired up. Pick an OpenAI or OpenRouter model for now."
         case .networkError:
             return "Network error occurred"
         case .apiError(let code):

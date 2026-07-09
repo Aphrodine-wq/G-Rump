@@ -1,6 +1,6 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  AIProviders.swift                                          ║
-// ║  Qwen provider — models, capabilities, and the registry      ║
+// ║  Multi-provider system — providers, models, and the registry ║
 // ╚══════════════════════════════════════════════════════════════╝
 
 import Foundation
@@ -8,31 +8,69 @@ import Foundation
 // MARK: - AI Provider System
 
 enum AIProvider: String, CaseIterable, Identifiable, Codable {
-    case qwen = "qwen"
+    case anthropic = "anthropic"
+    case openAI = "openai"
+    case google = "google"
+    case openRouter = "openrouter"
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .qwen: return "Qwen"
+        case .anthropic: return "Anthropic"
+        case .openAI: return "OpenAI"
+        case .google: return "Google"
+        case .openRouter: return "OpenRouter"
         }
     }
 
     var description: String {
         switch self {
-        case .qwen: return "Alibaba Qwen models via Qwen Cloud (DashScope)"
+        case .anthropic: return "Claude models via the Anthropic API"
+        case .openAI: return "GPT models via the OpenAI API"
+        case .google: return "Gemini models via the Google AI API"
+        case .openRouter: return "Many models through one OpenRouter key"
         }
     }
 
-    var requiresAPIKey: Bool {
-        switch self {
-        case .qwen: return true
-        }
-    }
+    var requiresAPIKey: Bool { true }
 
     var defaultBaseURL: String {
         switch self {
-        case .qwen: return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+        case .anthropic: return "https://api.anthropic.com/v1"
+        case .openAI: return "https://api.openai.com/v1"
+        case .google: return "https://generativelanguage.googleapis.com/v1beta"
+        case .openRouter: return "https://openrouter.ai/api/v1"
+        }
+    }
+
+    /// Keychain account name holding this provider's API key. Keychain is the
+    /// single source of truth for keys; the UserDefaults registry never
+    /// persists them (ProviderConfiguration excludes apiKey from Codable).
+    var keychainAccount: String {
+        switch self {
+        case .anthropic: return "AnthropicAPIKey"
+        case .openAI: return "OpenAIAPIKey"
+        case .google: return "GoogleAPIKey"
+        case .openRouter: return "OpenRouterAPIKey"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .anthropic: return "asterisk"
+        case .openAI: return "circle.hexagongrid"
+        case .google: return "diamond"
+        case .openRouter: return "arrow.triangle.branch"
+        }
+    }
+
+    var keyPlaceholder: String {
+        switch self {
+        case .anthropic: return "sk-ant-..."
+        case .openAI: return "sk-..."
+        case .google: return "AIza..."
+        case .openRouter: return "sk-or-..."
         }
     }
 }
@@ -115,12 +153,19 @@ struct ModelPricing: Codable, Equatable {
 
 // MARK: - Provider Configuration
 
+/// Per-provider settings. `apiKey` is runtime-only — hydrated from the Keychain
+/// by the registry and deliberately excluded from Codable so keys never land in
+/// UserDefaults (the old dual-storage bug).
 struct ProviderConfiguration: Codable {
     let provider: AIProvider
     var apiKey: String?
     var baseURL: String?
     var isEnabled: Bool = true
     var customHeaders: [String: String] = [:]
+
+    private enum CodingKeys: String, CodingKey {
+        case provider, baseURL, isEnabled, customHeaders
+    }
 
     init(provider: AIProvider, apiKey: String? = nil, baseURL: String? = nil) {
         self.provider = provider
@@ -138,6 +183,10 @@ final class AIModelRegistry: @unchecked Sendable {
     private var providerConfigs: [AIProvider: ProviderConfiguration] = [:]
 
     private init() {
+        // One-shot migration of Qwen-era persisted state. Runs here so it is
+        // guaranteed to precede every read of provider/model defaults —
+        // whichever subsystem touches the registry first pays for it.
+        ProviderMigration.runIfNeeded()
         loadDefaultModels()
         loadProviderConfigurations()
     }
@@ -157,12 +206,33 @@ final class AIModelRegistry: @unchecked Sendable {
         return models.first { $0.id == id }
     }
 
+    /// The app-wide default model: Claude Opus 4.8.
+    func defaultModel() -> EnhancedAIModel? {
+        return getModel(by: "claude-opus-4-8") ?? getModels(for: .anthropic).first
+    }
+
+    /// Sensible default per provider (never Fable — premium, explicit-select only).
+    func defaultModel(for provider: AIProvider) -> EnhancedAIModel? {
+        let preferred: String
+        switch provider {
+        case .anthropic: preferred = "claude-opus-4-8"
+        case .openAI: preferred = "gpt-5.2"
+        case .google: preferred = "gemini-3-pro"
+        case .openRouter: preferred = "anthropic/claude-sonnet-5"
+        }
+        return getModel(by: preferred) ?? getModels(for: provider).first
+    }
+
     func getProviderConfig(for provider: AIProvider) -> ProviderConfiguration? {
         return providerConfigs[provider]
     }
 
     func setProviderConfig(_ config: ProviderConfiguration) {
         providerConfigs[config.provider] = config
+        // Keys ride the config in memory but persist only in the Keychain.
+        if let key = config.apiKey {
+            setAPIKey(key, for: config.provider)
+        }
         saveProviderConfigurations()
     }
 
@@ -170,6 +240,24 @@ final class AIModelRegistry: @unchecked Sendable {
         guard let config = providerConfigs[provider] else { return false }
         if !provider.requiresAPIKey { return true }
         return !(config.apiKey?.isEmpty ?? true)
+    }
+
+    // MARK: - API Keys (Keychain is the only persistence)
+
+    func apiKey(for provider: AIProvider) -> String? {
+        providerConfigs[provider]?.apiKey ?? KeychainStorage.get(account: provider.keychainAccount)
+    }
+
+    func setAPIKey(_ key: String, for provider: AIProvider) {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            KeychainStorage.delete(account: provider.keychainAccount)
+        } else {
+            KeychainStorage.set(account: provider.keychainAccount, value: trimmed)
+        }
+        var config = providerConfigs[provider] ?? ProviderConfiguration(provider: provider)
+        config.apiKey = trimmed.isEmpty ? nil : trimmed
+        providerConfigs[provider] = config
     }
 
     // MARK: - Model Loading (catalog in AIModelCatalog.swift)
@@ -192,6 +280,13 @@ final class AIModelRegistry: @unchecked Sendable {
         for provider in AIProvider.allCases {
             if providerConfigs[provider] == nil {
                 providerConfigs[provider] = ProviderConfiguration(provider: provider)
+            }
+        }
+
+        // Hydrate runtime keys from the Keychain.
+        for provider in AIProvider.allCases {
+            if let key = KeychainStorage.get(account: provider.keychainAccount), !key.isEmpty {
+                providerConfigs[provider]?.apiKey = key
             }
         }
     }

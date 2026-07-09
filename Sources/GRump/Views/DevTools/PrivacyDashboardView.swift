@@ -13,7 +13,7 @@ struct PrivacyDashboardView: View {
     @AppStorage("LocalOnlyMode") private var localOnlyMode = false
     @AppStorage("ShowPrivacyBadge") private var showPrivacyBadge = true
 
-    var currentProvider: AIProvider = .qwen
+    var currentProvider: AIProvider = .anthropic
     var onDeviceAvailable: Bool = false
 
     var body: some View {
@@ -103,10 +103,10 @@ struct PrivacyDashboardView: View {
 
                 dataFlowRow(
                     icon: "cloud",
-                    label: "Qwen Cloud (DashScope)",
+                    label: "\(currentProvider.displayName) API",
                     detail: "Encrypted in transit, not stored by the provider",
                     status: .cloud,
-                    isActive: currentProvider == .qwen
+                    isActive: true
                 )
 
                 dataFlowRow(

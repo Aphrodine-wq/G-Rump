@@ -182,8 +182,10 @@ struct ChatTopBarView: View {
 
     private var modelPickerMenu: some View {
         Menu {
-            // Qwen-only: a single section over the available Qwen models.
-            providerSection(provider: .qwen, icon: "sparkles")
+            // One section per provider that has models in the catalog.
+            ForEach(AIProvider.allCases) { provider in
+                providerSection(provider: provider, icon: provider.iconName)
+            }
 
             Divider()
             Button {

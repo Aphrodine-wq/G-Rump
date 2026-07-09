@@ -59,8 +59,8 @@ struct SettingsView: View {
     #endif
     @State var expandedCategories: Set<String> = ["AI", "Workspace", "General"]
 
-    // Provider state (Qwen-only)
-    @State var selectedProvider: AIProvider = .qwen
+    // Provider state
+    @State var selectedProvider: AIProvider = .anthropic
     @State var providerAPIKeys: [String: String] = [:]
     @State var providerBaseURLs: [String: String] = [:]
 
