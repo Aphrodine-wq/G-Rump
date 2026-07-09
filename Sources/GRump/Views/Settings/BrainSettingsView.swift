@@ -19,6 +19,7 @@ struct BrainSettingsView: View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
             headerCard
             memoryCard
+            learningCard
             voiceCard
             advancedCard
             mindCard
@@ -133,6 +134,37 @@ struct BrainSettingsView: View {
         KeychainStorage.set(account: model.config.elevenLabsKeychainKey, value: trimmed)
         elevenLabsKey = ""
         keyStatus = "Saved to Keychain."
+    }
+
+    // MARK: - Learning
+
+    private var learningCard: some View {
+        card(title: "Learning") {
+            flagToggle(
+                "Learning loop",
+                subtitle: "Reflect after runs, distill lessons into future prompts, and propose skills for your approval. Everything it learns is visible in the Learning panel.",
+                isOn: $model.config.learningEnabled,
+                available: true
+            )
+            if model.config.learningEnabled {
+                flagToggle(
+                    "Learning notices",
+                    subtitle: "Post a short note in the conversation when lessons are saved or weakened.",
+                    isOn: $model.config.learningNoticesEnabled,
+                    available: true
+                )
+                Stepper(value: $model.config.reflectionEveryNRuns, in: 1...25) {
+                    Text("Reflect every \(model.config.reflectionEveryNRuns) runs (plus after failures and corrections)")
+                        .font(Typography.captionSmall)
+                        .foregroundColor(.textSecondary)
+                }
+                Stepper(value: $model.config.lessonInjectionCount, in: 1...10) {
+                    Text("Inject up to \(model.config.lessonInjectionCount) lessons per run")
+                        .font(Typography.captionSmall)
+                        .foregroundColor(.textSecondary)
+                }
+            }
+        }
     }
 
     // MARK: - Advanced (deferred phases)

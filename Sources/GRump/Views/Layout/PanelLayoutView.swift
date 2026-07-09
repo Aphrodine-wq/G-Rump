@@ -103,6 +103,8 @@ struct PanelLayoutView: View {
             AccessibilityAuditView()
         case .memory:
             MemoryPanel()
+        case .learning:
+            LearningPanel()
         }
     }
 }

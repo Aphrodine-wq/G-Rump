@@ -140,7 +140,9 @@ final class ReflectionEngine: ObservableObject {
                 result.revised += 1
             case .proposeSkill(let draft):
                 // Never applied here — the proposal store + Learning panel own the gate.
-                result.skillProposals.append(draft)
+                if SkillProposalStore.shared.propose(draft: draft, source: "reflection") == nil {
+                    result.skillProposals.append(draft)
+                }
             }
         }
         return result

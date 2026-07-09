@@ -12,7 +12,8 @@ extension ChatViewModel {
     static let mutatingToolNames: Set<String> = [
         "create_file", "write_file", "edit_file", "append_file", "delete_file",
         "create_directory", "find_and_replace", "git_add", "git_commit", "git_push",
-        "write_env_file", "npm_install", "pip_install", "cargo_add", "docker_run", "docker_build"
+        "write_env_file", "npm_install", "pip_install", "cargo_add", "docker_run", "docker_build",
+        "propose_skill"
     ]
 
     /// Returns a refusal string if the Conscience gate blocks this tool, else nil.

@@ -278,6 +278,7 @@ extension PanelTab {
         case .appstore: return "App Store submission checklist"
         case .accessibility: return "Accessibility audit & suggestions"
         case .memory: return "Browse & search persistent memory store"
+        case .learning: return "Lessons, skill proposals & run outcomes"
         }
     }
 }

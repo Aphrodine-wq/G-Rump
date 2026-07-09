@@ -41,6 +41,26 @@ extension ToolDefinitions {
         ] as [String: Any]
     ]
 
+    nonisolated(unsafe) static let proposeSkill: [String: Any] = [
+        "type": "function",
+        "function": [
+            "name": "propose_skill",
+            "description": "Propose a new or updated SKILL.md for the user to review. The proposal appears in the Learning panel as a diff and does NOTHING until the user approves it — never assume it was accepted. Requires at least 3 recorded lessons clustering around one workflow (cite their ids).",
+            "parameters": [
+                "type": "object",
+                "properties": [
+                    "skill_id": ["type": "string", "description": "kebab-case skill id (e.g. 'xcodegen-workflow')"],
+                    "name": ["type": "string", "description": "Human-readable skill name"],
+                    "description": ["type": "string", "description": "One-line description (when to use the skill)"],
+                    "body": ["type": "string", "description": "Full SKILL.md markdown body"],
+                    "rationale": ["type": "string", "description": "Why this skill should exist"],
+                    "lesson_ids": ["type": "array", "items": ["type": "string"], "description": "≥3 lesson ids this skill is distilled from"]
+                ],
+                "required": ["skill_id", "name", "body", "lesson_ids"]
+            ] as [String: Any]
+        ] as [String: Any]
+    ]
+
     nonisolated(unsafe) static let rememberTool: [String: Any] = [
         "type": "function",
         "function": [

@@ -158,7 +158,7 @@ extension ChatViewModel {
                 outcome: outcome,
                 transcriptTail: transcriptTail,
                 injectedLessons: injectedLessons,
-                rejectedProposalNames: [],   // proposal store lands with the Learning panel
+                rejectedProposalNames: SkillProposalStore.shared.rejectedNames,
                 primaryModel: primaryModel,
                 trigger: outcome.isReflectionWorthy ? "signal" : "cadence"
             )

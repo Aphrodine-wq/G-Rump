@@ -56,13 +56,42 @@ extension ChatViewModel {
             outcome: outcome,
             transcriptTail: tail,
             injectedLessons: injected,
-            rejectedProposalNames: [],
+            rejectedProposalNames: SkillProposalStore.shared.rejectedNames,
             primaryModel: effectiveModel,
             trigger: "manual"
         ) else {
             return "Reflection didn't run (already reflecting, or the pass failed)."
         }
         return result.noticeText ?? "Reflection ran — no changes were warranted."
+    }
+
+    func executeProposeSkill(_ args: [String: Any]) async -> String {
+        guard BrainConfigStore.shared.load().learningEnabled else {
+            return "Learning is disabled in Settings → Brain."
+        }
+        guard let skillId = args["skill_id"] as? String, !skillId.isEmpty,
+              let name = args["name"] as? String, !name.isEmpty,
+              let body = args["body"] as? String, !body.isEmpty else {
+            return "Error: skill_id, name, and body are required"
+        }
+        let lessonIds = (args["lesson_ids"] as? [String]) ?? []
+        guard lessonIds.count >= 3 else {
+            return "Error: propose_skill requires at least 3 supporting lesson ids — record lessons first."
+        }
+        let draft = SkillProposalDraft(
+            skillId: skillId,
+            name: name,
+            description: args["description"] as? String ?? "",
+            body: body,
+            rationale: args["rationale"] as? String ?? "",
+            lessonIds: lessonIds
+        )
+        if let refusal = SkillProposalStore.shared.propose(
+            draft: draft, source: "tool:propose_skill", workingDirectory: workingDirectory
+        ) {
+            return refusal
+        }
+        return "Skill proposal '\(name)' queued for user review in the Learning panel. Do not assume approval."
     }
 
     func executeRemember(_ args: [String: Any]) async -> String {

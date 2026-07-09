@@ -207,7 +207,8 @@ struct ToolDefinitions {
         // Learning loop (self-direction)
         recordLesson,
         rememberTool,
-        reflectTool
+        reflectTool,
+        proposeSkill
     ]
 
     // Individual tool schema definitions are in extension files:

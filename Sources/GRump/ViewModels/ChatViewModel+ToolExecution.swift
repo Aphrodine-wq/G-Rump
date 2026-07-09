@@ -448,6 +448,8 @@ extension ChatViewModel {
             return await executeRemember(args)
         case "reflect":
             return await executeReflect(args)
+        case "propose_skill":
+            return await executeProposeSkill(args)
         case "swift_format":
             return await executeSwiftFormat(args)
         case "swift_lint":

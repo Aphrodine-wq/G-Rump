@@ -21,6 +21,7 @@ enum PanelTab: String, CaseIterable, Identifiable {
     case appstore
     case accessibility
     case memory
+    case learning
 
     var id: String { rawValue }
 
@@ -45,6 +46,7 @@ enum PanelTab: String, CaseIterable, Identifiable {
         case .appstore: return "bag.fill"
         case .accessibility: return "figure.stand"
         case .memory: return "brain.head.profile"
+        case .learning: return "graduationcap"
         }
     }
 
@@ -69,6 +71,7 @@ enum PanelTab: String, CaseIterable, Identifiable {
         case .appstore: return "App Store"
         case .accessibility: return "A11y"
         case .memory: return "Memory"
+        case .learning: return "Learning"
         }
     }
 

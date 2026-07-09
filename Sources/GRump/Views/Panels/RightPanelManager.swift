@@ -91,6 +91,8 @@ struct RightPanelManager: View {
             AccessibilityAuditView()
         case .memory:
             MemoryPanel()
+        case .learning:
+            LearningPanel()
         }
     }
 

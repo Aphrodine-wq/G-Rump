@@ -7,13 +7,14 @@ struct RightPanelSidebar: View {
     @Binding var panelCollapsed: Bool
     @State private var hoveredTab: PanelTab?
     @State private var hoverDebounce: DispatchWorkItem?
+    @ObservedObject private var proposalStore = SkillProposalStore.shared
     var onShowLayoutCustomizer: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 0) {
             // Primary panels (top group)
             VStack(spacing: Spacing.xs) {
-                ForEach([PanelTab.chat, .files, .git, .tests, .terminal, .memory], id: \.self) { tab in
+                ForEach([PanelTab.chat, .files, .git, .tests, .terminal, .memory, .learning], id: \.self) { tab in
                     panelButton(tab)
                 }
             }
@@ -98,6 +99,15 @@ struct RightPanelSidebar: View {
                     RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
                         .fill(isSelected ? themeManager.palette.effectiveAccent.opacity(0.12) : Color.clear)
                 )
+                .overlay(alignment: .topTrailing) {
+                    // Pending skill proposals wait on the user — badge the rail.
+                    if tab == .learning && proposalStore.pendingCount > 0 {
+                        Circle()
+                            .fill(themeManager.palette.effectiveAccent)
+                            .frame(width: 7, height: 7)
+                            .offset(x: -3, y: 3)
+                    }
+                }
         }
         .buttonStyle(ScaleButtonStyle())
         .onHover { isHovered in
