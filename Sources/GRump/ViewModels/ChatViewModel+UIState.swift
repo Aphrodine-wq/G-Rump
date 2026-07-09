@@ -24,6 +24,7 @@ extension ChatViewModel {
         workingDirectory = path
         UserDefaults.standard.set(path, forKey: "WorkingDirectory")
         projectConfig = ProjectConfig.load(from: path)
+        ProjectStore.shared.noteProjectOpened(path)
     }
 
     // MARK: - Preset Management
