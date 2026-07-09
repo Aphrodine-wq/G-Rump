@@ -6,11 +6,11 @@ final class PanelTabTests: XCTestCase {
     // MARK: - All Cases
 
     func testAllCasesCount() {
-        XCTAssertEqual(PanelTab.allCases.count, 18)
+        XCTAssertEqual(PanelTab.allCases.count, 19)
     }
 
     func testRawValues() {
-        let expected = ["chat", "files", "preview", "simulator", "git", "tests",
+        let expected = ["chat", "files", "preview", "simulator", "git", "tests", "build",
                         "assets", "localization", "schema", "profiling", "logs",
                         "spm", "xcode", "docs", "terminal", "appstore", "accessibility", "memory"]
         let actual = PanelTab.allCases.map(\.rawValue)
@@ -87,10 +87,18 @@ final class PanelTabTests: XCTestCase {
     }
 
     func testTabsWithoutShortcuts() {
-        let noShortcut: [PanelTab] = [.assets, .localization, .schema, .profiling, .logs, .xcode, .appstore, .accessibility]
+        let noShortcut: [PanelTab] = [.build, .assets, .localization, .schema, .profiling, .logs, .xcode, .appstore, .accessibility]
         for tab in noShortcut {
             XCTAssertNil(tab.shortcut, "\(tab.rawValue) should not have a shortcut")
         }
+    }
+
+    // MARK: - Build Tab
+
+    func testBuildTabExists() {
+        XCTAssertEqual(PanelTab.build.rawValue, "build")
+        XCTAssertEqual(PanelTab.build.label, "Build")
+        XCTAssertEqual(PanelTab.build.icon, "hammer.circle")
     }
 
     func testShortcutsAreUnique() {

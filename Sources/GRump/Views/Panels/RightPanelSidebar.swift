@@ -27,7 +27,7 @@ struct RightPanelSidebar: View {
 
             // Apple dev panels (middle group)
             VStack(spacing: Spacing.xs) {
-                ForEach([PanelTab.preview, .simulator, .xcode, .spm, .profiling, .logs, .docs], id: \.self) { tab in
+                ForEach([PanelTab.build, .preview, .simulator, .xcode, .spm, .profiling, .logs, .docs], id: \.self) { tab in
                     panelButton(tab)
                 }
             }

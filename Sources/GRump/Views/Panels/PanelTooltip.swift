@@ -265,6 +265,7 @@ extension PanelTab {
         case .simulator: return "Manage iOS/watchOS simulators"
         case .git: return "Git status, branches, commit & push"
         case .tests: return "Discover and run XCTests"
+        case .build: return "Build output, errors & live diagnostics"
         case .assets: return "Browse asset catalogs & SF Symbols"
         case .localization: return "Manage translations & find hardcoded strings"
         case .schema: return "View SwiftData & Core Data models"

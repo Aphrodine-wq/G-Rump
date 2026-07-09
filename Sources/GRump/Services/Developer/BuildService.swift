@@ -390,7 +390,8 @@ final class BuildService: ObservableObject {
 
         // Auto-open the build console on FAILURE only — success stays quiet.
         if case .failed = terminal {
-            UserDefaults.standard.set("build", forKey: "SelectedPanel")
+            UserDefaults.standard.set("issues", forKey: "BuildConsoleTab")
+            UserDefaults.standard.set(PanelTab.build.rawValue, forKey: "SelectedPanel")
             UserDefaults.standard.set(false, forKey: "RightPanelCollapsed")
         }
         buildStart = nil

@@ -55,6 +55,8 @@ struct RightPanelManager: View {
             GitPanelView()
         case .tests:
             TestExplorerView()
+        case .build:
+            BuildConsolePanel(lspService: nil)
         case .assets:
             AssetManagerPanel()
         case .localization:

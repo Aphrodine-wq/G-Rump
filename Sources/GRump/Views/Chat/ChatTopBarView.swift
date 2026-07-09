@@ -63,25 +63,32 @@ struct ChatTopBarView: View {
             // Connection status indicator
             ConnectionStatusDot(viewModel: viewModel)
 
-            // LSP diagnostics badge
+            // LSP diagnostics badge → opens the build console's Issues tab
             if lspService.isRunning && (lspService.errorCount > 0 || lspService.warningCount > 0) {
-                HStack(spacing: Spacing.sm) {
-                    if lspService.errorCount > 0 {
-                        Label("\(lspService.errorCount)", systemImage: "xmark.circle.fill")
-                            .font(Typography.micro)
-                            .foregroundColor(.red)
+                Button {
+                    UserDefaults.standard.set("issues", forKey: "BuildConsoleTab")
+                    UserDefaults.standard.set(PanelTab.build.rawValue, forKey: "SelectedPanel")
+                    UserDefaults.standard.set(false, forKey: "RightPanelCollapsed")
+                } label: {
+                    HStack(spacing: Spacing.sm) {
+                        if lspService.errorCount > 0 {
+                            Label("\(lspService.errorCount)", systemImage: "xmark.circle.fill")
+                                .font(Typography.micro)
+                                .foregroundColor(.red)
+                        }
+                        if lspService.warningCount > 0 {
+                            Label("\(lspService.warningCount)", systemImage: "exclamationmark.triangle.fill")
+                                .font(Typography.micro)
+                                .foregroundColor(.orange)
+                        }
                     }
-                    if lspService.warningCount > 0 {
-                        Label("\(lspService.warningCount)", systemImage: "exclamationmark.triangle.fill")
-                            .font(Typography.micro)
-                            .foregroundColor(.orange)
-                    }
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, 3)
+                    .background(lspService.errorCount > 0 ? Color.red.opacity(0.1) : Color.orange.opacity(0.1))
+                    .clipShape(Capsule())
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.vertical, 3)
-                .background(lspService.errorCount > 0 ? Color.red.opacity(0.1) : Color.orange.opacity(0.1))
-                .clipShape(Capsule())
-                .help("SourceKit-LSP: \(lspService.errorCount) errors, \(lspService.warningCount) warnings")
+                .buttonStyle(.plain)
+                .help("SourceKit-LSP: \(lspService.errorCount) errors, \(lspService.warningCount) warnings — open Issues")
             }
 
             Spacer()

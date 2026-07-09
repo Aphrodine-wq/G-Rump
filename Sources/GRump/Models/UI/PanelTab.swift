@@ -8,6 +8,7 @@ enum PanelTab: String, CaseIterable, Identifiable {
     case simulator
     case git
     case tests
+    case build
     case assets
     case localization
     case schema
@@ -31,6 +32,7 @@ enum PanelTab: String, CaseIterable, Identifiable {
         case .simulator: return "iphone"
         case .git: return "arrow.triangle.branch"
         case .tests: return "checkmark.diamond.fill"
+        case .build: return "hammer.circle"
         case .assets: return "photo.stack.fill"
         case .localization: return "globe"
         case .schema: return "cylinder.split.1x2.fill"
@@ -54,6 +56,7 @@ enum PanelTab: String, CaseIterable, Identifiable {
         case .simulator: return "Simulator"
         case .git: return "Git"
         case .tests: return "Tests"
+        case .build: return "Build"
         case .assets: return "Assets"
         case .localization: return "Localization"
         case .schema: return "Schema"
