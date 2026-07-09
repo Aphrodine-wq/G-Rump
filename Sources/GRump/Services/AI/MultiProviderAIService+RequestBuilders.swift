@@ -1,0 +1,286 @@
+import Foundation
+
+// MARK: - Native Request Builders (Anthropic, Google)
+//
+// Body builders are pure static functions returning dictionaries so tests can
+// assert the exact wire shape. Notable wire rules, each of which was broken in
+// the pre-Qwen incarnation of this file:
+//   - anthropic-version must be the literal API version "2023-06-01".
+//   - Anthropic takes `system` top-level; a "system" role inside messages[]
+//     is rejected.
+//   - Anthropic assistant turns must carry tool_use blocks for every tool
+//     call, and each tool result rides a tool_result block in a user message
+//     (consecutive results merged into ONE user message).
+//   - max_tokens comes from the selected model — never hardcoded.
+//   - No temperature: Claude 4.7+/5 models reject it.
+//   - Gemini tool results ride functionResponse parts (role "user"), with the
+//     function NAME resolved from the assistant turn that issued the call.
+
+extension MultiProviderAIService {
+
+    // MARK: - Anthropic
+
+    nonisolated static func buildAnthropicRequest(
+        messages: [Message],
+        model: String,
+        apiKey: String,
+        baseURL: String,
+        maxTokens: Int,
+        tools: [[String: Any]]?
+    ) throws -> URLRequest {
+        let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: base + "/messages") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 180
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = anthropicBody(messages: messages, model: model, maxTokens: maxTokens,
+                                 stream: true, tools: tools)
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return request
+    }
+
+    nonisolated static func anthropicBody(
+        messages: [Message],
+        model: String,
+        maxTokens: Int,
+        stream: Bool,
+        tools: [[String: Any]]?
+    ) -> [String: Any] {
+        var apiMessages: [[String: Any]] = []
+        var systemParts: [String] = []
+        // Consecutive tool results collapse into one user message.
+        var pendingToolResults: [[String: Any]] = []
+
+        func flushToolResults() {
+            guard !pendingToolResults.isEmpty else { return }
+            apiMessages.append(["role": "user", "content": pendingToolResults])
+            pendingToolResults = []
+        }
+
+        for message in messages {
+            switch message.role {
+            case .system:
+                systemParts.append(message.content)
+
+            case .user:
+                flushToolResults()
+                apiMessages.append([
+                    "role": "user",
+                    "content": [["type": "text", "text": message.content]]
+                ])
+
+            case .assistant:
+                flushToolResults()
+                var blocks: [[String: Any]] = []
+                if !message.content.isEmpty {
+                    blocks.append(["type": "text", "text": message.content])
+                }
+                for call in message.toolCalls ?? [] {
+                    blocks.append([
+                        "type": "tool_use",
+                        "id": call.id,
+                        "name": call.name,
+                        "input": parsedJSONObject(call.arguments)
+                    ])
+                }
+                // Anthropic rejects an empty content array.
+                if !blocks.isEmpty {
+                    apiMessages.append(["role": "assistant", "content": blocks])
+                }
+
+            case .tool:
+                pendingToolResults.append([
+                    "type": "tool_result",
+                    "tool_use_id": message.toolCallId ?? "",
+                    "content": message.content
+                ])
+            }
+        }
+        flushToolResults()
+
+        var body: [String: Any] = [
+            "model": model,
+            "max_tokens": maxTokens,
+            "stream": stream,
+            "messages": apiMessages
+        ]
+        let system = systemParts.joined(separator: "\n\n")
+        if !system.isEmpty {
+            body["system"] = system
+        }
+        if let tools = tools, !tools.isEmpty {
+            body["tools"] = tools.compactMap { anthropicTool(from: $0) }
+            body["tool_choice"] = ["type": "auto"]
+        }
+        return body
+    }
+
+    /// OpenAI-style {type: function, function: {name, description, parameters}}
+    /// → Anthropic {name, description, input_schema}.
+    nonisolated static func anthropicTool(from tool: [String: Any]) -> [String: Any]? {
+        let function = tool["function"] as? [String: Any] ?? tool
+        guard let name = function["name"] as? String, !name.isEmpty else { return nil }
+        return [
+            "name": name,
+            "description": function["description"] as? String ?? "",
+            "input_schema": function["parameters"] as? [String: Any] ?? ["type": "object"]
+        ]
+    }
+
+    // MARK: - Google (Gemini)
+
+    nonisolated static func buildGoogleRequest(
+        messages: [Message],
+        model: String,
+        apiKey: String,
+        baseURL: String,
+        maxOutputTokens: Int,
+        tools: [[String: Any]]?
+    ) throws -> URLRequest {
+        let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: "\(base)/models/\(model):streamGenerateContent?alt=sse&key=\(apiKey)") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 180
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = googleBody(messages: messages, maxOutputTokens: maxOutputTokens, tools: tools)
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return request
+    }
+
+    nonisolated static func googleBody(
+        messages: [Message],
+        maxOutputTokens: Int,
+        tools: [[String: Any]]?
+    ) -> [String: Any] {
+        var contents: [[String: Any]] = []
+        var systemParts: [String] = []
+        var pendingFunctionResponses: [[String: Any]] = []
+        // tool_call_id → function name, resolved from prior assistant turns.
+        var callNames: [String: String] = [:]
+
+        func flushFunctionResponses() {
+            guard !pendingFunctionResponses.isEmpty else { return }
+            contents.append(["role": "user", "parts": pendingFunctionResponses])
+            pendingFunctionResponses = []
+        }
+
+        for message in messages {
+            switch message.role {
+            case .system:
+                systemParts.append(message.content)
+
+            case .user:
+                flushFunctionResponses()
+                contents.append(["role": "user", "parts": [["text": message.content]]])
+
+            case .assistant:
+                flushFunctionResponses()
+                var parts: [[String: Any]] = []
+                if !message.content.isEmpty {
+                    parts.append(["text": message.content])
+                }
+                for call in message.toolCalls ?? [] {
+                    callNames[call.id] = call.name
+                    parts.append([
+                        "functionCall": [
+                            "name": call.name,
+                            "args": parsedJSONObject(call.arguments)
+                        ]
+                    ])
+                }
+                if !parts.isEmpty {
+                    contents.append(["role": "model", "parts": parts])
+                }
+
+            case .tool:
+                let name = message.toolCallId.flatMap { callNames[$0] } ?? "unknown"
+                pendingFunctionResponses.append([
+                    "functionResponse": [
+                        "name": name,
+                        "response": ["result": message.content]
+                    ]
+                ])
+            }
+        }
+        flushFunctionResponses()
+
+        var body: [String: Any] = [
+            "contents": contents,
+            "generationConfig": ["maxOutputTokens": maxOutputTokens]
+        ]
+        let system = systemParts.joined(separator: "\n\n")
+        if !system.isEmpty {
+            body["systemInstruction"] = ["parts": [["text": system]]]
+        }
+        if let tools = tools, !tools.isEmpty {
+            let declarations = tools.compactMap { googleFunctionDeclaration(from: $0) }
+            if !declarations.isEmpty {
+                body["tools"] = [["functionDeclarations": declarations]]
+            }
+        }
+        return body
+    }
+
+    /// OpenAI-style function def → Gemini functionDeclaration, with the
+    /// parameters schema stripped of JSON-Schema keywords Gemini rejects.
+    nonisolated static func googleFunctionDeclaration(from tool: [String: Any]) -> [String: Any]? {
+        let function = tool["function"] as? [String: Any] ?? tool
+        guard let name = function["name"] as? String, !name.isEmpty else { return nil }
+        var declaration: [String: Any] = [
+            "name": name,
+            "description": function["description"] as? String ?? ""
+        ]
+        if let parameters = function["parameters"] as? [String: Any] {
+            declaration["parameters"] = sanitizeGoogleSchema(parameters)
+        }
+        return declaration
+    }
+
+    /// Gemini's OpenAPI-subset schema rejects several JSON-Schema keywords.
+    /// Over-stripping is safe (the schema just gets more permissive);
+    /// under-stripping 400s the whole request.
+    nonisolated static func sanitizeGoogleSchema(_ schema: [String: Any]) -> [String: Any] {
+        let rejected: Set<String> = [
+            "$schema", "additionalProperties", "default", "examples", "pattern",
+            "format", "minLength", "maxLength", "minimum", "maximum",
+            "exclusiveMinimum", "exclusiveMaximum", "minItems", "maxItems"
+        ]
+        var cleaned: [String: Any] = [:]
+        for (key, value) in schema where !rejected.contains(key) {
+            if let nested = value as? [String: Any] {
+                cleaned[key] = sanitizeGoogleSchema(nested)
+            } else if let array = value as? [[String: Any]] {
+                cleaned[key] = array.map { sanitizeGoogleSchema($0) }
+            } else {
+                cleaned[key] = value
+            }
+        }
+        return cleaned
+    }
+
+    // MARK: - Helpers
+
+    /// Tool-call arguments arrive as a JSON string; both native APIs want the
+    /// parsed object. Malformed args degrade to an empty object.
+    nonisolated static func parsedJSONObject(_ jsonString: String) -> [String: Any] {
+        guard let data = jsonString.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return [:]
+        }
+        return object
+    }
+}

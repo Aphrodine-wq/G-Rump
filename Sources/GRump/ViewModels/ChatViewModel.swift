@@ -123,7 +123,7 @@ class ChatViewModel: ObservableObject {
     }
 
     // New multi-provider system
-    @Published var aiService = QwenAIService()
+    @Published var aiService = MultiProviderAIService()
 
     let openAICompatibleService = OpenAICompatibleService()
     let activityStore = ActivityStore()
@@ -198,7 +198,7 @@ class ChatViewModel: ObservableObject {
 
     init() {
         // Initialize AI service
-        self.aiService = QwenAIService()
+        self.aiService = MultiProviderAIService()
 
         // Load the current provider's API key from its Keychain account.
         // (didSet does not fire during init, so this is a read, not a write.)

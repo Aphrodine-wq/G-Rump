@@ -33,11 +33,11 @@ final class WritingToolsService: ObservableObject {
     // MARK: - Availability Check
 
     private func checkWritingToolsAvailability() {
-        // Writing Tools uses OpenRouter for AI generation — available on all supported platforms.
+        // Writing Tools rides whichever provider the chat system is on.
         // NaturalLanguage framework used for suggestions is available on macOS 14+ / iOS 17+.
-        let hasAPIKey = !(UserDefaults.standard.string(forKey: "openRouterAPIKey") ?? "").isEmpty
-        let hasModel = !(UserDefaults.standard.string(forKey: "SelectedModel") ?? "").isEmpty
-        isWritingToolsAvailable = hasAPIKey && hasModel
+        isWritingToolsAvailable = AIProvider.allCases.contains {
+            AIModelRegistry.shared.isProviderConfigured($0)
+        }
     }
 
     /// Re-check availability when API settings change (call from Settings).
@@ -182,23 +182,20 @@ final class WritingToolsService: ObservableObject {
     // MARK: - Private Implementation
 
     private func generateText(prompt: String, context: WritingContext) async throws -> WritingSuggestion {
-        // Read API key and model from the same AppStorage the chat system uses
-        let apiKey = UserDefaults.standard.string(forKey: "openRouterAPIKey") ?? ""
-        let modelId = UserDefaults.standard.string(forKey: "SelectedModel") ?? ""
-
-        guard !apiKey.isEmpty else {
-            throw WritingToolsError.processingFailed("No API key configured. Set an API key in Settings to use Writing Tools.")
-        }
-        guard !modelId.isEmpty else {
+        // Ride the chat system's current model selection and Keychain keys.
+        let registry = AIModelRegistry.shared
+        let modelID = UserDefaults.standard.string(forKey: "CurrentAIModel") ?? ""
+        guard let model = registry.getModel(by: modelID) ?? registry.defaultModel() else {
             throw WritingToolsError.processingFailed("No AI model selected. Choose a model in Settings.")
+        }
+        guard registry.isProviderConfigured(model.provider) else {
+            throw WritingToolsError.processingFailed("No API key configured for \(model.provider.displayName). Set an API key in Settings to use Writing Tools.")
         }
 
         let systemMsg = Message(role: .system, content: "You are a precise writing assistant. Respond only with the requested text, no explanations or preamble.")
         let userMsg = Message(role: .user, content: prompt)
         let messages = [systemMsg, userMsg]
-        let service = OpenAICompatibleService()
-        let maxTokens = AIModelRegistry.shared.getModel(by: modelId)?.maxOutput ?? 16_384
-        let stream = service.streamMessage(messages: messages, apiKey: apiKey, model: modelId, maxTokens: maxTokens)
+        let stream = MultiProviderAIService.stream(messages: messages, modelID: model.id)
 
         var accumulated = ""
         do {

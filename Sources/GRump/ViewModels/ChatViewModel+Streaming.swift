@@ -5,40 +5,25 @@ extension ChatViewModel {
 
     // MARK: - Provider Stream Factory
 
-    /// Creates a streaming connection using the appropriate provider.
-    /// Routes through the slim backend proxy when a BackendURL is configured,
-    /// otherwise calls Qwen directly with the user's own API key.
+    /// Creates a streaming connection via the multi-provider dispatcher.
+    /// (The Qwen-era backend proxy branch is gone — the slim backend spoke
+    /// DashScope only; re-adding a proxy is a separate follow-up.)
     func createProviderStream(
         messages: [Message],
         tools: [[String: Any]]
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        if !backendURL.isEmpty {
-            return openAICompatibleService.streamMessageViaBackend(
-                messages: messages,
-                model: effectiveModel.rawValue,
-                maxTokens: effectiveModel.maxOutput,
-                backendBaseURL: backendURL,
-                appAPIKey: KeychainStorage.get(account: "AppAPIKey") ?? "",
-                tools: tools.isEmpty ? nil : tools
-            )
-        } else {
-            return aiService.streamMessage(
-                messages: messages,
-                tools: tools.isEmpty ? nil : tools
-            )
-        }
+        return aiService.streamMessage(
+            messages: messages,
+            tools: tools.isEmpty ? nil : tools
+        )
     }
 
     /// Send a message and start streaming response
     func sendMessage() {
         let trimmed = userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        let backendConfigured = !((UserDefaults.standard.string(forKey: "BackendURL") ?? "")
-            .trimmingCharacters(in: .whitespaces).isEmpty)
-        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty && !backendConfigured {
-            errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key, or set a backend URL."
+        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
+            errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key."
             return
         }
 

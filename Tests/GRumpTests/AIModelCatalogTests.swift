@@ -111,7 +111,7 @@ final class AIModelCatalogTests: XCTestCase {
     func testFreshServiceLandsOnAnthropicWithoutKeys() {
         // A service constructed with no persisted selection (and no API keys)
         // must land on an Anthropic model without crashing.
-        let service = QwenAIService()
+        let service = MultiProviderAIService()
         XCTAssertNotNil(service.currentModel)
         XCTAssertEqual(service.currentModel?.provider, service.currentProvider)
         XCTAssertFalse(service.availableModels.isEmpty)

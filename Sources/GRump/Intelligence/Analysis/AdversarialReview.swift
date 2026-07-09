@@ -166,7 +166,6 @@ final class AdversarialReviewEngine: ObservableObject {
     @Published private(set) var isReviewing = false
     @Published private(set) var lastReport: AdversarialReviewReport?
 
-    private let openAICompatibleService = OpenAICompatibleService()
     private let logger = GRumpLogger.general
 
     /// Whether adversarial review is enabled (user toggle).
@@ -181,8 +180,6 @@ final class AdversarialReviewEngine: ObservableObject {
     func review(
         codeChanges: [CodeChange],
         conversationContext: String,
-        apiKey: String,
-        appAPIKey: String?,
         primaryModel: AIModel
     ) async -> AdversarialReviewReport? {
         guard isEnabled, !codeChanges.isEmpty else { return nil }
@@ -246,29 +243,11 @@ final class AdversarialReviewEngine: ObservableObject {
         var fullResponse = ""
 
         do {
-            let backendURL = (UserDefaults.standard.string(forKey: "BackendURL") ?? "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            if !backendURL.isEmpty {
-                let stream = openAICompatibleService.streamMessageViaBackend(
-                    messages: messages,
-                    model: reviewModelId,
-                    maxTokens: reviewModel.maxOutput,
-                    backendBaseURL: backendURL,
-                    appAPIKey: appAPIKey ?? ""
-                )
-                for try await event in stream {
-                    if case .text(let chunk) = event { fullResponse += chunk }
-                }
-            } else {
-                let stream = openAICompatibleService.streamMessage(
-                    messages: messages,
-                    apiKey: apiKey,
-                    model: reviewModelId,
-                    maxTokens: reviewModel.maxOutput
-                )
-                for try await event in stream {
-                    if case .text(let chunk) = event { fullResponse += chunk }
-                }
+            // Routes through the multi-provider dispatcher; unknown review
+            // model ids fall back to the app default model.
+            let stream = MultiProviderAIService.stream(messages: messages, modelID: reviewModelId)
+            for try await event in stream {
+                if case .text(let chunk) = event { fullResponse += chunk }
             }
         } catch {
             logger.error("AdversarialReview failed: \(error.localizedDescription)")

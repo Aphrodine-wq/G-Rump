@@ -280,7 +280,9 @@ class OpenAICompatibleService {
 
     // MARK: - Error parsing
 
-    private static func parseAPIErrorMessage(_ data: Data) -> String? {
+    /// Shared with the native Anthropic/Google streams — both APIs use the
+    /// same {"error": {"message": ...}} envelope on non-200 responses.
+    static func parseAPIErrorMessage(_ data: Data) -> String? {
         struct ErrorPayload: Decodable {
             let error: ErrorDetail?
             struct ErrorDetail: Decodable {
