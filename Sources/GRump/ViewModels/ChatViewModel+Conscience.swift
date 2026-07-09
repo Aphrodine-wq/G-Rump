@@ -13,8 +13,42 @@ extension ChatViewModel {
         "create_file", "write_file", "edit_file", "append_file", "delete_file",
         "create_directory", "find_and_replace", "git_add", "git_commit", "git_push",
         "write_env_file", "npm_install", "pip_install", "cargo_add", "docker_run", "docker_build",
-        "propose_skill"
+        "propose_skill", "add_goal"
     ]
+
+    /// File tools that can write arbitrary paths.
+    private static let genericFileWriteTools: Set<String> = [
+        "create_file", "write_file", "edit_file", "append_file", "delete_file", "find_and_replace"
+    ]
+
+    /// Identity and skill files the agent must not edit through generic file
+    /// tools without explicit approval — record_lesson/propose_skill are the
+    /// sanctioned paths for learned content. Returns the resolved target path
+    /// when the write is protected, else nil.
+    nonisolated static func protectedWriteTarget(
+        toolName: String,
+        args: [String: Any],
+        workingDirectory: String
+    ) -> String? {
+        guard genericFileWriteTools.contains(toolName),
+              let rawPath = args["path"] as? String else { return nil }
+
+        var resolved = (rawPath as NSString).expandingTildeInPath
+        if !resolved.hasPrefix("/") {
+            let base = workingDirectory.isEmpty ? FileManager.default.currentDirectoryPath : workingDirectory
+            resolved = (base as NSString).appendingPathComponent(resolved)
+        }
+        resolved = (resolved as NSString).standardizingPath
+
+        let lower = resolved.lowercased()
+        if lower.hasSuffix("/soul.md") || lower.hasSuffix("/mind.md") {
+            return resolved
+        }
+        if lower.contains("/.grump/skills/") || lower.contains("/skills/skill-") {
+            return resolved
+        }
+        return nil
+    }
 
     /// Returns a refusal string if the Conscience gate blocks this tool, else nil.
     func conscienceRefusal(toolName: String, arguments: String) async -> String? {

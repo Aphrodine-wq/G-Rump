@@ -83,6 +83,19 @@ extension ChatViewModel {
             }
         }
 
+        // Identity/skill files are protected even in normal runs: a generic file
+        // write to SOUL.md, MIND.md, or a skills directory needs explicit
+        // approval — record_lesson/propose_skill are the sanctioned paths.
+        if !isDaemonRunActive,
+           let target = Self.protectedWriteTarget(toolName: name, args: args, workingDirectory: workingDirectory) {
+            let approved = await DaemonApprovalCoordinator.shared.requestApproval(
+                action: "\(name) → protected file \(target)"
+            )
+            if !approved {
+                return "Write to protected file denied: \(target). Use record_lesson or propose_skill for learned content, or edit it yourself in Settings."
+            }
+        }
+
         switch name {
         case "read_file":
             return executeReadFile(args)
@@ -450,6 +463,8 @@ extension ChatViewModel {
             return await executeReflect(args)
         case "propose_skill":
             return await executeProposeSkill(args)
+        case "add_goal":
+            return await executeAddGoal(args)
         case "swift_format":
             return await executeSwiftFormat(args)
         case "swift_lint":

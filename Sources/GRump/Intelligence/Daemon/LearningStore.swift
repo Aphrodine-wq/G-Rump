@@ -39,6 +39,11 @@ actor LearningStore {
         return r.totalDuration / Double(r.attempts)
     }
 
+    func attempts(for key: String) -> Int {
+        loadIfNeeded()
+        return records[key]?.attempts ?? 0
+    }
+
     // MARK: - Persistence
 
     private func loadIfNeeded() {

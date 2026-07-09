@@ -32,7 +32,32 @@ final class AutonomousLoop {
 
         let goalStore = GoalStore(workingDirectory: viewModel.workingDirectory)
         let pending = await goalStore.pendingGoals()
-        guard let goal = pending.first else { return }
+        guard !pending.isEmpty else { return }
+
+        // Closed loop: score goals by priority + learned success for their task
+        // type; park types the daemon has proven bad at (≥3 attempts, <1/3
+        // success) with a visible needs-attention status instead of retrying.
+        var chosen: Goal?
+        var chosenType: TaskType = .general
+        var bestScore = -Double.infinity
+        for goal in pending {
+            let type = TaskType.classify(from: goal.title + " " + goal.body)
+            let key = "goal:\(type.rawValue)"
+            let attempts = await learning.attempts(for: key)
+            let rate = await learning.successRate(for: key)
+            if attempts >= 3 && rate < 1.0 / 3.0 {
+                await goalStore.markStatus(goal, "needs-attention")
+                GRumpLogger.brain.warning("Daemon parked goal \"\(goal.title, privacy: .public)\": task type \(type.rawValue, privacy: .public) succeeds \(Int(rate * 100))% — needs your attention.")
+                continue
+            }
+            let score = Double(goal.priority) + 2.0 * rate
+            if score > bestScore {
+                bestScore = score
+                chosen = goal
+                chosenType = type
+            }
+        }
+        guard let goal = chosen else { return }
 
         isRunningGoal = true
         defer { isRunningGoal = false }
@@ -41,7 +66,28 @@ final class AutonomousLoop {
         let start = Date()
         let ok = await DaemonRunner.run(goal: goal, viewModel: viewModel)
         await goalStore.markStatus(goal, ok ? "done" : "failed")
-        await learning.record(key: "goal", success: ok, duration: Date().timeIntervalSince(start))
+        await learning.record(key: "goal:\(chosenType.rawValue)", success: ok, duration: Date().timeIntervalSince(start))
+
+        // End-of-goal reflection — the daemon learns from its own work.
+        if config.learningEnabled {
+            let tail = (viewModel.currentConversation?.messages.suffix(6) ?? [])
+                .map { "\($0.role == .user ? "user" : "assistant"): \(String($0.content.prefix(800)))" }
+                .joined(separator: "\n---\n")
+            let outcome = RunOutcome(
+                conversationId: viewModel.currentConversation?.id,
+                taskType: chosenType.rawValue, iterations: 0, toolStats: [],
+                buildFailures: 0, loopPivots: 0, regressionSummary: nil,
+                adversarialCriticals: 0, success: ok
+            )
+            _ = await ReflectionEngine.shared.reflect(
+                outcome: outcome,
+                transcriptTail: tail,
+                injectedLessons: [],
+                rejectedProposalNames: SkillProposalStore.shared.rejectedNames,
+                primaryModel: viewModel.effectiveModel,
+                trigger: "daemon-goal"
+            )
+        }
 
         viewModel.activityStore.append(ActivityEntry(
             toolName: "daemon_cycle",

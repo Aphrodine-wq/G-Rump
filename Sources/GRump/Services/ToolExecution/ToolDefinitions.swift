@@ -208,7 +208,8 @@ struct ToolDefinitions {
         recordLesson,
         rememberTool,
         reflectTool,
-        proposeSkill
+        proposeSkill,
+        addGoal
     ]
 
     // Individual tool schema definitions are in extension files:

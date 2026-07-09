@@ -61,6 +61,23 @@ extension ToolDefinitions {
         ] as [String: Any]
     ]
 
+    nonisolated(unsafe) static let addGoal: [String: Any] = [
+        "type": "function",
+        "function": [
+            "name": "add_goal",
+            "description": "Queue a goal for the autonomous daemon (vault Goals/ folder). The daemon works pending goals on a scratch branch when enabled, with every write approval-gated. Use for follow-up work that shouldn't block the current conversation.",
+            "parameters": [
+                "type": "object",
+                "properties": [
+                    "title": ["type": "string", "description": "Short goal title"],
+                    "body": ["type": "string", "description": "What to do and how to verify it"],
+                    "priority": ["type": "integer", "description": "Higher runs first (default 1)"]
+                ],
+                "required": ["title"]
+            ] as [String: Any]
+        ] as [String: Any]
+    ]
+
     nonisolated(unsafe) static let rememberTool: [String: Any] = [
         "type": "function",
         "function": [

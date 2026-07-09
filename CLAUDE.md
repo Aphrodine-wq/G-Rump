@@ -106,6 +106,18 @@ AI personality via `~/.grump/SOUL.md` (global) and `.grump/SOUL.md` (project, ov
 - `XcodeProjectInspector`: nonisolated project parsing + `xcodebuild -showBuildSettings -json` (10s watchdog) for product path/bundle id, cached per scheme|config.
 - Surfaces: build toolbar above chat, `PanelTab.build` console (Log|Issues, Fix-with-G-Rump, Reveal in Navigator, `xed --line`), ⌘0 left navigator (`FileTreeService.expandTo` handles reveals). The agent drives the same loop via `xcrun_simctl` (bootstatus/install/launch/terminate/app_log).
 
+### Learning Loop (`Intelligence/Learning/`)
+
+The recursive act→observe→distill→persist→apply loop. Kill switch: `BrainConfig.learningEnabled` (Settings → Brain → Learning).
+
+- `OutcomeLedger` (actor, `<project>/.grump/outcomes.json`, cap 500): every run's signals — task type, tool stats, build failures, pivots, criticals, injected lesson ids, two-stage success (flipped when `UserCorrectionDetector` classifies the next user message as a correction).
+- `LessonStore` (`~/.grump/lessons.json` + `<project>/.grump/lessons.json`, cap 200 active/scope): ≤280-char imperative lessons with Laplace confidence (wins+1)/(hits+2), idle decay, auto-retire <0.3 with ≥5 hits. Top lessons inject into the prompt via `appendLessons` (last chain step); injected ids attribute wins/losses back.
+- `ReflectionEngine` (TaskType.reflection → haiku-first): triggered by failures/pivots/criticals/corrections or every N runs; emits JSON ops add/reinforce/weaken/revise (applied, noticed in chat) + propose_skill (≥3-lesson cluster enforced, ALWAYS gated).
+- `SkillProposalStore` (`~/.grump/skill-proposals.json`, pending cap 10): approval in the Learning panel is the ONLY path from proposal to SKILL.md; rejections persist and are never re-proposed. Generic file-tool writes to SOUL.md/MIND.md/skills dirs require explicit approval even in normal runs (`protectedWriteTarget`).
+- Daemon closure: goals scored `priority + 2×successRate("goal:<taskType>")`; task types with ≥3 attempts under 1/3 success park as `needs-attention`; every finished goal ends with a reflection pass.
+- Agent tools: `record_lesson`, `remember`, `reflect` (ungated) · `propose_skill`, `add_goal` (mutating, Conscience-gated).
+- Learning panel (20th dock tab): pending proposals as diffs, lessons with confidence bars, recent outcomes.
+
 ### Key Services
 
 - `OpenAICompatibleService` — parameterized OpenAI-compatible streaming transport (serves OpenAI and OpenRouter). Carries the tool-call-complete request body.

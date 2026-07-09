@@ -94,6 +94,20 @@ extension ChatViewModel {
         return "Skill proposal '\(name)' queued for user review in the Learning panel. Do not assume approval."
     }
 
+    func executeAddGoal(_ args: [String: Any]) async -> String {
+        guard let title = args["title"] as? String,
+              !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return "Error: missing goal title"
+        }
+        let body = (args["body"] as? String) ?? ""
+        let priority = (args["priority"] as? Int) ?? 1
+        let store = GoalStore(workingDirectory: workingDirectory)
+        let goal = await store.addGoal(title: title, body: body, priority: priority)
+        let daemonOn = BrainConfigStore.shared.load().daemonEnabled
+        return "Goal queued: \"\(goal.title)\" [\(goal.id)] priority \(priority)."
+            + (daemonOn ? " The daemon will pick it up." : " The daemon is currently disabled (Settings → Brain).")
+    }
+
     func executeRemember(_ args: [String: Any]) async -> String {
         guard let content = args["content"] as? String,
               !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
