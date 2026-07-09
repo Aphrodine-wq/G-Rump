@@ -228,6 +228,5 @@ struct Conversation: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-
 // The legacy `AIModel` enum is gone — `EnhancedAIModel` (AIProviders.swift)
 // backed by `AIModelRegistry` is the single model representation.

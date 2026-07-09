@@ -292,7 +292,6 @@ extension ChatViewModel {
         await runPostAgentCleanup(iterationCount: iterationCount, maxIterations: maxIterations)
     }
 
-
     // MARK: - Retry Logic
 
     func shouldRetry(error: Error, attempt: Int) -> Bool {
@@ -311,7 +310,6 @@ extension ChatViewModel {
     func retryDelay(attempt: Int) -> Double {
         return Double(min(attempt * attempt, 20))
     }
-
 
     // MARK: - Retry Last Message
 
