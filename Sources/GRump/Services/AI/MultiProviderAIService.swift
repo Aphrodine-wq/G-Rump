@@ -2,6 +2,12 @@ import Foundation
 import Combine
 
 // MARK: - Multi-Provider AI Service
+//
+// Orchestrates provider/model selection and dispatches chat completions.
+// Four providers: Anthropic and Google stream through native request
+// builders (MultiProviderAIService+RequestBuilders.swift, parsers in
+// SSELineParser+Providers.swift); OpenAI and OpenRouter ride the
+// parameterized OpenAICompatibleService transport.
 
 @MainActor
 class MultiProviderAIService: ObservableObject {
@@ -12,49 +18,23 @@ class MultiProviderAIService: ObservableObject {
     @Published var isConfigured: Bool = false
 
     let modelRegistry = AIModelRegistry.shared
-    private var coreMLService: CoreMLInferenceService?
     private var cancellables = Set<AnyCancellable>()
 
     init() {
-        self.coreMLService = CoreMLInferenceService()
         loadConfiguration()
         refreshModels()
-
-        // Auto-refresh local models when provider changes
-        $currentProvider
-            .sink { [weak self] provider in
-                switch provider {
-                case .ollama:
-                    Task {
-                        await self?.modelRegistry.refreshOllamaModels()
-                        await MainActor.run {
-                            self?.refreshModels()
-                        }
-                    }
-                case .onDevice:
-                    Task { @MainActor in
-                        self?.coreMLService?.refreshAvailableModels()
-                        self?.refreshModels()
-                    }
-                default:
-                    break
-                }
-            }
-            .store(in: &cancellables)
     }
 
     // MARK: - Configuration
 
     private func loadConfiguration() {
-        if let providerString = UserDefaults.standard.string(forKey: "CurrentAIProvider"),
-           let provider = AIProvider(rawValue: providerString) {
+        if let saved = UserDefaults.standard.string(forKey: "CurrentAIProvider"),
+           let provider = AIProvider(rawValue: saved) {
             currentProvider = provider
         }
-
         if let modelID = UserDefaults.standard.string(forKey: "CurrentAIModel") {
             currentModel = modelRegistry.getModel(by: modelID)
         }
-
         updateConfigurationStatus()
     }
 
@@ -70,19 +50,15 @@ class MultiProviderAIService: ObservableObject {
     // MARK: - Model Management
 
     func refreshModels() {
-        if currentProvider == .onDevice {
-            // On-device models come from CoreMLInferenceService, not the registry
-            availableModels = coreMLService?.enhancedModels() ?? []
-        } else {
-            availableModels = modelRegistry.getModels(for: currentProvider)
-        }
+        availableModels = modelRegistry.getModels(for: currentProvider)
 
-        // If current model is not in the available models, select the first one
+        // If the current model doesn't belong to this provider, fall back to
+        // the provider's default (Opus 4.8 for Anthropic — never Fable).
         if let currentModel = currentModel,
            !availableModels.contains(where: { $0.id == currentModel.id }) {
-            self.currentModel = availableModels.first
+            self.currentModel = modelRegistry.defaultModel(for: currentProvider)
         } else if currentModel == nil {
-            currentModel = availableModels.first
+            currentModel = modelRegistry.defaultModel(for: currentProvider)
         }
 
         updateConfigurationStatus()
@@ -119,80 +95,160 @@ class MultiProviderAIService: ObservableObject {
         tools: [[String: Any]]? = nil
     ) -> AsyncThrowingStream<StreamEvent, Error> {
         guard let model = currentModel else {
-            return AsyncThrowingStream { $0.finish(throwing: AIServiceError.noModelSelected) }
+            return Self.errorStream(AIServiceError.noModelSelected)
         }
-
-        // On-device inference does not need a provider config
-        if model.provider == .onDevice {
-            return streamOnDevice(messages: messages, model: model)
-        }
-
         guard let config = modelRegistry.getProviderConfig(for: model.provider) else {
-            return AsyncThrowingStream { $0.finish(throwing: AIServiceError.providerNotConfigured) }
+            return Self.errorStream(AIServiceError.providerNotConfigured)
         }
-
-        switch model.provider {
-        case .openRouter:
-            return streamOpenRouter(messages: messages, model: model, config: config, tools: tools)
-        case .openAI:
-            return streamOpenAI(messages: messages, model: model, config: config, tools: tools)
-        case .anthropic:
-            return streamAnthropic(messages: messages, model: model, config: config, tools: tools)
-        case .google:
-            return streamGoogle(messages: messages, model: model, config: config, tools: tools)
-        case .ollama:
-            return streamOllama(messages: messages, model: model, config: config, tools: tools)
-        case .onDevice:
-            return streamOnDevice(messages: messages, model: model) // Already handled above
-        }
+        return Self.routedStream(messages: messages, model: model, config: config, tools: tools)
     }
 
-    // MARK: - Provider-Specific Streaming
+    /// Stream against an explicit model id, independent of the UI selection.
+    /// Used by side-consumers (Writing Tools, adversarial review, the model
+    /// router). Unknown ids fall back to the app default — a stale persisted
+    /// id must never crash a request.
+    nonisolated static func stream(
+        messages: [Message],
+        modelID: String,
+        tools: [[String: Any]]? = nil
+    ) -> AsyncThrowingStream<StreamEvent, Error> {
+        let registry = AIModelRegistry.shared
+        let model = registry.getModel(by: modelID) ?? registry.defaultModel()
+        guard let config = registry.getProviderConfig(for: model.provider) else {
+            return errorStream(AIServiceError.providerNotConfigured)
+        }
+        return routedStream(messages: messages, model: model, config: config, tools: tools)
+    }
 
-    func streamOpenRouter(
+    // MARK: - Provider Dispatch
+
+    nonisolated private static func routedStream(
         messages: [Message],
         model: EnhancedAIModel,
         config: ProviderConfiguration,
         tools: [[String: Any]]?
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        let openRouterService = OpenRouterService()
-        return openRouterService.streamMessage(
+        switch model.provider {
+        case .openAI:
+            return openAICompatibleStream(.openAI, messages: messages, model: model, config: config, tools: tools)
+        case .openRouter:
+            return openAICompatibleStream(.openRouter, messages: messages, model: model, config: config, tools: tools)
+        case .anthropic:
+            return anthropicStream(messages: messages, model: model, config: config, tools: tools)
+        case .google:
+            return googleStream(messages: messages, model: model, config: config, tools: tools)
+        }
+    }
+
+    // MARK: - OpenAI-Compatible Streaming (OpenAI, OpenRouter)
+
+    nonisolated private static func openAICompatibleStream(
+        _ configuration: OpenAICompatibleService.Configuration,
+        messages: [Message],
+        model: EnhancedAIModel,
+        config: ProviderConfiguration,
+        tools: [[String: Any]]?
+    ) -> AsyncThrowingStream<StreamEvent, Error> {
+        var transportConfig = configuration
+        // Respect a per-provider base URL override from Settings.
+        if let baseURL = config.baseURL, !baseURL.isEmpty {
+            transportConfig.baseURL = baseURL
+        }
+        let service = OpenAICompatibleService(configuration: transportConfig)
+        return service.streamMessage(
             messages: messages,
             apiKey: config.apiKey ?? "",
             model: model.modelID,
+            maxTokens: model.maxOutput,
             tools: tools
         )
     }
 
-    nonisolated func streamOpenAI(
+    // MARK: - Native Streaming (Anthropic, Google)
+
+    nonisolated private static func anthropicStream(
         messages: [Message],
         model: EnhancedAIModel,
         config: ProviderConfiguration,
         tools: [[String: Any]]?
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        return AsyncThrowingStream<StreamEvent, Error>(bufferingPolicy: .unbounded) { continuation in
+        guard let apiKey = config.apiKey, !apiKey.isEmpty else {
+            return errorStream(OpenAICompatibleService.ServiceError.missingAPIKey)
+        }
+        do {
+            let request = try buildAnthropicRequest(
+                messages: messages,
+                model: model.modelID,
+                apiKey: apiKey,
+                baseURL: config.baseURL ?? AIProvider.anthropic.defaultBaseURL,
+                maxTokens: model.maxOutput,
+                tools: tools
+            )
+            return nativeStream(request: request, parser: .anthropic)
+        } catch {
+            return errorStream(error)
+        }
+    }
+
+    nonisolated private static func googleStream(
+        messages: [Message],
+        model: EnhancedAIModel,
+        config: ProviderConfiguration,
+        tools: [[String: Any]]?
+    ) -> AsyncThrowingStream<StreamEvent, Error> {
+        guard let apiKey = config.apiKey, !apiKey.isEmpty else {
+            return errorStream(OpenAICompatibleService.ServiceError.missingAPIKey)
+        }
+        do {
+            let request = try buildGoogleRequest(
+                messages: messages,
+                model: model.modelID,
+                apiKey: apiKey,
+                baseURL: config.baseURL ?? AIProvider.google.defaultBaseURL,
+                maxOutputTokens: model.maxOutput,
+                tools: tools
+            )
+            return nativeStream(request: request, parser: .google)
+        } catch {
+            return errorStream(error)
+        }
+    }
+
+    enum NativeParser {
+        case anthropic
+        case google
+    }
+
+    nonisolated private static func nativeStream(
+        request: URLRequest,
+        parser: NativeParser
+    ) -> AsyncThrowingStream<StreamEvent, Error> {
+        AsyncThrowingStream { continuation in
             Task {
                 do {
-                    let request = try buildOpenAIRequest(
-                        messages: messages,
-                        model: model.modelID,
-                        apiKey: config.apiKey ?? "",
-                        baseURL: config.baseURL ?? model.provider.defaultBaseURL,
-                        tools: tools,
-                        stream: true
-                    )
-
                     let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
 
                     guard let httpResponse = response as? HTTPURLResponse else {
-                        throw AIServiceError.networkError
+                        throw OpenAICompatibleService.ServiceError.networkError
                     }
 
                     guard httpResponse.statusCode == 200 else {
-                        throw AIServiceError.apiError(httpResponse.statusCode)
+                        var errorData = Data()
+                        for try await byte in bytes { errorData.append(byte) }
+                        let message = OpenAICompatibleService.parseAPIErrorMessage(errorData)
+                        if let errorString = String(data: errorData, encoding: .utf8), message == nil {
+                            GRumpLogger.ai.error("API Error: \(errorString)")
+                        }
+                        throw OpenAICompatibleService.ServiceError.apiError(
+                            statusCode: httpResponse.statusCode, message: message)
                     }
 
-                    try await SSELineParser.parseOpenAICompatible(bytes: bytes, continuation: continuation)
+                    switch parser {
+                    case .anthropic:
+                        try await SSELineParser.parseAnthropic(bytes: bytes, continuation: continuation)
+                    case .google:
+                        try await SSELineParser.parseGoogle(bytes: bytes, continuation: continuation)
+                    }
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -201,130 +257,9 @@ class MultiProviderAIService: ObservableObject {
         }
     }
 
-    nonisolated func streamAnthropic(
-        messages: [Message],
-        model: EnhancedAIModel,
-        config: ProviderConfiguration,
-        tools: [[String: Any]]?
-    ) -> AsyncThrowingStream<StreamEvent, Error> {
-        return AsyncThrowingStream<StreamEvent, Error> { continuation in
-            Task {
-                do {
-                    let request = try buildAnthropicRequest(
-                        messages: messages,
-                        model: model.modelID,
-                        apiKey: config.apiKey ?? "",
-                        baseURL: config.baseURL ?? model.provider.defaultBaseURL,
-                        tools: tools,
-                        stream: true
-                    )
-
-                    let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
-
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        throw AIServiceError.networkError
-                    }
-
-                    guard httpResponse.statusCode == 200 else {
-                        throw AIServiceError.apiError(httpResponse.statusCode)
-                    }
-
-                    try await SSELineParser.parseAnthropic(bytes: bytes, continuation: continuation)
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-        }
+    nonisolated private static func errorStream(_ error: Error) -> AsyncThrowingStream<StreamEvent, Error> {
+        AsyncThrowingStream { $0.finish(throwing: error) }
     }
-
-    nonisolated func streamOllama(
-        messages: [Message],
-        model: EnhancedAIModel,
-        config: ProviderConfiguration,
-        tools: [[String: Any]]?
-    ) -> AsyncThrowingStream<StreamEvent, Error> {
-        return AsyncThrowingStream<StreamEvent, Error> { continuation in
-            Task {
-                do {
-                    let request = try buildOllamaRequest(
-                        messages: messages,
-                        model: model.modelID,
-                        baseURL: config.baseURL ?? model.provider.defaultBaseURL,
-                        tools: tools,
-                        stream: true
-                    )
-
-                    let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
-
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        throw AIServiceError.networkError
-                    }
-
-                    guard httpResponse.statusCode == 200 else {
-                        throw AIServiceError.apiError(httpResponse.statusCode)
-                    }
-
-                    try await SSELineParser.parseOllamaNDJSON(bytes: bytes, continuation: continuation)
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-        }
-    }
-
-    // MARK: - Google Gemini Streaming
-
-    nonisolated func streamGoogle(
-        messages: [Message],
-        model: EnhancedAIModel,
-        config: ProviderConfiguration,
-        tools: [[String: Any]]?
-    ) -> AsyncThrowingStream<StreamEvent, Error> {
-        return AsyncThrowingStream<StreamEvent, Error> { continuation in
-            Task {
-                do {
-                    let request = try buildGoogleRequest(
-                        messages: messages,
-                        model: model.modelID,
-                        apiKey: config.apiKey ?? "",
-                        baseURL: config.baseURL ?? model.provider.defaultBaseURL,
-                        tools: tools,
-                        maxOutputTokens: model.maxOutput
-                    )
-
-                    let (bytes, response) = try await StreamingNetwork.session.bytes(for: request)
-
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        throw AIServiceError.networkError
-                    }
-
-                    guard httpResponse.statusCode == 200 else {
-                        throw AIServiceError.apiError(httpResponse.statusCode)
-                    }
-
-                    try await SSELineParser.parseGoogleSSE(bytes: bytes, continuation: continuation)
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-        }
-    }
-
-    // MARK: - On-Device (Core ML) Streaming
-
-    func streamOnDevice(
-        messages: [Message],
-        model: EnhancedAIModel
-    ) -> AsyncThrowingStream<StreamEvent, Error> {
-        guard let service = coreMLService else {
-            return AsyncThrowingStream { $0.finish(throwing: AIServiceError.providerNotConfigured) }
-        }
-        return service.streamMessage(messages: messages, maxTokens: model.maxOutput)
-    }
-
 }
 
 // MARK: - Error Types
@@ -353,7 +288,7 @@ enum AIServiceError: LocalizedError {
 }
 
 // MARK: - Stream Event
-// Uses the canonical StreamEvent enum defined in OpenRouterService.swift
+// Uses the canonical StreamEvent enum defined in OpenAICompatibleService.swift
 
 // MARK: - Extensions
 

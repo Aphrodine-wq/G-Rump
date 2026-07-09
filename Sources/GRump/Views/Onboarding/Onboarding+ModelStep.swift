@@ -28,32 +28,15 @@ extension OnboardingView {
 
             ScrollView {
                 LazyVStack(spacing: Spacing.md) {
-                    // Show models for the selected provider
+                    // Models for the provider chosen on the welcome step.
                     let providerModels = AIModelRegistry.shared.getModels(for: selectedOnboardingProvider)
 
                     if !providerModels.isEmpty {
-                        providerSectionHeader(selectedOnboardingProvider.displayName, icon: providerIconName(selectedOnboardingProvider))
+                        providerSectionHeader(selectedOnboardingProvider.displayName,
+                                              icon: providerIconName(selectedOnboardingProvider))
                         ForEach(providerModels, id: \.id) { model in
                             enhancedModelCard(model)
                         }
-                    }
-
-                    // Also show legacy models if OpenRouter is selected
-                    if selectedOnboardingProvider == .openRouter {
-                        let models = AIModel.modelsForTier(viewModel.platformUser?.tier)
-                        let freeModels = models.filter { $0.tier == "Free" }
-                        if !freeModels.isEmpty {
-                            providerSectionHeader("Free Models", icon: "gift")
-                            ForEach(freeModels) { model in
-                                modelCard(model)
-                            }
-                        }
-                    }
-
-                    // Other providers teaser
-                    if selectedOnboardingProvider.requiresAPIKey {
-                        providerSectionHeader("Local Options", icon: "desktopcomputer")
-                        otherProvidersTeaser
                     }
                 }
                 .padding(.horizontal, Spacing.huge)
@@ -64,14 +47,7 @@ extension OnboardingView {
     }
 
     func providerIconName(_ provider: AIProvider) -> String {
-        switch provider {
-        case .anthropic: return "sparkles"
-        case .openAI: return "brain"
-        case .openRouter: return "globe"
-        case .google: return "globe.americas"
-        case .ollama: return "desktopcomputer"
-        case .onDevice: return "apple.logo"
-        }
+        provider.iconName
     }
 
     func enhancedModelCard(_ model: EnhancedAIModel) -> some View {
@@ -127,7 +103,7 @@ extension OnboardingView {
     var otherProvidersTeaser: some View {
         HStack(spacing: Spacing.xl) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("OpenAI, Anthropic, Ollama, On-Device")
+                Text("OpenAI, Google, OpenRouter")
                     .font(Typography.bodySmallMedium)
                     .foregroundColor(themeManager.palette.textPrimary)
                 Text("Configure API keys in Settings → Providers after setup.")
@@ -146,47 +122,4 @@ extension OnboardingView {
             .stroke(themeManager.palette.borderCrisp.opacity(0.2), lineWidth: 1))
     }
 
-    func modelCard(_ model: AIModel) -> some View {
-        let isSelected = viewModel.selectedModel == model
-        return Button {
-            viewModel.selectedModel = model
-        } label: {
-            HStack(spacing: Spacing.xl) {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack(spacing: Spacing.md) {
-                        Text(model.displayName)
-                            .font(Typography.bodySemibold)
-                            .foregroundColor(themeManager.palette.textPrimary)
-                        Text(model.tier)
-                            .font(Typography.micro)
-                            .foregroundColor(model.tier == "Free" ? .accentGreen : themeManager.palette.effectiveAccent)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background((model.tier == "Free" ? Color.accentGreen : themeManager.palette.effectiveAccent).opacity(0.15))
-                            .clipShape(Capsule())
-                    }
-                    Text(model.description)
-                        .font(Typography.captionSmall)
-                        .foregroundColor(themeManager.palette.textMuted)
-                        .lineLimit(1)
-                }
-                Spacer()
-                Text("\(model.contextWindow / 1000)K")
-                    .font(Typography.captionSmallSemibold)
-                    .foregroundColor(themeManager.palette.textMuted)
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(themeManager.palette.effectiveAccent)
-                }
-            }
-            .padding(Spacing.xl)
-            .background(isSelected
-                        ? themeManager.palette.effectiveAccent.opacity(0.1)
-                        : themeManager.palette.bgCard.opacity(0.6))
-            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                .stroke(isSelected ? themeManager.palette.effectiveAccent.opacity(0.5) : themeManager.palette.borderCrisp.opacity(0.3), lineWidth: isSelected ? 2 : 1))
-        }
-        .buttonStyle(.plain)
-    }
 }

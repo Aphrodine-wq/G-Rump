@@ -7,12 +7,12 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     // MARK: - Empty / Whitespace Messages
 
     func testEmptyMessageReturnsNoSuggestions() {
-        let suggestions = FollowUpGenerator.generate(from: "", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "", agentMode: .spec)
         XCTAssertTrue(suggestions.isEmpty, "Empty message should produce no suggestions")
     }
 
     func testWhitespaceOnlyMessageReturnsNoSuggestions() {
-        let suggestions = FollowUpGenerator.generate(from: "   \n\t  ", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "   \n\t  ", agentMode: .spec)
         XCTAssertTrue(suggestions.isEmpty, "Whitespace-only message should produce no suggestions")
     }
 
@@ -20,7 +20,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
 
     func testVeryLongMessageDoesNotCrash() {
         let longMessage = String(repeating: "This is a test message with a function. ", count: 500)
-        let suggestions = FollowUpGenerator.generate(from: longMessage, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: longMessage, agentMode: .spec)
         XCTAssertLessThanOrEqual(suggestions.count, 2)
     }
 
@@ -36,7 +36,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
         There's an error in the function I created.
         I've updated the file.
         """
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertLessThanOrEqual(suggestions.count, 2, "Should be capped at 2")
         // Should have at least one relevant suggestion
         XCTAssertFalse(suggestions.isEmpty)
@@ -63,7 +63,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
             "There's an eRRoR in the code."
         ]
         for msg in messages {
-            let suggestions = FollowUpGenerator.generate(from: msg, agentMode: .standard)
+            let suggestions = FollowUpGenerator.generate(from: msg, agentMode: .spec)
             XCTAssertTrue(
                 suggestions.contains(where: { $0.label == "Show the fix" || $0.label == "Why did this happen?" }),
                 "Failed case insensitivity for: \(msg)"
@@ -79,7 +79,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
             "Added a Struct to handle data."
         ]
         for msg in messages {
-            let suggestions = FollowUpGenerator.generate(from: msg, agentMode: .standard)
+            let suggestions = FollowUpGenerator.generate(from: msg, agentMode: .spec)
             XCTAssertTrue(
                 suggestions.contains(where: { $0.label == "Write tests" }),
                 "Failed case insensitivity for: \(msg)"
@@ -92,7 +92,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     func testRefactorKeyword() {
         let suggestions = FollowUpGenerator.generate(
             from: "I'll refactor this component to use protocol-oriented design.",
-            agentMode: .standard
+            agentMode: .spec
         )
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Apply changes" }))
     }
@@ -100,7 +100,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     func testImproveKeyword() {
         let suggestions = FollowUpGenerator.generate(
             from: "Let me improve the performance of this algorithm.",
-            agentMode: .standard
+            agentMode: .spec
         )
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Apply changes" }))
     }
@@ -108,7 +108,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     func testOptimizeKeyword() {
         let suggestions = FollowUpGenerator.generate(
             from: "We should optimize the database queries.",
-            agentMode: .standard
+            agentMode: .spec
         )
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Apply changes" }))
     }
@@ -132,7 +132,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     func testPlanKeywordInStandardMode() {
         let suggestions = FollowUpGenerator.generate(
             from: "Here is my plan for the feature.",
-            agentMode: .standard
+            agentMode: .spec
         )
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Execute the plan" }))
     }
@@ -140,7 +140,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     func testStepKeywordTriggersPlanSuggestion() {
         let suggestions = FollowUpGenerator.generate(
             from: "Follow these steps to implement the feature.",
-            agentMode: .standard
+            agentMode: .spec
         )
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Execute the plan" }))
     }
@@ -195,7 +195,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
         // A generic message with no keywords should get no suggestions (no fallback)
         let suggestions = FollowUpGenerator.generate(
             from: "Thanks, that's helpful!",
-            agentMode: .standard
+            agentMode: .spec
         )
         XCTAssertTrue(suggestions.isEmpty, "Generic messages should not produce suggestions")
     }
@@ -203,7 +203,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     func testCappedAtTwoWhenManySuggestions() {
         // A message triggering many keyword matches should still cap at 2
         let message = "I created a function that has an error."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertLessThanOrEqual(suggestions.count, 2)
     }
 
@@ -219,7 +219,7 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
             "Thanks!"
         ]
         for msg in testMessages {
-            let suggestions = FollowUpGenerator.generate(from: msg, agentMode: .standard)
+            let suggestions = FollowUpGenerator.generate(from: msg, agentMode: .spec)
             for suggestion in suggestions {
                 XCTAssertFalse(suggestion.prompt.isEmpty, "Suggestion '\(suggestion.label)' has empty prompt")
                 XCTAssertFalse(suggestion.icon.isEmpty, "Suggestion '\(suggestion.label)' has empty icon")
@@ -231,34 +231,34 @@ final class FollowUpGeneratorExtendedTests: XCTestCase {
     // MARK: - File Modification Keywords
 
     func testCreatedKeyword() {
-        let suggestions = FollowUpGenerator.generate(from: "I created the new module.", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "I created the new module.", agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Run the build" || $0.label == "Review changes" }))
     }
 
     func testModifiedKeyword() {
-        let suggestions = FollowUpGenerator.generate(from: "I modified the config file.", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "I modified the config file.", agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Run the build" || $0.label == "Review changes" }))
     }
 
     func testWroteKeyword() {
-        let suggestions = FollowUpGenerator.generate(from: "I wrote the implementation.", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "I wrote the implementation.", agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Run the build" || $0.label == "Review changes" }))
     }
 
     // MARK: - Bug Keyword Variations
 
     func testBugKeyword() {
-        let suggestions = FollowUpGenerator.generate(from: "Found a bug in the parser.", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "Found a bug in the parser.", agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.category == .fix || $0.category == .explain }))
     }
 
     func testIssueKeyword() {
-        let suggestions = FollowUpGenerator.generate(from: "There's an issue with the API.", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "There's an issue with the API.", agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.category == .fix || $0.category == .explain }))
     }
 
     func testFixKeyword() {
-        let suggestions = FollowUpGenerator.generate(from: "Let me fix that problem.", agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: "Let me fix that problem.", agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.category == .fix || $0.category == .explain }))
     }
 

@@ -14,17 +14,7 @@ extension ChatViewModel {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let appDir = appSupport.appendingPathComponent(appDirectoryName, isDirectory: true)
         try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        let newURL = appDir.appendingPathComponent("conversations.json")
-
-        if !FileManager.default.fileExists(atPath: newURL.path) {
-            let legacyURL = appSupport
-                .appendingPathComponent(legacyAppDirectoryName, isDirectory: true)
-                .appendingPathComponent("conversations.json")
-            if FileManager.default.fileExists(atPath: legacyURL.path) {
-                try? FileManager.default.copyItem(at: legacyURL, to: newURL)
-            }
-        }
-        return newURL
+        return appDir.appendingPathComponent("conversations.json")
     }
 
     func saveConversations() {

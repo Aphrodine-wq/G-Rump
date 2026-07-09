@@ -7,7 +7,6 @@ import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
     case account
-    case billing
     case providers
     case presets
     case behavior
@@ -17,7 +16,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case appearance
     case tools
     case mcp
-    case openClaw
     case skills
     case soul
     case brain
@@ -38,16 +36,16 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// Each category is (icon, label, tabs). If tabs has only 1 item, it shows directly; otherwise drill-down.
     static var categories: [(icon: String, label: String, tabs: [SettingsTab])] {
         var list: [(icon: String, label: String, tabs: [SettingsTab])] = [
-            ("person.crop.circle.fill", "Account", [.account, .billing]),
+            ("person.crop.circle.fill", "Account", [.account]),
             ("cpu", "AI", [.providers, .presets, .behavior, .streaming, .advanced]),
-            ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul, .brain]),
+            ("folder.fill", "Workspace", [.project, .tools, .mcp, .skills, .soul, .brain]),
             ("paintbrush.fill", "Appearance", [.appearance]),
             ("gearshape", "General", [.notifications, .shortcuts, .updates, .data, .memory, .privacy]),
             ("info.circle.fill", "About", [.about])
         ]
         #if os(macOS)
         if let idx = list.firstIndex(where: { $0.label == "Workspace" }) {
-            list[idx] = ("folder.fill", "Workspace", [.project, .tools, .mcp, .openClaw, .skills, .soul, .brain, .security])
+            list[idx] = ("folder.fill", "Workspace", [.project, .tools, .mcp, .skills, .soul, .brain, .security])
         }
         #endif
         return list
@@ -61,7 +59,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .account: return "Account"
-        case .billing: return "Billing"
         case .appearance: return "Appearance"
         case .providers: return "Providers"
         case .presets: return "Workflow Presets"
@@ -74,7 +71,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .updates: return "Updates"
         case .tools: return "Tools"
         case .mcp: return "MCP Servers"
-        case .openClaw: return "OpenClaw"
         case .skills: return "Skills"
         case .soul: return "Soul"
         case .brain: return "Brain"
@@ -91,7 +87,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .account: return "key.fill"
-        case .billing: return "creditcard.fill"
         case .appearance: return "paintbrush.fill"
         case .providers: return "cpu"
         case .presets: return "square.stack.3d.up.fill"
@@ -104,7 +99,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .updates: return "arrow.down.circle.fill"
         case .tools: return "wrench.and.screwdriver.fill"
         case .mcp: return "cylinder.split.1x2.fill"
-        case .openClaw: return "antenna.radiowaves.left.and.right"
         case .skills: return "brain.head.profile"
         case .soul: return "person.text.rectangle.fill"
         case .brain: return "brain.filled.head.profile"
@@ -121,7 +115,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// Top-level tab groups for horizontal tab bar. (Label, tabs in group)
     static var tabGroups: [(String, [SettingsTab])] {
         var list: [(String, [SettingsTab])] = [
-            ("Account", [.account, .billing]),
+            ("Account", [.account]),
             ("AI & Providers", [.providers, .presets, .behavior, .streaming]),
             ("Advanced", [.advanced]),
             ("Workspace", [.project]),
@@ -132,11 +126,11 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         ]
         #if os(macOS)
         if let idx = list.firstIndex(where: { $0.0 == "Tools" }) {
-            list[idx] = ("Tools & Security", [.tools, .mcp, .openClaw, .skills, .soul, .brain, .security])
+            list[idx] = ("Tools & Security", [.tools, .mcp, .skills, .soul, .brain, .security])
         }
         #else
         if let idx = list.firstIndex(where: { $0.0 == "Tools" }) {
-            list[idx] = ("Tools", [.tools, .mcp, .openClaw, .skills, .soul, .brain])
+            list[idx] = ("Tools", [.tools, .mcp, .skills, .soul, .brain])
         }
         #endif
         return list
@@ -160,7 +154,5 @@ enum SettingsKeys {
     static let showMenuBarExtra = "ShowMenuBarExtra"
     static let projectMemoryEnabled = "ProjectMemoryEnabled"
     static let semanticMemoryEnabled = "SemanticMemoryEnabled"
-    static let parallelAgentsEnabled = "ParallelAgentsEnabled"
-    static let parallelAgentsMax = "ParallelAgentsMax"
     static let returnToSend = "ReturnToSend"
 }

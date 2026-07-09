@@ -1,14 +1,20 @@
 # G-Rump
 
-**AI Coding Agent for macOS** -- 54K lines of Swift, multi-model support, 100+ local tools, MCP integration, agent modes, skills system, and ambient code awareness.
+**An autonomous AI coding agent for macOS** -- 54K lines of Swift, a persistent cross-session memory, 100+ local tools, MCP integration, agent modes, and an approval-gated autonomous daemon.
 
-G-Rump is a native macOS AI coding agent built with Swift and SwiftUI. It connects to multiple LLM providers (OpenRouter, Anthropic, OpenAI, Ollama, on-device CoreML), executes over 100 local tools (file operations, shell, git, Docker, browser, cloud deploy, Apple-native APIs), and implements the full Model Context Protocol for extensible tool use. Designed for developers who want a fast, private, macOS-native coding assistant with deep system integration.
+G-Rump is a native macOS AI coding agent built with Swift and SwiftUI, powered by **Anthropic Claude (default), OpenAI, Google Gemini, or OpenRouter** with your own API keys. It executes over 100 local tools (file operations, shell, git, Docker, browser, Apple-native APIs), implements the full Model Context Protocol, and runs an autonomous daemon that works coding goals on a scratch branch behind human approval gates.
+
+Its defining feature is a **persistent, cross-session brain**: G-Rump accumulates experience, recalls the most relevant memories *within a fixed token budget*, and *forgets* stale context on purpose -- a memory that behaves like a brain rather than an append-only vector log.
+
+> Originally built for the Global AI Hackathon with Qwen Cloud -- **Track 1: MemoryAgent**. The optional [`backend/`](./backend) proxy still speaks Qwen/DashScope; the app now calls providers directly by default.
 
 ---
 
 ## Features
 
-- **Multi-Provider AI** -- Anthropic, OpenAI, Ollama, OpenRouter, and on-device CoreML models with tier-based access
+- **Multi-Provider AI** -- Anthropic Claude (Opus 4.8 default; Fable 5, Sonnet 5, Haiku 4.5), OpenAI GPT-5.x, Google Gemini, and OpenRouter passthroughs, with provider-aware task routing across the tiers
+- **Persistent Cognitive Memory** -- cross-session memory that ranks by relevance x recency x salience, recalls within a fixed token budget, and consolidates/forgets stale memories (Track 1: MemoryAgent)
+- **Autonomous Daemon** -- works pending goals on a scratch branch with a Conscience safety gate and per-write approval
 - **100+ Local Tools** -- File, shell, git, Docker, browser, cloud deploy, Apple-native (Spotlight, Keychain, Calendar, OCR, xcodebuild), and more
 - **MCP Client & Server** -- 58 pre-configured MCP servers (GitHub, Postgres, Slack, Supabase, Figma, Playwright, Stripe, etc.) with Keychain-backed credential vault. Also exposes tools as an MCP server on TCP port 18790
 - **Agent Modes** -- Chat, Plan, Build, Debate, Spec, Parallel -- each with tailored execution strategies
@@ -62,11 +68,11 @@ G-Rump/
 │   ├── Models.swift            # Message, ToolCall, Conversation, Thread, Branch
 │   └── SwiftDataModels.swift   # Persistence (SwiftData for Xcode, JSON for SPM)
 ├── Resources/Skills/           # 40+ bundled SKILL.md files
-├── backend/                    # Node.js + SQLite backend
-│   ├── server.js               # Express API entry point
-│   ├── auth.js                 # Google Sign-In, JWT, user creation
-│   ├── db.js                   # SQLite (users, credits, tiers)
-│   └── proxy.js                # OpenRouter proxying with credit deduction
+├── backend/                    # Node.js Qwen proxy (deploys on Alibaba Cloud)
+│   ├── server.js               # Express API: health, chat, embeddings
+│   ├── alibaba.js              # The Alibaba Cloud / Qwen (DashScope) call site
+│   ├── Dockerfile              # Container for Alibaba ECS / Function Compute
+│   └── README-DEPLOY.md        # Alibaba Cloud deployment runbook
 ├── Tests/                      # Swift test suite
 ├── Makefile                    # Build automation
 ├── Package.swift               # Swift Package Manager manifest
@@ -75,14 +81,13 @@ G-Rump/
 
 ## Backend
 
-Node.js + Express server backed by SQLite. Handles auth, conversation persistence, credit management, and OpenRouter proxying.
+A minimal, stateless Node.js + Express proxy to **Qwen on Alibaba Cloud** (DashScope). All Alibaba Cloud calls live in `backend/alibaba.js`. Endpoints: `/api/health`, `/api/v1/chat/completions` (SSE streaming, tool calls preserved), `/api/v1/embeddings`. Deploy it on Alibaba Cloud ECS or Function Compute -- see [`backend/README-DEPLOY.md`](./backend/README-DEPLOY.md).
 
 ```bash
 cd backend
 npm install
-npm start         # http://localhost:3042
-npm run dev       # Watch mode
-npm test          # Run tests
+QWEN_API_KEY=sk-... npm start   # http://localhost:3042
+npm test                        # Run tests
 ```
 
 ## Exec Approvals
@@ -101,7 +106,7 @@ Add `.grump/config.json` in your project root:
 
 ```json
 {
-  "model": "anthropic/claude-3.7-sonnet",
+  "model": "qwen-coder-plus",
   "systemPrompt": "Custom instructions for this project...",
   "toolAllowlist": ["read_file", "run_command", "web_search"],
   "projectFacts": ["Uses Swift 5.9", "SwiftLint enabled"],
@@ -141,8 +146,9 @@ GitHub Actions pipeline runs on push/PR to `main`:
 | Component | Technology |
 |-----------|-----------|
 | Frontend | Swift 5.9+ / SwiftUI |
-| Backend | Node.js / Express / SQLite |
-| LLM Providers | OpenRouter, Anthropic, OpenAI, Ollama, CoreML |
+| Backend | Node.js / Express (optional legacy Qwen proxy) |
+| Models | Claude Opus 4.8 (default) / Fable 5 / Sonnet 5 / Haiku 4.5 · GPT-5.2 · Gemini 3 Pro / 2.5 Flash · OpenRouter routes |
+| Embeddings | Qwen text-embedding (Apple NLEmbedding offline fallback) |
 | Protocol | Model Context Protocol (MCP) |
 | Persistence | SwiftData (Xcode) / JSON (SPM) |
 | LSP | SourceKit-LSP |
@@ -156,6 +162,19 @@ GitHub Actions pipeline runs on push/PR to `main`:
 - **Screen Recording** -- System Settings > Privacy & Security > Screen Recording
 - **Accessibility** -- System Settings > Privacy & Security > Accessibility (for global hotkey)
 
+## Testing & evaluation
+
+**You don't need a Mac to verify G-Rump runs on Qwen.** With a Qwen key on any OS:
+
+```bash
+node scripts/judge-verify.mjs   # proves chat + multi-turn tool calling + embeddings on Qwen
+node scripts/agent-eval.mjs     # scores Qwen on a 4-task agent battery (real tool loop, mock repo)
+```
+
+On macOS, the full automated suites: `swift test -j 12` (1,437 checks incl. the
+cognitive-memory eval) and `cd backend && npm test`. Full methodology and a
+no-Mac testing path are in [docs/EVALS.md](./docs/EVALS.md).
+
 ## License
 
-Proprietary. All rights reserved.
+MIT -- see [LICENSE](./LICENSE).

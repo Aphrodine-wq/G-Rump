@@ -292,65 +292,6 @@ extension ChatViewModel {
         await runPostAgentCleanup(iterationCount: iterationCount, maxIterations: maxIterations)
     }
 
-    // MARK: - Fast Reply
-
-    /// Fast single-turn LLM call with no tools (for simple conversational messages).
-    internal func runFastReply() async {
-        let apiMessages = buildAPIMessages()
-        var textBuffer = ""
-
-        let stream = createProviderStream(messages: apiMessages, tools: [])
-
-        var lastStreamPublishTime = Date()
-        let streamThrottleInterval: TimeInterval = 0.025 // 40Hz for better responsiveness
-        let streamThrottleChars = 40 // Reduced for faster updates
-        var lastPublishedLength = 0
-
-        do {
-            for try await event in stream {
-                if Task.isCancelled { break }
-                switch event {
-                case .text(let chunk):
-                    textBuffer += chunk
-                    let now = Date()
-                    let elapsed = now.timeIntervalSince(lastStreamPublishTime)
-                    let charGrowth = textBuffer.count - lastPublishedLength
-                    let shouldPublish = elapsed >= streamThrottleInterval || charGrowth >= streamThrottleChars || chunk.contains("\n")
-                    if shouldPublish {
-                        lastStreamPublishTime = now
-                        lastPublishedLength = textBuffer.count
-                        streamingContent = textBuffer
-                        FrameLoopService.shared.markStreaming(for: 0.5) // Use streaming mode
-                    }
-                case .toolCallDelta:
-                    break
-                case .done:
-                    break
-                }
-            }
-            streamingContent = textBuffer
-        } catch is CancellationError {
-            streamingContent = ""
-            return
-        } catch {
-            if !textBuffer.isEmpty {
-                let partial = Message(role: .assistant, content: textBuffer + "\n\n(Partial response: stream interrupted.)")
-                currentConversation?.messages.append(partial)
-                syncConversation()
-            }
-            errorMessage = friendlyErrorMessage(error)
-            streamingContent = ""
-            return
-        }
-
-        if !textBuffer.isEmpty {
-            let reply = Message(role: .assistant, content: textBuffer)
-            currentConversation?.messages.append(reply)
-            streamingContent = ""
-            syncConversation()
-            flushSync()
-        }
-    }
 
     // MARK: - Retry Logic
 
@@ -359,7 +300,7 @@ extension ChatViewModel {
         if let urlError = error as? URLError {
             return [.timedOut, .networkConnectionLost, .notConnectedToInternet, .cannotConnectToHost].contains(urlError.code)
         }
-        if let serviceError = error as? OpenRouterService.ServiceError {
+        if let serviceError = error as? OpenAICompatibleService.ServiceError {
             if case .apiError(let code, _) = serviceError {
                 return [429, 500, 502, 503, 504].contains(code)
             }
@@ -371,38 +312,6 @@ extension ChatViewModel {
         return Double(min(attempt * attempt, 20))
     }
 
-    // MARK: - Simple Intent Detection
-
-    /// Returns true if the message is short and conversational (no coding intent).
-    /// Used to skip the full agent loop and do a single fast LLM call instead.
-    func isSimpleConversationalMessage(_ text: String) -> Bool {
-        let lower = text.lowercased()
-        guard text.count < 50 else { return false }
-        // Contains file paths
-        if lower.contains("/") || lower.contains("\\") { return false }
-        // Contains code blocks
-        if lower.contains("```") { return false }
-        // Coding keywords that signal agent work
-        let codingKeywords = [
-            "fix", "build", "create", "file", "debug", "implement", "refactor",
-            "test", "deploy", "write", "code", "function", "class", "error",
-            "bug", "install", "run", "compile", "delete", "move", "rename",
-            "update", "add", "remove", "change", "modify", "edit", "search",
-            "find", "replace", "git", "commit", "push", "pull", "merge",
-            "docker", "npm", "pip", "brew", "cargo", "swift", "make",
-            "database", "api", "server", "endpoint", "route", "component",
-            "module", "package", "import", "export", "migrate", "scaffold",
-            "generate", "config", "setup", "init", "analyze", "lint", "format"
-        ]
-        for keyword in codingKeywords {
-            // Match whole word boundaries
-            let pattern = "\\b\(keyword)\\b"
-            if lower.range(of: pattern, options: .regularExpression) != nil {
-                return false
-            }
-        }
-        return true
-    }
 
     // MARK: - Retry Last Message
 

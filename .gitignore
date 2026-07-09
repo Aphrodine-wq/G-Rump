@@ -42,3 +42,7 @@ DevID.p12
 *.certSigningRequest
 DevIDKey.p12
 *.p12
+website
+
+# Parked WIP (removed)
+_wip-quarantine/

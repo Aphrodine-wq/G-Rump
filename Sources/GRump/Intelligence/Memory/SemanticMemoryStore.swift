@@ -85,6 +85,45 @@ struct SemanticMemoryStore: ProjectMemoryStore {
         }
     }
 
+    // MARK: - Cognitive recall + consolidation (Track 1: MemoryAgent)
+
+    /// Recall the most valuable memories within a fixed token budget — ranked by
+    /// relevance × recency × salience, not a flat top-K. This is the answer to
+    /// "recall critical memories within a limited context window".
+    func budgetedMemoryBlock(for query: String, tokenBudget: Int = CognitiveMemory.defaultTokenBudget) -> String? {
+        guard !baseDirectory.isEmpty else { return nil }
+        let entries = loadEntries()
+        guard !entries.isEmpty, let queryVector = embed(query) else { return nil }
+        let records = entries.map { $0.toRecord() }
+        let recalled = CognitiveMemory.budgetedRecall(records, queryVector: queryVector, now: Date(), tokenBudget: tokenBudget)
+        return CognitiveMemory.promptBlock(recalled)
+    }
+
+    /// "Sleep" pass: decay strengths, merge near-duplicates, and forget stale
+    /// memories. Persists the surviving set. Returns what changed (for the
+    /// daemon's consolidation log / demo). Safe to call periodically.
+    @discardableResult
+    func consolidate(now: Date = Date()) -> ConsolidationResult {
+        let entries = loadEntries()
+        let records = entries.map { $0.toRecord() }
+        let result = CognitiveMemory.consolidate(records, now: now, maxEntries: Self.maxEntries)
+
+        // Reconstruct surviving entries from the originals, carrying updated strength.
+        let byID = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0) })
+        let iso = ISO8601DateFormatter()
+        let survivors: [SemanticMemoryEntry] = result.kept.compactMap { rec in
+            guard let original = byID[rec.id] else { return nil }
+            return SemanticMemoryEntry(
+                id: original.id, conversationId: original.conversationId,
+                timestamp: original.timestamp, text: original.text, vector: original.vector,
+                strength: rec.strength, lastAccess: iso.string(from: rec.lastAccess),
+                accessCount: rec.accessCount
+            )
+        }
+        saveEntries(survivors)
+        return result
+    }
+
     /// Total number of stored memory entries.
     func count() -> Int {
         loadEntries().count
@@ -183,6 +222,34 @@ struct SemanticMemoryEntry: Codable {
     let timestamp: String
     let text: String
     let vector: [Float]
+    // Cognitive metadata (optional for backward-compatible decoding of old files).
+    var strength: Double?
+    var lastAccess: String?
+    var accessCount: Int?
+
+    init(id: UUID, conversationId: String, timestamp: String, text: String, vector: [Float],
+         strength: Double? = 1.0, lastAccess: String? = nil, accessCount: Int? = 0) {
+        self.id = id
+        self.conversationId = conversationId
+        self.timestamp = timestamp
+        self.text = text
+        self.vector = vector
+        self.strength = strength
+        self.lastAccess = lastAccess ?? timestamp
+        self.accessCount = accessCount
+    }
+
+    /// Map to the storage-agnostic record used by CognitiveMemory.
+    func toRecord() -> MemoryRecord {
+        let iso = ISO8601DateFormatter()
+        let created = iso.date(from: timestamp) ?? Date(timeIntervalSince1970: 0)
+        let accessed = lastAccess.flatMap { iso.date(from: $0) } ?? created
+        return MemoryRecord(
+            id: id, conversationId: conversationId, timestamp: created, text: text,
+            vector: vector, strength: strength ?? 1.0, lastAccess: accessed,
+            accessCount: accessCount ?? 0
+        )
+    }
 }
 
 private struct SemanticMemoryFile: Codable {

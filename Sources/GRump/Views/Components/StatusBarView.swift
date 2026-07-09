@@ -133,7 +133,7 @@ struct StatusBarView: View {
     private var connectionStatus: String {
         if viewModel.isLoading { return "Streaming..." }
         switch ConnectionMonitor.shared.status {
-        case .connected: return viewModel.platformUser != nil ? "Connected" : "Guest mode"
+        case .connected: return "Connected"
         case .degraded(let reason): return "Degraded: \(reason)"
         case .disconnected: return "Disconnected"
         case .checking: return "Checking..."

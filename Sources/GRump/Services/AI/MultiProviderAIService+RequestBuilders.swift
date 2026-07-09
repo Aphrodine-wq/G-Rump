@@ -1,432 +1,286 @@
 import Foundation
 
-// MARK: - Request Builders Extension
+// MARK: - Native Request Builders (Anthropic, Google)
 //
-// Contains all provider-specific HTTP request builders and their
-// associated Codable request/response models.
-// Extracted from MultiProviderAIService.swift for maintainability.
+// Body builders are pure static functions returning dictionaries so tests can
+// assert the exact wire shape. Notable wire rules, each of which was broken in
+// the pre-Qwen incarnation of this file:
+//   - anthropic-version must be the literal API version "2023-06-01".
+//   - Anthropic takes `system` top-level; a "system" role inside messages[]
+//     is rejected.
+//   - Anthropic assistant turns must carry tool_use blocks for every tool
+//     call, and each tool result rides a tool_result block in a user message
+//     (consecutive results merged into ONE user message).
+//   - max_tokens comes from the selected model — never hardcoded.
+//   - No temperature: Claude 4.7+/5 models reject it.
+//   - Gemini tool results ride functionResponse parts (role "user"), with the
+//     function NAME resolved from the assistant turn that issued the call.
 
 extension MultiProviderAIService {
 
-    // MARK: - OpenAI Request Builder
+    // MARK: - Anthropic
 
-    nonisolated func buildOpenAIRequest(
+    nonisolated static func buildAnthropicRequest(
         messages: [Message],
         model: String,
         apiKey: String,
         baseURL: String,
-        tools: [[String: Any]]?,
-        stream: Bool
+        maxTokens: Int,
+        tools: [[String: Any]]?
     ) throws -> URLRequest {
-        guard let url = URL(string: "\(baseURL)/chat/completions") else {
+        let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: base + "/messages") else {
             throw URLError(.badURL)
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let requestBody = OpenAIRequest(
-            model: model,
-            messages: messages.map { openAIMessage(from: $0) },
-            tools: tools,
-            stream: stream,
-            temperature: 0.7,
-            maxTokens: nil
-        )
-
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        return request
-    }
-
-    // MARK: - Anthropic Request Builder
-
-    nonisolated func buildAnthropicRequest(
-        messages: [Message],
-        model: String,
-        apiKey: String,
-        baseURL: String,
-        tools: [[String: Any]]?,
-        stream: Bool
-    ) throws -> URLRequest {
-        guard let url = URL(string: "\(baseURL)/messages") else {
-            throw URLError(.badURL)
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.timeoutInterval = 180
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("anthropic-dangerous-direct-browser-access", forHTTPHeaderField: "anthropic-version")
+        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let requestBody = AnthropicRequest(
-            model: model,
-            messages: messages.map { anthropicMessage(from: $0) },
-            tools: tools?.map { anthropicTool(from: $0) },
-            maxTokens: 4096,
-            stream: stream
-        )
-
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        return request
-    }
-
-    // MARK: - Ollama Request Builder
-
-    nonisolated func buildOllamaRequest(
-        messages: [Message],
-        model: String,
-        baseURL: String,
-        tools: [[String: Any]]?,
-        stream: Bool
-    ) throws -> URLRequest {
-        // Native Ollama API uses /api/chat, not /v1/chat
-        // Strip /v1 suffix if present since we're using native API
-        let cleanBaseURL = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            .replacingOccurrences(of: "/v1", with: "")
-        guard let url = URL(string: "\(cleanBaseURL)/api/chat") else {
-            throw URLError(.badURL)
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let requestBody = OllamaRequest(
-            model: model,
-            messages: messages.map { ollamaMessage(from: $0) },
-            stream: stream,
-            options: OllamaOptions(temperature: 0.7, numPredict: 2048)
-        )
-
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        return request
-    }
-
-    // MARK: - Google Gemini Request Builder
-
-    nonisolated func buildGoogleRequest(
-        messages: [Message],
-        model: String,
-        apiKey: String,
-        baseURL: String,
-        tools: [[String: Any]]?,
-        maxOutputTokens: Int
-    ) throws -> URLRequest {
-        let cleanBase = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        guard let url = URL(string: "\(cleanBase)/models/\(model):streamGenerateContent?alt=sse&key=\(apiKey)") else {
-            throw URLError(.badURL)
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Convert messages to Gemini contents format
-        var contents: [[String: Any]] = []
-        var systemInstruction: [String: Any]?
-
-        for message in messages {
-            if message.role == .system {
-                systemInstruction = ["parts": [["text": message.content]]]
-                continue
-            }
-            let role = message.role == .assistant ? "model" : "user"
-            contents.append([
-                "role": role,
-                "parts": [["text": message.content]]
-            ])
-        }
-
-        var body: [String: Any] = [
-            "contents": contents,
-            "generationConfig": [
-                "temperature": 0.7,
-                "maxOutputTokens": maxOutputTokens
-            ]
-        ]
-        if let sys = systemInstruction {
-            body["systemInstruction"] = sys
-        }
-
-        // Convert tools to Gemini function declarations
-        if let tools = tools, !tools.isEmpty {
-            var functionDeclarations: [[String: Any]] = []
-            for tool in tools {
-                if let function = tool["function"] as? [String: Any] {
-                    functionDeclarations.append(function)
-                }
-            }
-            if !functionDeclarations.isEmpty {
-                body["tools"] = [["functionDeclarations": functionDeclarations]]
-            }
-        }
-
+        let body = anthropicBody(messages: messages, model: model, maxTokens: maxTokens,
+                                 stream: true, tools: tools)
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         return request
     }
 
-    // MARK: - Message Converters
+    nonisolated static func anthropicBody(
+        messages: [Message],
+        model: String,
+        maxTokens: Int,
+        stream: Bool,
+        tools: [[String: Any]]?
+    ) -> [String: Any] {
+        var apiMessages: [[String: Any]] = []
+        var systemParts: [String] = []
+        // Consecutive tool results collapse into one user message.
+        var pendingToolResults: [[String: Any]] = []
 
-    nonisolated func openAIMessage(from message: Message) -> OpenAIMessage {
-        return OpenAIMessage(
-            role: message.role.rawValue,
-            content: message.content,
-            toolCalls: message.toolCalls?.map { toolCall in
-                OpenAIMessage.ToolCallDTO(
-                    id: toolCall.id,
-                    type: "function",
-                    function: OpenAIMessage.ToolCallDTO.FunctionCall(
-                        name: toolCall.name,
-                        arguments: toolCall.arguments
-                    )
-                )
-            }
-        )
-    }
-
-    nonisolated func anthropicMessage(from message: Message) -> AnthropicMessage {
-        if message.role == .tool {
-            return AnthropicMessage(
-                role: "user",
-                content: [
-                    AnthropicMessage.Content(
-                        type: "tool_result",
-                        text: nil,
-                        toolUseId: message.toolCallId ?? "",
-                        toolResult: message.content
-                    )
-                ]
-            )
-        } else {
-            return AnthropicMessage(
-                role: message.role.rawValue,
-                content: [AnthropicMessage.Content(type: "text", text: message.content, toolUseId: nil, toolResult: nil)]
-            )
+        func flushToolResults() {
+            guard !pendingToolResults.isEmpty else { return }
+            apiMessages.append(["role": "user", "content": pendingToolResults])
+            pendingToolResults = []
         }
-    }
 
-    nonisolated func ollamaMessage(from message: Message) -> OllamaMessage {
-        return OllamaMessage(
-            role: message.role == .tool ? "user" : message.role.rawValue,
-            content: message.content
-        )
-    }
+        for message in messages {
+            switch message.role {
+            case .system:
+                systemParts.append(message.content)
 
-    nonisolated func anthropicTool(from tool: [String: Any]) -> AnthropicTool {
-        let fn = tool["function"] as? [String: Any] ?? [:]
-        return AnthropicTool(
-            name: fn["name"] as? String ?? "",
-            description: fn["description"] as? String ?? "",
-            inputSchema: fn["parameters"] as? [String: Any] ?? [:]
-        )
-    }
-}
+            case .user:
+                flushToolResults()
+                apiMessages.append([
+                    "role": "user",
+                    "content": [["type": "text", "text": message.content]]
+                ])
 
-// MARK: - Request/Response Models
+            case .assistant:
+                flushToolResults()
+                var blocks: [[String: Any]] = []
+                if !message.content.isEmpty {
+                    blocks.append(["type": "text", "text": message.content])
+                }
+                for call in message.toolCalls ?? [] {
+                    blocks.append([
+                        "type": "tool_use",
+                        "id": call.id,
+                        "name": call.name,
+                        "input": parsedJSONObject(call.arguments)
+                    ])
+                }
+                // Anthropic rejects an empty content array.
+                if !blocks.isEmpty {
+                    apiMessages.append(["role": "assistant", "content": blocks])
+                }
 
-struct OpenAIRequest: Encodable {
-    let model: String
-    let messages: [OpenAIMessage]
-    let tools: [[String: Any]]?
-    let stream: Bool
-    let temperature: Double
-    let maxTokens: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case model, messages, tools, stream, temperature
-        case maxTokens = "max_tokens"
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(model, forKey: .model)
-        try container.encode(messages, forKey: .messages)
-        try container.encode(stream, forKey: .stream)
-        try container.encode(temperature, forKey: .temperature)
-        try container.encodeIfPresent(maxTokens, forKey: .maxTokens)
-        if let tools = tools, let data = try? JSONSerialization.data(withJSONObject: tools),
-           let jsonArray = try? JSONDecoder().decode([JSONValue].self, from: data) {
-            try container.encode(jsonArray, forKey: .tools)
-        }
-    }
-}
-
-/// A generic JSON value for encoding arbitrary JSON structures.
-enum JSONValue: Codable {
-    case string(String)
-    case number(Double)
-    case bool(Bool)
-    case object([String: JSONValue])
-    case array([JSONValue])
-    case null
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(String.self) { self = .string(value) } else if let value = try? container.decode(Double.self) { self = .number(value) } else if let value = try? container.decode(Bool.self) { self = .bool(value) } else if let value = try? container.decode([String: JSONValue].self) { self = .object(value) } else if let value = try? container.decode([JSONValue].self) { self = .array(value) } else if container.decodeNil() { self = .null } else { throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported JSON value") }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        switch self {
-        case .string(let value): try container.encode(value)
-        case .number(let value): try container.encode(value)
-        case .bool(let value): try container.encode(value)
-        case .object(let value): try container.encode(value)
-        case .array(let value): try container.encode(value)
-        case .null: try container.encodeNil()
-        }
-    }
-}
-
-struct OpenAIMessage: Codable {
-    let role: String
-    let content: String
-    let toolCalls: [ToolCallDTO]?
-
-    struct ToolCallDTO: Codable {
-        let id: String
-        let type: String
-        let function: FunctionCall
-
-        struct FunctionCall: Codable {
-            let name: String
-            let arguments: String
-        }
-    }
-}
-
-struct OpenAIStreamResponse: Codable {
-    let choices: [Choice]
-
-    struct Choice: Codable {
-        let delta: Delta
-        let finishReason: String?
-
-        struct Delta: Codable {
-            let content: String?
-            let toolCalls: [StreamToolCall]?
-
-            enum CodingKeys: String, CodingKey {
-                case content
-                case toolCalls = "tool_calls"
+            case .tool:
+                pendingToolResults.append([
+                    "type": "tool_result",
+                    "tool_use_id": message.toolCallId ?? "",
+                    "content": message.content
+                ])
             }
         }
-    }
+        flushToolResults()
 
-    struct StreamToolCall: Codable {
-        let id: String?
-        let type: String?
-        let function: StreamFunction?
-
-        struct StreamFunction: Codable {
-            let name: String?
-            let arguments: String?
+        var body: [String: Any] = [
+            "model": model,
+            "max_tokens": maxTokens,
+            "stream": stream,
+            "messages": apiMessages
+        ]
+        let system = systemParts.joined(separator: "\n\n")
+        if !system.isEmpty {
+            body["system"] = system
         }
-    }
-}
-
-struct AnthropicRequest: Encodable {
-    let model: String
-    let messages: [AnthropicMessage]
-    let tools: [AnthropicTool]?
-    let maxTokens: Int
-    let stream: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case model, messages, tools, stream
-        case maxTokens = "max_tokens"
-    }
-}
-
-struct AnthropicMessage: Codable {
-    let role: String
-    let content: [Content]
-
-    struct Content: Codable {
-        let type: String
-        let text: String?
-        let toolUseId: String?
-        let toolResult: String?
-
-        enum CodingKeys: String, CodingKey {
-            case type, text
-            case toolUseId = "tool_use_id"
-            case toolResult = "content"
+        if let tools = tools, !tools.isEmpty {
+            body["tools"] = tools.compactMap { anthropicTool(from: $0) }
+            body["tool_choice"] = ["type": "auto"]
         }
+        return body
     }
-}
 
-struct AnthropicTool: Encodable {
-    let name: String
-    let description: String
-    let inputSchema: [String: Any]
+    /// OpenAI-style {type: function, function: {name, description, parameters}}
+    /// → Anthropic {name, description, input_schema}.
+    nonisolated static func anthropicTool(from tool: [String: Any]) -> [String: Any]? {
+        let function = tool["function"] as? [String: Any] ?? tool
+        guard let name = function["name"] as? String, !name.isEmpty else { return nil }
+        return [
+            "name": name,
+            "description": function["description"] as? String ?? "",
+            "input_schema": function["parameters"] as? [String: Any] ?? ["type": "object"]
+        ]
+    }
 
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(name, forKey: .name)
-        try container.encode(description, forKey: .description)
-        if let data = try? JSONSerialization.data(withJSONObject: inputSchema),
-           let jsonObj = try? JSONDecoder().decode([String: JSONValue].self, from: data) {
-            try container.encode(jsonObj, forKey: .inputSchema)
+    // MARK: - Google (Gemini)
+
+    nonisolated static func buildGoogleRequest(
+        messages: [Message],
+        model: String,
+        apiKey: String,
+        baseURL: String,
+        maxOutputTokens: Int,
+        tools: [[String: Any]]?
+    ) throws -> URLRequest {
+        let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: "\(base)/models/\(model):streamGenerateContent?alt=sse&key=\(apiKey)") else {
+            throw URLError(.badURL)
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 180
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = googleBody(messages: messages, maxOutputTokens: maxOutputTokens, tools: tools)
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return request
     }
 
-    enum CodingKeys: String, CodingKey {
-        case name, description, inputSchema = "input_schema"
-    }
-}
+    nonisolated static func googleBody(
+        messages: [Message],
+        maxOutputTokens: Int,
+        tools: [[String: Any]]?
+    ) -> [String: Any] {
+        var contents: [[String: Any]] = []
+        var systemParts: [String] = []
+        var pendingFunctionResponses: [[String: Any]] = []
+        // tool_call_id → function name, resolved from prior assistant turns.
+        var callNames: [String: String] = [:]
 
-struct AnthropicStreamResponse: Codable {
-    let type: String
-    let delta: Delta?
+        func flushFunctionResponses() {
+            guard !pendingFunctionResponses.isEmpty else { return }
+            contents.append(["role": "user", "parts": pendingFunctionResponses])
+            pendingFunctionResponses = []
+        }
 
-    struct Delta: Codable {
-        let text: String?
-        let toolUse: [ToolUse]?
-    }
+        for message in messages {
+            switch message.role {
+            case .system:
+                systemParts.append(message.content)
 
-    struct ToolUse: Codable {
-        let id: String?
-        let name: String?
-        let input: ToolInput?
-    }
+            case .user:
+                flushFunctionResponses()
+                contents.append(["role": "user", "parts": [["text": message.content]]])
 
-    struct ToolInput: Codable {
-        func jsonString() -> String {
-            if let data = try? JSONEncoder().encode(self),
-               let string = String(data: data, encoding: .utf8) {
-                return string
+            case .assistant:
+                flushFunctionResponses()
+                var parts: [[String: Any]] = []
+                if !message.content.isEmpty {
+                    parts.append(["text": message.content])
+                }
+                for call in message.toolCalls ?? [] {
+                    callNames[call.id] = call.name
+                    parts.append([
+                        "functionCall": [
+                            "name": call.name,
+                            "args": parsedJSONObject(call.arguments)
+                        ]
+                    ])
+                }
+                if !parts.isEmpty {
+                    contents.append(["role": "model", "parts": parts])
+                }
+
+            case .tool:
+                let name = message.toolCallId.flatMap { callNames[$0] } ?? "unknown"
+                pendingFunctionResponses.append([
+                    "functionResponse": [
+                        "name": name,
+                        "response": ["result": message.content]
+                    ]
+                ])
             }
-            return "{}"
         }
+        flushFunctionResponses()
+
+        var body: [String: Any] = [
+            "contents": contents,
+            "generationConfig": ["maxOutputTokens": maxOutputTokens]
+        ]
+        let system = systemParts.joined(separator: "\n\n")
+        if !system.isEmpty {
+            body["systemInstruction"] = ["parts": [["text": system]]]
+        }
+        if let tools = tools, !tools.isEmpty {
+            let declarations = tools.compactMap { googleFunctionDeclaration(from: $0) }
+            if !declarations.isEmpty {
+                body["tools"] = [["functionDeclarations": declarations]]
+            }
+        }
+        return body
     }
-}
 
-struct OllamaRequest: Codable {
-    let model: String
-    let messages: [OllamaMessage]
-    let stream: Bool
-    let options: OllamaOptions
-}
-
-struct OllamaMessage: Codable {
-    let role: String
-    let content: String
-}
-
-struct OllamaOptions: Codable {
-    let temperature: Double
-    let numPredict: Int
-
-    enum CodingKeys: String, CodingKey {
-        case temperature
-        case numPredict = "num_predict"
+    /// OpenAI-style function def → Gemini functionDeclaration, with the
+    /// parameters schema stripped of JSON-Schema keywords Gemini rejects.
+    nonisolated static func googleFunctionDeclaration(from tool: [String: Any]) -> [String: Any]? {
+        let function = tool["function"] as? [String: Any] ?? tool
+        guard let name = function["name"] as? String, !name.isEmpty else { return nil }
+        var declaration: [String: Any] = [
+            "name": name,
+            "description": function["description"] as? String ?? ""
+        ]
+        if let parameters = function["parameters"] as? [String: Any] {
+            declaration["parameters"] = sanitizeGoogleSchema(parameters)
+        }
+        return declaration
     }
-}
 
-struct OllamaStreamResponse: Codable {
-    let response: String
-    let done: Bool
+    /// Gemini's OpenAPI-subset schema rejects several JSON-Schema keywords.
+    /// Over-stripping is safe (the schema just gets more permissive);
+    /// under-stripping 400s the whole request.
+    nonisolated static func sanitizeGoogleSchema(_ schema: [String: Any]) -> [String: Any] {
+        let rejected: Set<String> = [
+            "$schema", "additionalProperties", "default", "examples", "pattern",
+            "format", "minLength", "maxLength", "minimum", "maximum",
+            "exclusiveMinimum", "exclusiveMaximum", "minItems", "maxItems"
+        ]
+        var cleaned: [String: Any] = [:]
+        for (key, value) in schema where !rejected.contains(key) {
+            if let nested = value as? [String: Any] {
+                cleaned[key] = sanitizeGoogleSchema(nested)
+            } else if let array = value as? [[String: Any]] {
+                cleaned[key] = array.map { sanitizeGoogleSchema($0) }
+            } else {
+                cleaned[key] = value
+            }
+        }
+        return cleaned
+    }
+
+    // MARK: - Helpers
+
+    /// Tool-call arguments arrive as a JSON string; both native APIs want the
+    /// parsed object. Malformed args degrade to an empty object.
+    nonisolated static func parsedJSONObject(_ jsonString: String) -> [String: Any] {
+        guard let data = jsonString.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return [:]
+        }
+        return object
+    }
 }

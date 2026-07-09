@@ -1,6 +1,6 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  AIProviders.swift                                          ║
-// ║  Multi-provider system — models, registry, and Ollama       ║
+// ║  Multi-provider system — providers, models, and the registry ║
 // ╚══════════════════════════════════════════════════════════════╝
 
 import Foundation
@@ -12,67 +12,66 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
     case openAI = "openai"
     case google = "google"
     case openRouter = "openrouter"
-    case ollama = "ollama"
-    case onDevice = "ondevice"
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .openRouter: return "OpenRouter"
-        case .openAI: return "OpenAI"
         case .anthropic: return "Anthropic"
-        case .google: return "Google AI"
-        case .ollama: return "Ollama (Local)"
-        case .onDevice: return "On-Device (Core ML)"
+        case .openAI: return "OpenAI"
+        case .google: return "Google"
+        case .openRouter: return "OpenRouter"
         }
     }
 
     var description: String {
         switch self {
-        case .openRouter: return "Access multiple models through OpenRouter"
-        case .openAI: return "Direct access to OpenAI models"
-        case .anthropic: return "Direct access to Anthropic Claude models"
-        case .google: return "Direct access to Google Gemini models"
-        case .ollama: return "Run models locally on your machine"
-        case .onDevice: return "Apple Silicon inference via Core ML \u{2014} zero network, zero telemetry"
+        case .anthropic: return "Claude models via the Anthropic API"
+        case .openAI: return "GPT models via the OpenAI API"
+        case .google: return "Gemini models via the Google AI API"
+        case .openRouter: return "Many models through one OpenRouter key"
         }
     }
 
-    var requiresAPIKey: Bool {
-        switch self {
-        case .openRouter, .openAI, .anthropic, .google: return true
-        case .ollama, .onDevice: return false
-        }
-    }
+    var requiresAPIKey: Bool { true }
 
     var defaultBaseURL: String {
         switch self {
-        case .openRouter: return "https://openrouter.ai/api/v1"
-        case .openAI: return "https://api.openai.com/v1"
         case .anthropic: return "https://api.anthropic.com/v1"
+        case .openAI: return "https://api.openai.com/v1"
         case .google: return "https://generativelanguage.googleapis.com/v1beta"
-        case .ollama: return "http://localhost:11434/v1"
-        case .onDevice: return "" // No network needed
+        case .openRouter: return "https://openrouter.ai/api/v1"
         }
     }
-}
 
-// MARK: - Model Mode
+    /// Keychain account name holding this provider's API key. Keychain is the
+    /// single source of truth for keys; the UserDefaults registry never
+    /// persists them (ProviderConfiguration excludes apiKey from Codable).
+    var keychainAccount: String {
+        switch self {
+        case .anthropic: return "AnthropicAPIKey"
+        case .openAI: return "OpenAIAPIKey"
+        case .google: return "GoogleAPIKey"
+        case .openRouter: return "OpenRouterAPIKey"
+        }
+    }
 
-struct ModelMode: Codable, Equatable, Identifiable {
-    let id: String
-    let displayName: String
-    let apiModelID: String?
-    let overrideContextWindow: Int?
-    let overrideMaxOutput: Int?
+    var iconName: String {
+        switch self {
+        case .anthropic: return "asterisk"
+        case .openAI: return "circle.hexagongrid"
+        case .google: return "diamond"
+        case .openRouter: return "arrow.triangle.branch"
+        }
+    }
 
-    init(id: String, displayName: String, apiModelID: String? = nil, overrideContextWindow: Int? = nil, overrideMaxOutput: Int? = nil) {
-        self.id = id
-        self.displayName = displayName
-        self.apiModelID = apiModelID
-        self.overrideContextWindow = overrideContextWindow
-        self.overrideMaxOutput = overrideMaxOutput
+    var keyPlaceholder: String {
+        switch self {
+        case .anthropic: return "sk-ant-..."
+        case .openAI: return "sk-..."
+        case .google: return "AIza..."
+        case .openRouter: return "sk-or-..."
+        }
     }
 }
 
@@ -89,28 +88,12 @@ struct EnhancedAIModel: Identifiable, Codable, Equatable {
     let requiresPaidTier: Bool
     let capabilities: ModelCapabilities
     let pricing: ModelPricing?
-    let modes: [ModelMode]
 
     var rawValue: String { modelID }
 
-    var hasModes: Bool { !modes.isEmpty }
-
-    func effectiveModelID(mode: ModelMode?) -> String {
-        guard let mode = mode, let override = mode.apiModelID else { return modelID }
-        return override
-    }
-
-    func effectiveContextWindow(mode: ModelMode?) -> Int {
-        mode?.overrideContextWindow ?? contextWindow
-    }
-
-    func effectiveMaxOutput(mode: ModelMode?) -> Int {
-        mode?.overrideMaxOutput ?? maxOutput
-    }
-
     init(id: String, provider: AIProvider, modelID: String, displayName: String, description: String,
          contextWindow: Int, maxOutput: Int, requiresPaidTier: Bool, capabilities: ModelCapabilities,
-         pricing: ModelPricing?, modes: [ModelMode] = []) {
+         pricing: ModelPricing?) {
         self.id = id
         self.provider = provider
         self.modelID = modelID
@@ -121,7 +104,6 @@ struct EnhancedAIModel: Identifiable, Codable, Equatable {
         self.requiresPaidTier = requiresPaidTier
         self.capabilities = capabilities
         self.pricing = pricing
-        self.modes = modes
     }
 
     static func == (lhs: EnhancedAIModel, rhs: EnhancedAIModel) -> Bool {
@@ -171,12 +153,19 @@ struct ModelPricing: Codable, Equatable {
 
 // MARK: - Provider Configuration
 
+/// Per-provider settings. `apiKey` is runtime-only — hydrated from the Keychain
+/// by the registry and deliberately excluded from Codable so keys never land in
+/// UserDefaults (the old dual-storage bug).
 struct ProviderConfiguration: Codable {
     let provider: AIProvider
     var apiKey: String?
     var baseURL: String?
     var isEnabled: Bool = true
     var customHeaders: [String: String] = [:]
+
+    private enum CodingKeys: String, CodingKey {
+        case provider, baseURL, isEnabled, customHeaders
+    }
 
     init(provider: AIProvider, apiKey: String? = nil, baseURL: String? = nil) {
         self.provider = provider
@@ -194,6 +183,10 @@ final class AIModelRegistry: @unchecked Sendable {
     private var providerConfigs: [AIProvider: ProviderConfiguration] = [:]
 
     private init() {
+        // One-shot migration of Qwen-era persisted state. Runs here so it is
+        // guaranteed to precede every read of provider/model defaults —
+        // whichever subsystem touches the registry first pays for it.
+        ProviderMigration.runIfNeeded()
         loadDefaultModels()
         loadProviderConfigurations()
     }
@@ -213,23 +206,67 @@ final class AIModelRegistry: @unchecked Sendable {
         return models.first { $0.id == id }
     }
 
+    /// The app-wide default model: Claude Opus 4.8. Non-optional — the
+    /// bundled catalog guarantees an entry; the synthetic tail exists only so
+    /// a future empty-catalog bug degrades instead of crashing.
+    func defaultModel() -> EnhancedAIModel {
+        if let opus = getModel(by: "claude-opus-4-8") { return opus }
+        if let first = getModels(for: .anthropic).first ?? getAllModels().first { return first }
+        return EnhancedAIModel(
+            id: "claude-opus-4-8", provider: .anthropic, modelID: "claude-opus-4-8",
+            displayName: "Claude Opus 4.8", description: "Default model",
+            contextWindow: 1_000_000, maxOutput: 128_000, requiresPaidTier: false,
+            capabilities: .default, pricing: nil
+        )
+    }
+
+    /// Sensible default per provider (never Fable — premium, explicit-select only).
+    func defaultModel(for provider: AIProvider) -> EnhancedAIModel? {
+        let preferred: String
+        switch provider {
+        case .anthropic: preferred = "claude-opus-4-8"
+        case .openAI: preferred = "gpt-5.2"
+        case .google: preferred = "gemini-3-pro"
+        case .openRouter: preferred = "anthropic/claude-sonnet-5"
+        }
+        return getModel(by: preferred) ?? getModels(for: provider).first
+    }
+
     func getProviderConfig(for provider: AIProvider) -> ProviderConfiguration? {
         return providerConfigs[provider]
     }
 
     func setProviderConfig(_ config: ProviderConfiguration) {
         providerConfigs[config.provider] = config
+        // Keys ride the config in memory but persist only in the Keychain.
+        if let key = config.apiKey {
+            setAPIKey(key, for: config.provider)
+        }
         saveProviderConfigurations()
     }
 
     func isProviderConfigured(_ provider: AIProvider) -> Bool {
-        // On-device needs no config — it's always "configured" if Core ML is available
-        if provider == .onDevice { return true }
-
         guard let config = providerConfigs[provider] else { return false }
-
         if !provider.requiresAPIKey { return true }
         return !(config.apiKey?.isEmpty ?? true)
+    }
+
+    // MARK: - API Keys (Keychain is the only persistence)
+
+    func apiKey(for provider: AIProvider) -> String? {
+        providerConfigs[provider]?.apiKey ?? KeychainStorage.get(account: provider.keychainAccount)
+    }
+
+    func setAPIKey(_ key: String, for provider: AIProvider) {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            KeychainStorage.delete(account: provider.keychainAccount)
+        } else {
+            KeychainStorage.set(account: provider.keychainAccount, value: trimmed)
+        }
+        var config = providerConfigs[provider] ?? ProviderConfiguration(provider: provider)
+        config.apiKey = trimmed.isEmpty ? nil : trimmed
+        providerConfigs[provider] = config
     }
 
     // MARK: - Model Loading (catalog in AIModelCatalog.swift)
@@ -254,6 +291,13 @@ final class AIModelRegistry: @unchecked Sendable {
                 providerConfigs[provider] = ProviderConfiguration(provider: provider)
             }
         }
+
+        // Hydrate runtime keys from the Keychain.
+        for provider in AIProvider.allCases {
+            if let key = KeychainStorage.get(account: provider.keychainAccount), !key.isEmpty {
+                providerConfigs[provider]?.apiKey = key
+            }
+        }
     }
 
     private func saveProviderConfigurations() {
@@ -263,189 +307,4 @@ final class AIModelRegistry: @unchecked Sendable {
         }
     }
 
-    // MARK: - Dynamic Model Loading
-
-    @discardableResult
-    func refreshOllamaModels() async -> Bool {
-        guard let config = providerConfigs[.ollama],
-              config.isEnabled else { return false }
-
-        do {
-            let fetchedModels = try await fetchOllamaModels(baseURL: config.baseURL ?? AIProvider.ollama.defaultBaseURL)
-            await MainActor.run {
-                // Remove existing Ollama models
-                self.models.removeAll(where: { $0.provider == .ollama })
-
-                // Add fetched models
-                for model in fetchedModels {
-                    let enhancedModel = EnhancedAIModel(
-                        id: "ollama-\(model.name)",
-                        provider: .ollama,
-                        modelID: model.name,
-                        displayName: model.name.capitalized,
-                        description: "Local Ollama model: \(model.name)",
-                        contextWindow: 4096,
-                        maxOutput: 2048,
-                        requiresPaidTier: false,
-                        capabilities: ModelCapabilities.default,
-                        pricing: nil
-                    )
-                    self.models.append(enhancedModel)
-                }
-            }
-            return true
-        } catch {
-            GRumpLogger.ai.error("Failed to fetch Ollama models: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    func isOllamaRunning() async -> Bool {
-        guard let config = providerConfigs[.ollama], config.isEnabled else { return false }
-        do {
-            _ = try await fetchOllamaModels(baseURL: config.baseURL ?? AIProvider.ollama.defaultBaseURL)
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    func pullOllamaModel(_ modelName: String) async throws {
-        guard let config = providerConfigs[.ollama], config.isEnabled else {
-            throw URLError(.userAuthenticationRequired)
-        }
-
-        let baseURL = config.baseURL ?? AIProvider.ollama.defaultBaseURL
-        let urls = ollamaPullEndpoints(baseURL: baseURL)
-        guard !urls.isEmpty else { throw URLError(.badURL) }
-
-        let payload: [String: Any] = [
-            "name": modelName,
-            "stream": false
-        ]
-        let bodyData = try JSONSerialization.data(withJSONObject: payload)
-
-        var lastError: Error = URLError(.cannotConnectToHost)
-        for endpoint in urls {
-            var request = URLRequest(url: endpoint)
-            request.httpMethod = "POST"
-            request.timeoutInterval = 600
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = bodyData
-
-            do {
-                let (_, response) = try await URLSession.shared.data(for: request)
-                guard let http = response as? HTTPURLResponse,
-                      (200..<300).contains(http.statusCode) else {
-                    lastError = URLError(.badServerResponse)
-                    continue
-                }
-                _ = await refreshOllamaModels()
-                return
-            } catch {
-                lastError = error
-            }
-        }
-
-        throw lastError
-    }
-
-    private func fetchOllamaModels(baseURL: String) async throws -> [OllamaModel] {
-        let endpoints = ollamaTagEndpoints(baseURL: baseURL)
-        guard !endpoints.isEmpty else { throw URLError(.badURL) }
-
-        var lastError: Error = URLError(.cannotConnectToHost)
-        for endpoint in endpoints {
-            do {
-                var request = URLRequest(url: endpoint)
-                request.timeoutInterval = 3
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard let http = response as? HTTPURLResponse,
-                      (200..<300).contains(http.statusCode) else {
-                    lastError = URLError(.badServerResponse)
-                    continue
-                }
-
-                let decoded = try JSONDecoder().decode(OllamaResponse.self, from: data)
-                return decoded.models
-            } catch {
-                lastError = error
-            }
-        }
-
-        throw lastError
-    }
-
-    private func ollamaTagEndpoints(baseURL: String) -> [URL] {
-        var urls: [URL] = []
-
-        if let v1 = URL(string: "\(baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/tags") {
-            urls.append(v1)
-        }
-        if let root = ollamaRootURL(from: baseURL) {
-            urls.append(root.appendingPathComponent("api/tags"))
-        }
-
-        return deduplicatedURLs(urls)
-    }
-
-    private func ollamaPullEndpoints(baseURL: String) -> [URL] {
-        var urls: [URL] = []
-
-        if let v1 = URL(string: "\(baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/pull") {
-            urls.append(v1)
-        }
-        if let root = ollamaRootURL(from: baseURL) {
-            urls.append(root.appendingPathComponent("api/pull"))
-        }
-
-        return deduplicatedURLs(urls)
-    }
-
-    private func ollamaRootURL(from baseURL: String) -> URL? {
-        guard var components = URLComponents(string: baseURL) else { return nil }
-        if components.path.hasSuffix("/v1") {
-            components.path = String(components.path.dropLast(3))
-        }
-        if components.path == "/" { components.path = "" }
-        if components.path.hasSuffix("/") {
-            components.path.removeLast()
-        }
-        return components.url
-    }
-
-    private func deduplicatedURLs(_ urls: [URL]) -> [URL] {
-        var seen = Set<String>()
-        var deduped: [URL] = []
-        for url in urls {
-            let key = url.absoluteString
-            if seen.insert(key).inserted {
-                deduped.append(url)
-            }
-        }
-        return deduped
-    }
-}
-
-// MARK: - Ollama Models
-
-struct OllamaModel: Codable {
-    let name: String
-    let model: String
-    let modified_at: String
-    let size: Int64?
-    let digest: String
-    let details: OllamaModelDetails?
-}
-
-struct OllamaModelDetails: Codable {
-    let format: String
-    let family: String
-    let families: [String]?
-    let parameter_size: String?
-    let quantization_level: String?
-}
-
-struct OllamaResponse: Codable {
-    let models: [OllamaModel]
 }

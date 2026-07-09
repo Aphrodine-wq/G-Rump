@@ -45,14 +45,14 @@ final class ChatResponseTests: XCTestCase {
     func testSendMessageNoProviderSetsError() {
         let vm = makeViewModel()
         vm.userInput = "Hello"
-        // Ensure no provider is configured: clear API key and platform user
+        // Ensure no provider is configured: clear API key and backend URL
         vm.apiKey = ""
-        vm.platformUser = nil
+        UserDefaults.standard.removeObject(forKey: "BackendURL")
 
         vm.sendMessage()
 
         // If no provider is configured at all, we expect an error message
-        if !vm.isAIProviderConfigured && vm.platformUser == nil {
+        if !vm.isAIProviderConfigured {
             XCTAssertNotNil(vm.errorMessage, "Should set an error when no provider is configured")
         }
     }

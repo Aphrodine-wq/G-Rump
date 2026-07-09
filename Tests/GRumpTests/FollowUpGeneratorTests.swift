@@ -7,14 +7,14 @@ final class FollowUpGeneratorTests: XCTestCase {
 
     func testGeneratesSuggestionsForCodeContent() {
         let message = "Here's the code:\n```swift\nfunc hello() { }\n```"
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertFalse(suggestions.isEmpty)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Write tests" }))
     }
 
     func testGeneratesSuggestionsForFunctionMention() {
         let message = "I've created a new function that handles authentication."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Write tests" }))
     }
 
@@ -22,13 +22,13 @@ final class FollowUpGeneratorTests: XCTestCase {
 
     func testGeneratesSuggestionsForErrors() {
         let message = "There's an error in the file: missing semicolon on line 42."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Show the fix" }))
     }
 
     func testGeneratesSuggestionsForBugMention() {
         let message = "I found a bug in the login flow."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Show the fix" || $0.label == "Why did this happen?" }))
     }
 
@@ -36,7 +36,7 @@ final class FollowUpGeneratorTests: XCTestCase {
 
     func testGeneratesSuggestionsForFileModifications() {
         let message = "I've updated the configuration file with the new settings."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Run the build" || $0.label == "Review changes" }))
     }
 
@@ -60,7 +60,7 @@ final class FollowUpGeneratorTests: XCTestCase {
 
     func testPlainMessageGeneratesNoSuggestions() {
         let message = "Done."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.isEmpty, "Plain messages should not generate fallback suggestions")
     }
 
@@ -68,7 +68,7 @@ final class FollowUpGeneratorTests: XCTestCase {
 
     func testSuggestionHasRequiredFields() {
         let message = "```swift\nlet x = 1\n```"
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         for suggestion in suggestions {
             XCTAssertFalse(suggestion.label.isEmpty)
             XCTAssertFalse(suggestion.prompt.isEmpty)
@@ -87,7 +87,7 @@ final class FollowUpGeneratorTests: XCTestCase {
     func testRefactoringKeywordsGenerateSuggestions() {
         for keyword in ["refactor", "improve", "optimize"] {
             let message = "Let me \(keyword) the code."
-            let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+            let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
             XCTAssertTrue(suggestions.contains(where: { $0.label == "Apply changes" }),
                 "Keyword '\(keyword)' should trigger 'Apply changes'")
         }
@@ -97,14 +97,14 @@ final class FollowUpGeneratorTests: XCTestCase {
 
     func testClassKeywordDetected() {
         let message = "I created a new class to handle authentication."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Write tests" }),
             "'class' keyword should trigger code suggestions")
     }
 
     func testStructKeywordDetected() {
         let message = "I defined a struct for the data model."
-        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .standard)
+        let suggestions = FollowUpGenerator.generate(from: message, agentMode: .spec)
         XCTAssertTrue(suggestions.contains(where: { $0.label == "Write tests" }),
             "'struct' keyword should trigger code suggestions")
     }

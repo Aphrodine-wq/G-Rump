@@ -34,11 +34,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.961, green: 0.937, blue: 0.910)     // #f5efe8 sandy beige
         case .peach: return Color(red: 0.992, green: 0.957, blue: 0.941)    // #fdf4f0 soft peach
         case .ember: return Color(red: 0.122, green: 0.122, blue: 0.125)   // #1f1f20 dark grey
-        case .chatGPT: return Color(red: 1.0, green: 1.0, blue: 1.0)          // #ffffff pure white
-        case .anthropicTheme: return Color(red: 0.980, green: 0.969, blue: 0.949) // #faf7f2 warm off-white
-        case .geminiTheme: return Color(red: 0.106, green: 0.110, blue: 0.122)   // #1b1c1f Gemini dark
-        case .kiro: return Color(red: 0.357, green: 0.129, blue: 0.714)    // #5b21b6 royal purple
-        case .perplexity: return Color(red: 0.051, green: 0.051, blue: 0.051)  // #0d0d0d near-black
+        case .snow: return Color(red: 1.0, green: 1.0, blue: 1.0)          // #ffffff pure white
+        case .linen: return Color(red: 0.980, green: 0.969, blue: 0.949) // #faf7f2 warm off-white
+        case .graphite: return Color(red: 0.106, green: 0.110, blue: 0.122)   // #1b1c1f graphite dark
+        case .amethyst: return Color(red: 0.357, green: 0.129, blue: 0.714)    // #5b21b6 royal purple
+        case .ink: return Color(red: 0.051, green: 0.051, blue: 0.051)  // #0d0d0d near-black
         default: return systemBgDark
         }
     }
@@ -63,11 +63,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.976, green: 0.957, blue: 0.933)     // #f9f4ee
         case .peach: return Color(red: 0.996, green: 0.969, blue: 0.961)    // #fef7f5
         case .ember: return Color(red: 0.180, green: 0.180, blue: 0.184)      // #2e2e2f grey card
-        case .chatGPT: return Color(red: 1.0, green: 1.0, blue: 1.0)            // #ffffff pure white
-        case .anthropicTheme: return Color(red: 0.961, green: 0.941, blue: 0.910) // #f5f0e8 slightly warmer white
-        case .geminiTheme: return Color(red: 0.157, green: 0.165, blue: 0.180)   // #282a2e elevated card
-        case .kiro: return Color(red: 0.400, green: 0.165, blue: 0.757)    // #6629c1 slightly lighter purple
-        case .perplexity: return Color(red: 0.102, green: 0.102, blue: 0.110)  // #1a1a1c dark card
+        case .snow: return Color(red: 1.0, green: 1.0, blue: 1.0)            // #ffffff pure white
+        case .linen: return Color(red: 0.961, green: 0.941, blue: 0.910) // #f5f0e8 slightly warmer white
+        case .graphite: return Color(red: 0.157, green: 0.165, blue: 0.180)   // #282a2e elevated card
+        case .amethyst: return Color(red: 0.400, green: 0.165, blue: 0.757)    // #6629c1 slightly lighter purple
+        case .ink: return Color(red: 0.102, green: 0.102, blue: 0.110)  // #1a1a1c dark card
         default: return systemBgCard
         }
     }
@@ -92,11 +92,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.969, green: 0.945, blue: 0.922)      // #f7f1eb
         case .peach: return Color(red: 0.988, green: 0.957, blue: 0.941)     // #fcf4f0
         case .ember: return Color(red: 0.141, green: 0.141, blue: 0.145)    // #242425 grey sidebar
-        case .chatGPT: return Color(red: 0.976, green: 0.976, blue: 0.976)   // #f9f9f9 very light gray
-        case .anthropicTheme: return Color(red: 0.941, green: 0.922, blue: 0.890) // #f0ebe3 light warm gray
-        case .geminiTheme: return Color(red: 0.122, green: 0.125, blue: 0.141)   // #1f2024 sidebar
-        case .kiro: return Color(red: 0.298, green: 0.098, blue: 0.620)    // #4c19a0 darker purple sidebar
-        case .perplexity: return Color(red: 0.039, green: 0.039, blue: 0.039)  // #0a0a0a near-black sidebar
+        case .snow: return Color(red: 0.976, green: 0.976, blue: 0.976)   // #f9f9f9 very light gray
+        case .linen: return Color(red: 0.941, green: 0.922, blue: 0.890) // #f0ebe3 light warm gray
+        case .graphite: return Color(red: 0.122, green: 0.125, blue: 0.141)   // #1f2024 sidebar
+        case .amethyst: return Color(red: 0.298, green: 0.098, blue: 0.620)    // #4c19a0 darker purple sidebar
+        case .ink: return Color(red: 0.039, green: 0.039, blue: 0.039)  // #0a0a0a near-black sidebar
         default: return systemBgSidebar
         }
     }
@@ -121,11 +121,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.957, green: 0.933, blue: 0.906)     // #f4eee7
         case .peach: return Color(red: 0.984, green: 0.953, blue: 0.937)    // #fbf3ef
         case .ember: return Color(red: 0.220, green: 0.220, blue: 0.224)      // #383839 grey input
-        case .chatGPT: return Color(red: 0.965, green: 0.965, blue: 0.965)   // #f7f7f7 very light input
-        case .anthropicTheme: return Color(red: 0.969, green: 0.953, blue: 0.925) // #f7f3ec warm input
-        case .geminiTheme: return Color(red: 0.188, green: 0.192, blue: 0.212)   // #303136 input field
-        case .kiro: return Color(red: 0.420, green: 0.192, blue: 0.780)    // #6b31c7 medium purple input
-        case .perplexity: return Color(red: 0.133, green: 0.133, blue: 0.145)  // #222225 dark input
+        case .snow: return Color(red: 0.965, green: 0.965, blue: 0.965)   // #f7f7f7 very light input
+        case .linen: return Color(red: 0.969, green: 0.953, blue: 0.925) // #f7f3ec warm input
+        case .graphite: return Color(red: 0.188, green: 0.192, blue: 0.212)   // #303136 input field
+        case .amethyst: return Color(red: 0.420, green: 0.192, blue: 0.780)    // #6b31c7 medium purple input
+        case .ink: return Color(red: 0.133, green: 0.133, blue: 0.145)  // #222225 dark input
         default: return systemBgInput
         }
     }
@@ -150,11 +150,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.988, green: 0.969, blue: 0.949)      // #fcf7f2
         case .peach: return Color(red: 1.0, green: 0.980, blue: 0.973)      // #fffaf8
         case .ember: return Color(red: 0.259, green: 0.259, blue: 0.263)    // #424244 elevated grey
-        case .chatGPT: return Color(red: 0.988, green: 0.988, blue: 0.988)   // #fcfcfc almost white elevated
-        case .anthropicTheme: return Color(red: 0.976, green: 0.961, blue: 0.933) // #f9f5ee warm elevated
-        case .geminiTheme: return Color(red: 0.220, green: 0.227, blue: 0.247)   // #383a3f elevated
-        case .kiro: return Color(red: 0.443, green: 0.220, blue: 0.808)    // #7138ce brighter purple elevated
-        case .perplexity: return Color(red: 0.165, green: 0.165, blue: 0.180)  // #2a2a2e dark elevated
+        case .snow: return Color(red: 0.988, green: 0.988, blue: 0.988)   // #fcfcfc almost white elevated
+        case .linen: return Color(red: 0.976, green: 0.961, blue: 0.933) // #f9f5ee warm elevated
+        case .graphite: return Color(red: 0.220, green: 0.227, blue: 0.247)   // #383a3f elevated
+        case .amethyst: return Color(red: 0.443, green: 0.220, blue: 0.808)    // #7138ce brighter purple elevated
+        case .ink: return Color(red: 0.165, green: 0.165, blue: 0.180)  // #2a2a2e dark elevated
         default: return systemBgCard
         }
     }
@@ -181,11 +181,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.800, green: 0.690, blue: 0.580).opacity(0.5)    // #ccb094
         case .peach: return Color(red: 0.925, green: 0.624, blue: 0.620).opacity(0.5)     // #ec9f9e
         case .ember: return Color(red: 0.855, green: 0.200, blue: 0.200).opacity(0.5)   // #da3333 red accent
-        case .chatGPT: return Color(red: 0.0, green: 0.0, blue: 0.0).opacity(0.15)         // black border on white
-        case .anthropicTheme: return Color(red: 0.831, green: 0.549, blue: 0.306).opacity(0.4)  // #d48c4e terracotta
-        case .geminiTheme: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.12)   // subtle white border
-        case .kiro: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.25)    // white border on purple
-        case .perplexity: return Color(red: 0.176, green: 0.831, blue: 0.749).opacity(0.30) // #2DD4BF teal border
+        case .snow: return Color(red: 0.0, green: 0.0, blue: 0.0).opacity(0.15)         // black border on white
+        case .linen: return Color(red: 0.831, green: 0.549, blue: 0.306).opacity(0.4)  // #d48c4e terracotta
+        case .graphite: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.12)   // subtle white border
+        case .amethyst: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.25)    // white border on purple
+        case .ink: return Color(red: 0.176, green: 0.831, blue: 0.749).opacity(0.30) // #2DD4BF teal border
         default: return systemBorderCrisp
         }
     }
@@ -210,11 +210,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.800, green: 0.690, blue: 0.580).opacity(0.3)    // #ccb094
         case .peach: return Color(red: 0.925, green: 0.624, blue: 0.620).opacity(0.3)   // #ec9f9e
         case .ember: return Color(red: 0.855, green: 0.200, blue: 0.200).opacity(0.3)   // #da3333
-        case .chatGPT: return Color(red: 0.0, green: 0.0, blue: 0.0).opacity(0.08)         // subtle black
-        case .anthropicTheme: return Color(red: 0.831, green: 0.549, blue: 0.306).opacity(0.2)  // terracotta subtle
-        case .geminiTheme: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.08)   // subtle border
-        case .kiro: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.15)    // white subtle
-        case .perplexity: return Color(red: 0.176, green: 0.831, blue: 0.749).opacity(0.15) // teal subtle
+        case .snow: return Color(red: 0.0, green: 0.0, blue: 0.0).opacity(0.08)         // subtle black
+        case .linen: return Color(red: 0.831, green: 0.549, blue: 0.306).opacity(0.2)  // terracotta subtle
+        case .graphite: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.08)   // subtle border
+        case .amethyst: return Color(red: 1.0, green: 1.0, blue: 1.0).opacity(0.15)    // white subtle
+        case .ink: return Color(red: 0.176, green: 0.831, blue: 0.749).opacity(0.15) // teal subtle
         default: return systemBorderSubtle
         }
     }
@@ -240,23 +240,22 @@ struct ThemePalette {
         case .sand: return Color(red: 0.757, green: 0.553, blue: 0.373)    // #c18d5f tan
         case .peach: return Color(red: 0.937, green: 0.459, blue: 0.459)    // #ef7575 coral
         case .ember: return Color(red: 0.937, green: 0.220, blue: 0.220)     // #ef3838 red
-        case .chatGPT: return Color(red: 0.0, green: 0.0, blue: 0.0)            // #000000 pure black accent
-        case .anthropicTheme: return Color(red: 0.831, green: 0.459, blue: 0.306)  // #d4754e warm terracotta
-        case .geminiTheme:
-            // Google Gemini theme - dark with Google accent colors
-            let googleBlue = Color(red: 0.259, green: 0.522, blue: 0.957)    // #4285F4
-            let googleRed = Color(red: 0.929, green: 0.322, blue: 0.267)     // #EA4335
-            let googleYellow = Color(red: 0.984, green: 0.737, blue: 0.016)  // #FBBC04
-            let googleGreen = Color(red: 0.188, green: 0.616, blue: 0.290)   // #34A853
-            // Map accent colors to Google colors
+        case .snow: return Color(red: 0.0, green: 0.0, blue: 0.0)            // #000000 pure black accent
+        case .linen: return Color(red: 0.831, green: 0.459, blue: 0.306)  // #d4754e warm terracotta
+        case .graphite:
+            // Dark theme with a vivid four-color accent palette
+            let vividBlue = Color(red: 0.259, green: 0.522, blue: 0.957)    // #4285F4
+            let vividRed = Color(red: 0.929, green: 0.322, blue: 0.267)     // #EA4335
+            let vividYellow = Color(red: 0.984, green: 0.737, blue: 0.016)  // #FBBC04
+            let vividGreen = Color(red: 0.188, green: 0.616, blue: 0.290)   // #34A853
             switch accent {
-            case .blue: return googleBlue
-            case .pink, .purple: return googleRed
-            case .orange, .amber: return googleYellow
-            case .green, .teal: return googleGreen
+            case .blue: return vividBlue
+            case .pink, .purple: return vividRed
+            case .orange, .amber: return vividYellow
+            case .green, .teal: return vividGreen
             }
-        case .kiro: return Color(red: 1.0, green: 1.0, blue: 1.0)            // #ffffff pure white accent
-        case .perplexity: return Color(red: 0.176, green: 0.831, blue: 0.749)  // #2DD4BF light teal
+        case .amethyst: return Color(red: 1.0, green: 1.0, blue: 1.0)            // #ffffff pure white accent
+        case .ink: return Color(red: 0.176, green: 0.831, blue: 0.749)  // #2DD4BF light teal
         default: return accent.color
         }
     }
@@ -281,11 +280,11 @@ struct ThemePalette {
         case .sand: return Color(red: 0.600, green: 0.420, blue: 0.255)    // darker tan
         case .peach: return Color(red: 0.820, green: 0.320, blue: 0.320)    // darker coral
         case .ember: return Color(red: 0.820, green: 0.180, blue: 0.180)   // darker red
-        case .chatGPT: return Color(red: 0.2, green: 0.2, blue: 0.2)        // dark gray
-        case .anthropicTheme: return Color(red: 0.686, green: 0.369, blue: 0.220)  // darker terracotta
-        case .geminiTheme: return Color(red: 0.259, green: 0.522, blue: 0.957)   // #4285f4
-        case .kiro: return Color(red: 0.85, green: 0.85, blue: 0.85)       // light gray on purple
-        case .perplexity: return Color(red: 0.078, green: 0.722, blue: 0.651)  // #14B8A6 darker teal
+        case .snow: return Color(red: 0.2, green: 0.2, blue: 0.2)        // dark gray
+        case .linen: return Color(red: 0.686, green: 0.369, blue: 0.220)  // darker terracotta
+        case .graphite: return Color(red: 0.259, green: 0.522, blue: 0.957)   // #4285f4
+        case .amethyst: return Color(red: 0.85, green: 0.85, blue: 0.85)       // light gray on purple
+        case .ink: return Color(red: 0.078, green: 0.722, blue: 0.651)  // #14B8A6 darker teal
         default: return accent.darkVariant
         }
     }
@@ -310,22 +309,22 @@ struct ThemePalette {
         case .sand: return Color(red: 0.90, green: 0.70, blue: 0.50)      // lighter tan
         case .peach: return Color(red: 1.0, green: 0.65, blue: 0.65)      // lighter coral
         case .ember: return Color(red: 1.0, green: 0.45, blue: 0.45)      // lighter red
-        case .chatGPT: return Color(red: 0.4, green: 0.4, blue: 0.4)       // medium gray
-        case .anthropicTheme: return Color(red: 0.92, green: 0.62, blue: 0.42)  // lighter terracotta
-        case .geminiTheme: return Color(red: 0.65, green: 0.80, blue: 1.0)     // lighter blue
-        case .kiro: return Color(red: 1.0, green: 1.0, blue: 1.0)          // pure white
-        case .perplexity: return Color(red: 0.369, green: 0.918, blue: 0.831)  // #5EEAD4 lighter teal
+        case .snow: return Color(red: 0.4, green: 0.4, blue: 0.4)       // medium gray
+        case .linen: return Color(red: 0.92, green: 0.62, blue: 0.42)  // lighter terracotta
+        case .graphite: return Color(red: 0.65, green: 0.80, blue: 1.0)     // lighter blue
+        case .amethyst: return Color(red: 1.0, green: 1.0, blue: 1.0)          // pure white
+        case .ink: return Color(red: 0.369, green: 0.918, blue: 0.831)  // #5EEAD4 lighter teal
         default: return accent.lightVariant
         }
     }
 
     var textPrimary: Color {
         switch theme {
-        case .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .anthropicTheme: return Color(red: 0.11, green: 0.11, blue: 0.12)
-        case .perplexity: return Color(red: 0.941, green: 0.941, blue: 0.949)  // #f0f0f2 near-white
-        case .chatGPT: return Color(red: 0.0, green: 0.0, blue: 0.0)   // pure black text
-        case .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember, .geminiTheme: return Color(red: 0.95, green: 0.95, blue: 0.97)
-        case .kiro: return Color.white
+        case .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .linen: return Color(red: 0.11, green: 0.11, blue: 0.12)
+        case .ink: return Color(red: 0.941, green: 0.941, blue: 0.949)  // #f0f0f2 near-white
+        case .snow: return Color(red: 0.0, green: 0.0, blue: 0.0)   // pure black text
+        case .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember, .graphite: return Color(red: 0.95, green: 0.95, blue: 0.97)
+        case .amethyst: return Color.white
         case .midnight: return Color(red: 0.91, green: 0.89, blue: 0.85)   // bone
         default: return Color.primary
         }
@@ -333,11 +332,11 @@ struct ThemePalette {
 
     var textSecondary: Color {
         switch theme {
-        case .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .anthropicTheme: return Color(red: 0.35, green: 0.35, blue: 0.38)
-        case .perplexity: return Color(red: 0.627, green: 0.627, blue: 0.659)  // #a0a0a8 medium gray
-        case .chatGPT: return Color(red: 0.35, green: 0.35, blue: 0.35)   // dark gray secondary
-        case .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember, .geminiTheme: return Color(red: 0.72, green: 0.72, blue: 0.76)
-        case .kiro: return Color(red: 0.85, green: 0.85, blue: 0.90)
+        case .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .linen: return Color(red: 0.35, green: 0.35, blue: 0.38)
+        case .ink: return Color(red: 0.627, green: 0.627, blue: 0.659)  // #a0a0a8 medium gray
+        case .snow: return Color(red: 0.35, green: 0.35, blue: 0.35)   // dark gray secondary
+        case .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember, .graphite: return Color(red: 0.72, green: 0.72, blue: 0.76)
+        case .amethyst: return Color(red: 0.85, green: 0.85, blue: 0.90)
         case .midnight: return Color(red: 0.72, green: 0.70, blue: 0.66)   // dimmer bone
         default: return Color.secondary
         }
@@ -345,11 +344,11 @@ struct ThemePalette {
 
     var textMuted: Color {
         switch theme {
-        case .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .anthropicTheme: return Color(red: 0.45, green: 0.45, blue: 0.48)
-        case .perplexity: return Color(red: 0.420, green: 0.420, blue: 0.459)  // #6b6b75 muted gray
-        case .chatGPT: return Color(red: 0.55, green: 0.55, blue: 0.55)   // medium gray muted
-        case .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember, .geminiTheme: return Color(red: 0.60, green: 0.60, blue: 0.65)
-        case .kiro: return Color(red: 0.72, green: 0.72, blue: 0.78)
+        case .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .linen: return Color(red: 0.45, green: 0.45, blue: 0.48)
+        case .ink: return Color(red: 0.420, green: 0.420, blue: 0.459)  // #6b6b75 muted gray
+        case .snow: return Color(red: 0.55, green: 0.55, blue: 0.55)   // medium gray muted
+        case .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember, .graphite: return Color(red: 0.60, green: 0.60, blue: 0.65)
+        case .amethyst: return Color(red: 0.72, green: 0.72, blue: 0.78)
         case .midnight: return Color(red: 0.55, green: 0.53, blue: 0.50)   // muted bone
         default: return Color.secondary.opacity(0.7)
         }
@@ -429,11 +428,11 @@ enum AppTheme: String, CaseIterable, Identifiable, Codable {
     case peach
     case ember
     // Fun themes (competitor-inspired)
-    case chatGPT
-    case anthropicTheme
-    case geminiTheme
-    case kiro
-    case perplexity
+    case snow
+    case linen
+    case graphite
+    case amethyst
+    case ink
 
     var id: String { rawValue }
 
@@ -460,11 +459,11 @@ enum AppTheme: String, CaseIterable, Identifiable, Codable {
         case .sand: return "Sand"
         case .peach: return "Peach"
         case .ember: return "Ember"
-        case .chatGPT: return "ChatGPT"
-        case .anthropicTheme: return "Claude"
-        case .geminiTheme: return "Gemini"
-        case .kiro: return "Kiro"
-        case .perplexity: return "Perplexity"
+        case .snow: return "Snow"
+        case .linen: return "Linen"
+        case .graphite: return "Graphite"
+        case .amethyst: return "Amethyst"
+        case .ink: return "Ink"
         }
     }
 
@@ -491,27 +490,27 @@ enum AppTheme: String, CaseIterable, Identifiable, Codable {
         case .sand: return "hourglass"
         case .peach: return "heart.fill"
         case .ember: return "flame.fill"
-        case .chatGPT: return "bubble.left.fill"
-        case .anthropicTheme: return "sparkle"
-        case .geminiTheme: return "star.fill"
-        case .kiro: return "bolt.fill"
-        case .perplexity: return "globe"
+        case .snow: return "bubble.left.fill"
+        case .linen: return "sparkle"
+        case .graphite: return "star.fill"
+        case .amethyst: return "bolt.fill"
+        case .ink: return "globe"
         }
     }
 
     var colorScheme: ColorScheme? {
         switch self {
         case .system: return nil
-        case .light, .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .chatGPT, .anthropicTheme: return .light
-        case .perplexity: return .dark
+        case .light, .ocean, .forest, .rose, .cream, .lavender, .mint, .sunset, .sand, .peach, .snow, .linen: return .light
+        case .ink: return .dark
         case .dark, .midnight, .sepia, .slate, .aurora, .berry, .dusk, .coffee, .dracula, .ember: return .dark
-        case .geminiTheme, .kiro: return .dark
+        case .graphite, .amethyst: return .dark
         }
     }
 
     static var lightThemes: [AppTheme] { [.lavender, .mint, .ocean, .forest, .rose, .cream, .sunset, .sand, .peach, .light] }
     static var darkThemes: [AppTheme] { [.berry, .dusk, .coffee, .dracula, .midnight, .sepia, .slate, .aurora, .ember, .dark] }
-    static var funThemes: [AppTheme] { [.chatGPT, .anthropicTheme, .geminiTheme, .kiro, .perplexity] }
+    static var funThemes: [AppTheme] { [.snow, .linen, .graphite, .amethyst, .ink] }
 }
 
 // MARK: - Accent Color
@@ -658,8 +657,17 @@ class ThemeManager: ObservableObject {
 
     init() {
         let savedTheme = UserDefaults.standard.string(forKey: "AppTheme") ?? AppTheme.slate.rawValue
-        // Migrate legacy "mono" to "slate"
-        let migrated = savedTheme == "mono" ? AppTheme.slate.rawValue : savedTheme
+        // Migrate legacy theme rawValues: "mono"->slate, and the renamed
+        // ex-competitor-branded themes -> their neutral names.
+        let themeMigrations: [String: String] = [
+            "mono": "slate",
+            "chatGPT": "snow",
+            "anthropicTheme": "linen",
+            "geminiTheme": "graphite",
+            "kiro": "amethyst",
+            "perplexity": "ink"
+        ]
+        let migrated = themeMigrations[savedTheme] ?? savedTheme
         self.theme = AppTheme(rawValue: migrated) ?? .slate
 
         let savedAccent = UserDefaults.standard.string(forKey: "AccentColor") ?? AccentColorOption.purple.rawValue

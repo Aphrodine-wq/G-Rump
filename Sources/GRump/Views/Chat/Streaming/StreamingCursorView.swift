@@ -176,7 +176,7 @@ struct PremiumStreamingRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var viewModel: ChatViewModel
     let content: String
-    var agentMode: AgentMode = .standard
+    var agentMode: AgentMode = .plan
     @ObservedObject var metrics: StreamMetrics
 
     var body: some View {
@@ -229,7 +229,7 @@ struct PremiumStreamingRow: View {
                 .frame(width: 3)
                 .padding(.vertical, Spacing.md)
                 .padding(.leading, Spacing.lg)
-                .opacity(agentMode == .standard ? 0 : 0.7)
+                .opacity(0.7)
         }
         .transition(.asymmetric(
             insertion: .opacity.combined(with: .move(edge: .bottom)),

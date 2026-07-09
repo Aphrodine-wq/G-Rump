@@ -85,24 +85,6 @@ struct MessageListView: View {
             }
             .animation(.easeOut(duration: Anim.smooth), value: viewModel.filteredMessages.count)
 
-            if !viewModel.parallelAgents.isEmpty {
-                ParallelAgentsPanelView(agents: viewModel.parallelAgents)
-                    .padding(.horizontal, Spacing.huge)
-                    .id("parallel-agents")
-                    .transition(.opacity)
-            }
-
-            // Speculative branching panel — shows competing approaches in Explore mode
-            if !viewModel.speculativeBranches.isEmpty {
-                SpeculativeBranchView(
-                    branches: viewModel.speculativeBranches,
-                    winnerIndex: viewModel.speculativeWinnerIndex
-                )
-                .padding(.horizontal, Spacing.huge)
-                .id("speculative-branches")
-                .transition(.opacity)
-            }
-
             if !viewModel.streamingContent.isEmpty {
                 PremiumStreamingRow(
                     content: viewModel.streamingContent,
@@ -130,7 +112,7 @@ struct MessageListView: View {
                 ))
             }
 
-            if viewModel.isLoading && viewModel.streamingContent.isEmpty && viewModel.activeToolCalls.isEmpty && viewModel.parallelAgents.isEmpty {
+            if viewModel.isLoading && viewModel.streamingContent.isEmpty && viewModel.activeToolCalls.isEmpty {
                 EnhancedTypingIndicator()
                     .id("typing")
                     .transition(.asymmetric(

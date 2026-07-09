@@ -27,7 +27,6 @@ struct ModalManagerView<Content: View>: View {
             }
             .sheet(isPresented: $showSettings, onDismiss: {
                 settingsInitialTab = nil
-                Task { await viewModel.refreshLocalOllamaAvailability() }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { messageFieldFocused = true }
             }) {
                 settingsSheetContent
@@ -38,8 +37,6 @@ struct ModalManagerView<Content: View>: View {
 
     private var profileSheetContent: some View {
         ProfileView(
-            platformUser: viewModel.platformUser,
-            onRefreshPlatformUser: { await viewModel.refreshPlatformUser() },
             modelName: viewModel.selectedModel.displayName,
             workingDirectory: viewModel.workingDirectory,
             appliedPresetName: viewModel.appliedPresetName,
@@ -61,9 +58,6 @@ struct ModalManagerView<Content: View>: View {
             systemPrompt: $viewModel.systemPrompt,
             workingDirectory: $viewModel.workingDirectory,
             onSetWorkingDirectory: { viewModel.setWorkingDirectory($0) },
-            platformUser: viewModel.platformUser,
-            onPlatformLoginSuccess: { await viewModel.refreshPlatformUser() },
-            onPlatformLogout: { viewModel.logoutPlatform() },
             initialTab: settingsInitialTab,
             onExportJSON: { viewModel.runExportJSONPanel() },
             onExportMarkdown: { viewModel.runExportMarkdownPanel(onlyCurrent: false) },
@@ -84,9 +78,6 @@ struct ModalManagerView<Content: View>: View {
             systemPrompt: $viewModel.systemPrompt,
             workingDirectory: $viewModel.workingDirectory,
             onSetWorkingDirectory: { viewModel.setWorkingDirectory($0) },
-            platformUser: viewModel.platformUser,
-            onPlatformLoginSuccess: { await viewModel.refreshPlatformUser() },
-            onPlatformLogout: { viewModel.logoutPlatform() },
             initialTab: settingsInitialTab,
             onApplyPreset: { viewModel.applyPreset($0) },
             onClearPreset: { viewModel.clearAppliedPreset() },

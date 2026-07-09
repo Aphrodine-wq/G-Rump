@@ -10,14 +10,11 @@ extension ChatViewModel {
         return true
     }
 
-    /// Platform tier for model filtering. nil = free (API key or not signed in).
-    internal var platformTier: String? { platformUser?.tier }
-
-    /// Ensures selectedModel is valid for current tier. Call after tier changes.
+    /// Ensures selectedModel still resolves in the registry (catalog updates
+    /// can retire ids); falls back to the app default.
     func ensureSelectedModelValidForTier() {
-        let allowed = AIModel.modelsForTier(platformTier)
-        if !allowed.contains(selectedModel) {
-            selectedModel = AIModel.defaultForTier(platformTier)
+        if aiService.modelRegistry.getModel(by: selectedModel.id) == nil {
+            selectedModel = aiService.modelRegistry.defaultModel()
         }
     }
 

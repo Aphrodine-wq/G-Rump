@@ -14,16 +14,10 @@ import UIKit
 
 struct SettingsView: View {
     @Binding var apiKey: String
-    @Binding var selectedModel: AIModel
+    @Binding var selectedModel: EnhancedAIModel
     @Binding var systemPrompt: String
     @Binding var workingDirectory: String
     var onSetWorkingDirectory: (String) -> Void
-    /// Platform account (when signed in). Pass viewModel.platformUser.
-    var platformUser: PlatformUser?
-    /// Call after login/signup so viewModel refreshes platform user.
-    var onPlatformLoginSuccess: (() async -> Void)?
-    /// Call when user logs out.
-    var onPlatformLogout: (() -> Void)?
     /// When set, the sheet will select this tab when it appears (e.g. open to Model from chat toolbar).
     var initialTab: SettingsTab?
     /// Export/import actions (macOS). When nil, Data section shows unavailable message.
@@ -40,10 +34,10 @@ struct SettingsView: View {
     var onRestartOnboarding: (() -> Void)?
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
-    @State var apiKeyVisible = false
     @State var selectedTab: SettingsTab = .account
-    @State var signInError: String?
-    @State var signInInProgress = false
+    @AppStorage("BackendURL") var backendURL: String = ""
+    @State var appAPIKeyInput: String = KeychainStorage.get(account: "AppAPIKey") ?? ""
+    @State var appAPIKeyVisible = false
     @AppStorage(SettingsKeys.maxAgentSteps) var maxAgentStepsStorage: Int = 200
     @AppStorage(SettingsKeys.compactToolResults) var compactToolResults: Bool = false
     @AppStorage(SettingsKeys.allowSystemNotifications) var allowSystemNotifications: Bool = true
@@ -52,8 +46,6 @@ struct SettingsView: View {
     @AppStorage(SettingsKeys.showTokenCount) var showTokenCount: Bool = false
     @AppStorage(SettingsKeys.projectMemoryEnabled) var projectMemoryEnabled: Bool = true
     @AppStorage(SettingsKeys.semanticMemoryEnabled) var semanticMemoryEnabled: Bool = true
-    @AppStorage(SettingsKeys.parallelAgentsEnabled) var parallelAgentsEnabled: Bool = false
-    @AppStorage(SettingsKeys.parallelAgentsMax) var parallelAgentsMax: Int = 4
     @AppStorage(SettingsKeys.returnToSend) var returnToSendSetting: Bool = false
     @AppStorage("LineSpacing") var lineSpacingSetting: String = "normal"
     @AppStorage("CodeFont") var codeFontSetting: String = "sf-mono"
@@ -64,24 +56,13 @@ struct SettingsView: View {
     @AppStorage(SettingsKeys.showMenuBarExtra) var showMenuBarExtra: Bool = false
     @State var execConfig: ExecApprovalsConfig = .default
     #endif
-    @StateObject var coreMLRegistry = CoreMLModelRegistryService()
-
     @State var expandedCategories: Set<String> = ["AI", "Workspace", "General"]
 
     // Provider state
     @State var selectedProvider: AIProvider = .anthropic
     @State var providerAPIKeys: [String: String] = [:]
     @State var providerBaseURLs: [String: String] = [:]
-    @State var ollamaDetected = false
-    @State var ollamaRefreshing = false
-    @State var ollamaPullingModels: Set<String> = []
-    @State var ollamaStatusMessage: String?
-
-    let ollamaQuickModels: [(name: String, label: String)] = [
-        ("qwen2.5-coder:7b", "Qwen2.5 Coder 7B"),
-        ("llama3.2:3b", "Llama 3.2 3B"),
-        ("mistral:7b", "Mistral 7B")
-    ]
+    @State var providerKeyValidation: [String: KeyValidationState] = [:]
 
     // Tools state
     @State var toolsDenylist: Set<String> = []
@@ -284,8 +265,6 @@ struct SettingsView: View {
             switch tab {
             case .account:
                 accountSection
-            case .billing:
-                BillingView()
             case .appearance:
                 appearanceSection
             case .providers:
@@ -310,8 +289,6 @@ struct SettingsView: View {
                 toolsSection
             case .mcp:
                 mcpSection
-            case .openClaw:
-                OpenClawSettingsView()
             case .skills:
                 skillsSettingsSection
             case .soul:
@@ -335,74 +312,42 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Account (credits + API key)
+    // MARK: - Account (backend proxy)
+    // Per-provider API keys live in the Providers tab, not here.
 
     var accountSection: some View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
-            if let user = platformUser {
-                settingsCard {
-                    VStack(alignment: .leading, spacing: Spacing.xxl) {
-                        sectionTitle("Account", icon: "person.crop.circle.fill", accent: themeManager.accentColor)
-                        HStack(spacing: Spacing.xl) {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text(user.email)
-                                    .font(Typography.bodySmallMedium)
-                                    .foregroundColor(.textPrimary)
-                                HStack(spacing: Spacing.md) {
-                                    Text(user.tierName)
-                                        .font(Typography.captionSmallSemibold)
-                                        .foregroundColor(themeManager.palette.effectiveAccentLightVariant)
-                                        .padding(.horizontal, Spacing.md)
-                                        .padding(.vertical, Spacing.xs)
-                                        .background(themeManager.palette.effectiveAccent.opacity(0.15))
-                                        .clipShape(Capsule())
-                                    Text("\(user.creditsBalance) credits")
-                                        .font(Typography.captionSmall)
-                                        .foregroundColor(.textMuted)
-                                }
-                            }
-                            Spacer()
-                            Button("Log out") {
-                                PlatformService.logout()
-                                onPlatformLogout?()
-                            }
-                            .font(Typography.captionSmallSemibold)
-                            .foregroundColor(.textMuted)
-                        }
-                        Text("\(user.creditsPerMonth) credits per month on \(user.tierName). Usage is deducted per request.")
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                    }
-                }
-            } else {
-                settingsCard {
-                    VStack(alignment: .leading, spacing: Spacing.xxl) {
-                        sectionTitle("Account", icon: "person.crop.circle.fill", accent: themeManager.accentColor)
-                        Text("Sign in is coming soon. Use API keys or Ollama to get started.")
-                            .font(Typography.bodySmall)
-                            .foregroundColor(.textMuted)
-                    }
-                }
-            }
-
             settingsCard {
                 VStack(alignment: .leading, spacing: Spacing.xxl) {
-                    sectionTitle("OpenRouter API key", icon: "key.fill", accent: themeManager.accentColor)
-                    Text("Optional: use your own OpenRouter key for direct API access.")
+                    sectionTitle("Backend", icon: "server.rack", accent: themeManager.accentColor)
+                    Text("Optional: route requests through a slim backend proxy. Leave blank to call your AI provider directly with your API key.")
+                        .font(Typography.captionSmall)
+                        .foregroundColor(.textMuted)
+                    TextField("https://your-backend.example.com", text: $backendURL)
+                        .font(Typography.bodySmall)
+                        .fontDesign(.monospaced)
+                        .textFieldStyle(.plain)
+                        .padding(Spacing.xl)
+                        .background(themeManager.palette.bgInput)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                            .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+
+                    Text("Backend API key (APP_API_KEY)")
                         .font(Typography.captionSmall)
                         .foregroundColor(.textMuted)
                     HStack(spacing: Spacing.xl) {
-                        if apiKeyVisible {
-                            TextField("sk-…", text: $apiKey)
+                        if appAPIKeyVisible {
+                            TextField("Optional — leave blank in local dev", text: $appAPIKeyInput)
                                 .font(Typography.bodySmall)
                                 .fontDesign(.monospaced)
                         } else {
-                            SecureField("sk-…", text: $apiKey)
+                            SecureField("Optional — leave blank in local dev", text: $appAPIKeyInput)
                                 .font(Typography.bodySmall)
                                 .fontDesign(.monospaced)
                         }
-                        Button(action: { apiKeyVisible.toggle() }) {
-                            Image(systemName: apiKeyVisible ? "eye.slash" : "eye")
+                        Button(action: { appAPIKeyVisible.toggle() }) {
+                            Image(systemName: appAPIKeyVisible ? "eye.slash" : "eye")
                                 .foregroundColor(.textMuted)
                                 .font(Typography.bodySmall)
                         }
@@ -413,8 +358,17 @@ struct SettingsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
                         .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+                    .onChange(of: appAPIKeyInput) { _, newValue in
+                        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if trimmed.isEmpty {
+                            KeychainStorage.delete(account: "AppAPIKey")
+                        } else {
+                            KeychainStorage.set(account: "AppAPIKey", value: trimmed)
+                        }
+                    }
                 }
             }
+
         }
     }
 
@@ -600,56 +554,6 @@ struct SettingsView: View {
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: Anim.quick), value: themeManager.accentColor)
-    }
-
-    func modelRow(_ model: AIModel) -> some View {
-        let accent = themeManager.palette.effectiveAccent
-        return Button(action: { selectedModel = model }) {
-            HStack(spacing: Spacing.xxl) {
-                ZStack {
-                    Circle()
-                        .stroke(selectedModel == model ? accent : Color.borderSubtle, lineWidth: 1.5)
-                        .frame(width: 16, height: 16)
-                    if selectedModel == model {
-                        Circle()
-                            .fill(accent)
-                            .frame(width: 8, height: 8)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(model.displayName)
-                        .font(Typography.bodySmallMedium)
-                        .foregroundColor(.textPrimary)
-                    HStack(spacing: Spacing.md) {
-                        Text(model.description)
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                        Text("·")
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                        Text(formatContextWindow(model.contextWindow))
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                    }
-                }
-
-                Spacer()
-
-                if selectedModel == model {
-                    Image(systemName: "checkmark")
-                        .font(Typography.captionSmallSemibold)
-                        .foregroundColor(.accentGreen)
-                }
-            }
-            .padding(Spacing.xl)
-            .background(selectedModel == model ? accent.opacity(0.10) : themeManager.palette.bgInput)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
-                .stroke(selectedModel == model ? accent.opacity(0.4) : themeManager.palette.borderCrisp, lineWidth: Border.thin))
-        }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: Anim.quick), value: selectedModel)
     }
 
     func formatContextWindow(_ tokens: Int) -> String {

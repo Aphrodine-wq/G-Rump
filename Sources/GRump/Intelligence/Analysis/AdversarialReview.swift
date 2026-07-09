@@ -166,7 +166,6 @@ final class AdversarialReviewEngine: ObservableObject {
     @Published private(set) var isReviewing = false
     @Published private(set) var lastReport: AdversarialReviewReport?
 
-    private let openRouterService = OpenRouterService()
     private let logger = GRumpLogger.general
 
     /// Whether adversarial review is enabled (user toggle).
@@ -181,9 +180,7 @@ final class AdversarialReviewEngine: ObservableObject {
     func review(
         codeChanges: [CodeChange],
         conversationContext: String,
-        apiKey: String,
-        authToken: String?,
-        primaryModel: AIModel
+        primaryModel: EnhancedAIModel
     ) async -> AdversarialReviewReport? {
         guard isEnabled, !codeChanges.isEmpty else { return nil }
 
@@ -246,25 +243,11 @@ final class AdversarialReviewEngine: ObservableObject {
         var fullResponse = ""
 
         do {
-            if let token = authToken, !token.isEmpty {
-                let stream = openRouterService.streamMessageViaBackend(
-                    messages: messages,
-                    model: reviewModelId,
-                    backendBaseURL: PlatformService.baseURL,
-                    authToken: token
-                )
-                for try await event in stream {
-                    if case .text(let chunk) = event { fullResponse += chunk }
-                }
-            } else {
-                let stream = openRouterService.streamMessage(
-                    messages: messages,
-                    apiKey: apiKey,
-                    model: reviewModelId
-                )
-                for try await event in stream {
-                    if case .text(let chunk) = event { fullResponse += chunk }
-                }
+            // Routes through the multi-provider dispatcher; unknown review
+            // model ids fall back to the app default model.
+            let stream = MultiProviderAIService.stream(messages: messages, modelID: reviewModelId)
+            for try await event in stream {
+                if case .text(let chunk) = event { fullResponse += chunk }
             }
         } catch {
             logger.error("AdversarialReview failed: \(error.localizedDescription)")

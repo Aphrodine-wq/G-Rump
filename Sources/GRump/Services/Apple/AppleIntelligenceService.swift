@@ -264,12 +264,12 @@ final class AppleIntelligenceService: ObservableObject {
         var suggestedMode: AgentMode {
             switch self {
             case .debug: return .fullStack
-            case .explain: return .standard
+            case .explain: return .plan
             case .create: return .fullStack
             case .refactor: return .plan
             case .test: return .fullStack
             case .deploy: return .fullStack
-            case .general: return .standard
+            case .general: return .plan
             }
         }
     }

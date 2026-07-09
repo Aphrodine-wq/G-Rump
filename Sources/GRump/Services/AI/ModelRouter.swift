@@ -58,16 +58,22 @@ enum ModelRouter {
 
     // MARK: - Routing Table
     //
-    // Maps task types to a ranked list of models (primary + fallbacks).
-    // Free models preferred where capable.
+    // Maps task types to a ranked list of catalog model ids (primary +
+    // fallbacks). Opus and Sonnet trade places on heavy vs. balanced work,
+    // Haiku takes the light mechanical tiers. Fable is premium and is NEVER
+    // auto-routed — reaching it requires an explicit user selection.
+
+    private static let opus = "claude-opus-4-8"
+    private static let sonnet = "claude-sonnet-5"
+    private static let haiku = "claude-haiku-4-5"
 
     /// Primary route: returns the best model for a task type.
-    static func route(taskType: TaskType, fallback: AIModel) -> AIModel {
+    static func route(taskType: TaskType, fallback: EnhancedAIModel) -> EnhancedAIModel {
         return fallbackChain(for: taskType, fallback: fallback).first ?? fallback
     }
 
     /// Context-aware route: picks the best model whose context window fits `estimatedTokens`.
-    static func route(taskType: TaskType, fallback: AIModel, estimatedTokens: Int) -> AIModel {
+    static func route(taskType: TaskType, fallback: EnhancedAIModel, estimatedTokens: Int) -> EnhancedAIModel {
         let chain = fallbackChain(for: taskType, fallback: fallback)
         // Pick the first model with enough context (leaving room for output)
         for model in chain {
@@ -80,29 +86,39 @@ enum ModelRouter {
     }
 
     /// Ordered fallback chain for a task type (best → acceptable alternatives).
-    static func fallbackChain(for taskType: TaskType, fallback: AIModel) -> [AIModel] {
+    /// Ids resolve through the registry, so a catalog change can never route
+    /// to a model that doesn't exist; the caller's fallback always survives.
+    static func fallbackChain(for taskType: TaskType, fallback: EnhancedAIModel) -> [EnhancedAIModel] {
+        let preferredIDs: [String]
         switch taskType {
         case .reasoning, .planning:
-            return [.deepseekR1, .gemini31Flash, .claudeSonnet4, fallback]
-
+            preferredIDs = [opus, sonnet]
         case .debugging:
-            return [.deepseekR1, .qwen3Coder, .claudeSonnet4, fallback]
-
+            preferredIDs = [opus, sonnet]
         case .fileOps, .search:
-            return [.gemini31Flash, .qwen3Coder, .deepseekChat, fallback]
-
+            preferredIDs = [haiku, sonnet]
         case .codeGen, .testing:
-            return [.qwen3Coder, .deepseekR1, .claudeSonnet4, fallback]
-
+            preferredIDs = [opus, sonnet]
         case .synthesis, .writing:
-            return [.claudeSonnet4, .gemini31Flash, .deepseekR1, fallback]
-
+            preferredIDs = [sonnet, opus]
         case .web, .research:
-            return [.gemini31Flash, .claudeSonnet4, .deepseekChat, fallback]
-
+            preferredIDs = [sonnet, haiku]
         case .general:
-            return [fallback, .qwen3Coder, .gemini31Flash]
+            preferredIDs = []
         }
+
+        let registry = AIModelRegistry.shared
+        var chain: [EnhancedAIModel] = taskType == .general ? [fallback] : []
+        for id in preferredIDs {
+            guard let model = registry.getModel(by: id) else { continue }
+            if !chain.contains(where: { $0.id == model.id }) {
+                chain.append(model)
+            }
+        }
+        if !chain.contains(where: { $0.id == fallback.id }) {
+            chain.append(fallback)
+        }
+        return chain
     }
 
     // MARK: - Task Type Detection (weighted scoring)
@@ -139,11 +155,5 @@ enum ModelRouter {
             return .general
         }
         return best.key
-    }
-
-    // MARK: - Helpers
-
-    private static func containsAny(_ text: String, _ keywords: [String]) -> Bool {
-        keywords.contains { text.contains($0) }
     }
 }

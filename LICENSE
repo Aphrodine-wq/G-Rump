@@ -1,41 +1,21 @@
-Proprietary License
+MIT License
 
-Copyright (c) 2025-2026 James Walton. All rights reserved.
+Copyright (c) 2025-2026 James Walton
 
-This software and associated documentation files (the "Software") are the
-proprietary and confidential property of James Walton.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. GRANT OF LICENSE
-   No license is granted under this agreement. The Software is provided for
-   evaluation purposes only. You may view the source code solely to evaluate
-   the Software for potential purchase or licensing.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2. RESTRICTIONS
-   You may NOT, without prior written permission from the copyright holder:
-   (a) Copy, reproduce, or distribute the Software or any portion thereof;
-   (b) Modify, adapt, translate, reverse engineer, or create derivative works;
-   (c) Sublicense, lease, rent, loan, or transfer the Software to any third party;
-   (d) Use the Software for any commercial purpose without a paid license;
-   (e) Remove or alter any proprietary notices, labels, or marks on the Software.
-
-3. COMMERCIAL USE
-   Commercial use of the Software requires a valid paid license. Visit
-   https://g-rump.com for licensing options and subscription plans.
-
-4. DISCLAIMER OF WARRANTIES
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-
-5. LIMITATION OF LIABILITY
-   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
-   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-
-6. TERMINATION
-   This license is effective until terminated. It will terminate automatically
-   if you fail to comply with any term herein. Upon termination, you must
-   destroy all copies of the Software in your possession.
-
-For licensing inquiries, contact: legal@g-rump.com
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -26,18 +26,10 @@ struct OnboardingView: View {
     @State var signInInProgress = false
     @State var signInError: String?
     @State var apiKeyInput = ""
+    @State var keyValidationState: KeyValidationState = .idle
     @State var showAPIKeyField = false
     @State var direction: Edge = .trailing
     @State var selectedOnboardingProvider: AIProvider = .anthropic
-
-    // Email auth state
-    @State var authEmail = ""
-    @State var authPassword = ""
-    @State var authDisplayName = ""
-    @State var isSignUpMode = true
-    @State var authInProgress = false
-    @State var authError: String?
-    @State var authSuccess = false
 
     let totalSteps = 6
     @State var selectedSecurityPreset: ExecSecurityPreset = .balanced

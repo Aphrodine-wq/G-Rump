@@ -13,9 +13,8 @@ struct ChatTopBarView: View {
     @State private var editedTitle = ""
     @State private var showInsightsPopover = false
 
-    private var isLocalProvider: Bool {
-        viewModel.currentAIProvider == .ollama || viewModel.currentAIProvider == .onDevice
-    }
+    // All providers are cloud — there is no local/on-device mode.
+    private var isLocalProvider: Bool { false }
 
     var body: some View {
         HStack(spacing: Spacing.xxl) {
@@ -137,7 +136,6 @@ struct ChatTopBarView: View {
             }
 
             modelPickerMenu
-            modelModePicker
         }
         .padding(.horizontal, Spacing.massive)
         .padding(.vertical, Spacing.xxl)
@@ -184,73 +182,9 @@ struct ChatTopBarView: View {
 
     private var modelPickerMenu: some View {
         Menu {
-            if isLocalProvider {
-                // Local mode: show only Ollama + On-Device models
-                let ollamaModels = viewModel.modelsForProvider(.ollama)
-                let onDeviceModels = viewModel.modelsForProvider(.onDevice)
-
-                if !ollamaModels.isEmpty {
-                    Section("Ollama") {
-                        ForEach(ollamaModels) { model in
-                            Button {
-                                viewModel.selectProviderAndModel(provider: .ollama, model: model)
-                            } label: {
-                                HStack {
-                                    Text(model.displayName)
-                                    if model.id == viewModel.currentEnhancedModel?.id {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if !onDeviceModels.isEmpty {
-                    Section("On-Device (Core ML)") {
-                        ForEach(onDeviceModels) { model in
-                            Button {
-                                viewModel.selectProviderAndModel(provider: .onDevice, model: model)
-                            } label: {
-                                HStack {
-                                    Text(model.displayName)
-                                    if model.id == viewModel.currentEnhancedModel?.id {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if ollamaModels.isEmpty && onDeviceModels.isEmpty {
-                    Text("No local models available")
-                        .foregroundColor(.secondary)
-                }
-
-                Divider()
-
-                Button {
-                    // Switch back to cloud
-                    viewModel.selectProvider(.anthropic)
-                } label: {
-                    Label("Switch to Cloud Models", systemImage: "cloud")
-                }
-            } else {
-                // Cloud mode: show all providers grouped
-                providerSection(provider: .anthropic, icon: "sparkles")
-                providerSection(provider: .openAI, icon: "brain")
-                providerSection(provider: .openRouter, icon: "globe")
-
-                let ollamaModels = viewModel.modelsForProvider(.ollama)
-                if !ollamaModels.isEmpty {
-                    providerSection(provider: .ollama, icon: "desktopcomputer")
-                }
-
-                let onDeviceModels = viewModel.modelsForProvider(.onDevice)
-                if !onDeviceModels.isEmpty {
-                    providerSection(provider: .onDevice, icon: "apple.logo")
-                }
+            // One section per provider that has models in the catalog.
+            ForEach(AIProvider.allCases) { provider in
+                providerSection(provider: provider, icon: provider.iconName)
             }
 
             Divider()
@@ -326,39 +260,6 @@ struct ChatTopBarView: View {
 
     // MARK: - Model Mode Picker
 
-    @ViewBuilder
-    private var modelModePicker: some View {
-        if let model = viewModel.currentEnhancedModel, model.hasModes {
-            HStack(spacing: 2) {
-                ForEach(model.modes) { mode in
-                    Button {
-                        viewModel.selectedModelMode = mode
-                    } label: {
-                        Text(mode.displayName)
-                            .font(Typography.micro)
-                            .foregroundColor(
-                                viewModel.selectedModelMode?.id == mode.id
-                                    ? .white
-                                    : .textMuted
-                            )
-                            .padding(.horizontal, Spacing.lg)
-                            .padding(.vertical, 4)
-                            .background(
-                                viewModel.selectedModelMode?.id == mode.id
-                                    ? themeManager.palette.effectiveAccent
-                                    : Color.clear
-                            )
-                            .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(2)
-            .background(themeManager.palette.bgInput)
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(themeManager.palette.borderSubtle, lineWidth: Border.hairline))
-        }
-    }
 }
 
 // MARK: - Connection Status Dot

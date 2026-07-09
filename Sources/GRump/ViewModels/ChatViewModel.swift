@@ -4,7 +4,7 @@
 // ║                                                              ║
 // ║  Extensions:  +AgentLoop, +Streaming, +ToolExecution,       ║
 // ║  +Messages, +Memory, +Persistence, +PromptBuilding,         ║
-// ║  +Helpers, +UIState, +ExportImport, +ParallelAgents,        ║
+// ║  +Helpers, +UIState, +ExportImport,                         ║
 // ║  +AgentPostRun, +ThinkingParser                             ║
 // ╚══════════════════════════════════════════════════════════════╝
 
@@ -55,16 +55,6 @@ class ChatViewModel: ObservableObject {
     var lspDiagnostics: [String: [LSPDiagnostic]] = [:]
     var lspStatusMessage: String = "Not started"
 
-    // MARK: - Parallel Multi-Agent State
-    /// Active when agentMode == .parallel. Shows per-sub-agent streaming state.
-    @Published var parallelAgents: [ParallelAgentState] = []
-    /// The orchestration plan message shown before agents start.
-    @Published var orchestrationPlan: String?
-    /// The final synthesized response from the orchestrator.
-    @Published var synthesisingContent: String = ""
-
-    private let orchestrator = AgentOrchestrator()
-
     /// Real-time streaming performance metrics (tokens/sec, elapsed, phase).
     let streamMetrics = StreamMetrics()
 
@@ -89,12 +79,6 @@ class ChatViewModel: ObservableObject {
     /// Tracks code changes made during the current agent run for adversarial review.
     var currentRunCodeChanges: [CodeChange] = []
 
-    // MARK: - Speculative Branching State
-    /// Active when agentMode == .speculative. Shows per-branch state.
-    @Published var speculativeBranches: [SpeculativeBranchState] = []
-    /// Index of the winning branch after evaluation.
-    @Published var speculativeWinnerIndex: Int?
-
     /// Preserved partial response content when a stream error occurs.
     @Published var streamErrorPartialContent: String?
     /// The error message from a failed stream, for inline retry UI.
@@ -116,58 +100,29 @@ class ChatViewModel: ObservableObject {
     // Legacy properties for backward compatibility
     @Published var apiKey: String {
         didSet {
-            KeychainStorage.set(account: "OpenRouterAPIKey", value: apiKey)
-            // Update OpenRouter configuration
-            if let config = aiService.modelRegistry.getProviderConfig(for: .openRouter) {
-                let updatedConfig = ProviderConfiguration(
-                    provider: .openRouter,
-                    apiKey: apiKey,
-                    baseURL: config.baseURL
-                )
-                aiService.modelRegistry.setProviderConfig(updatedConfig)
-            }
+            // Keychain (per-provider account) is the only key persistence.
+            aiService.modelRegistry.setAPIKey(apiKey, for: aiService.currentProvider)
         }
     }
-    @Published var platformUser: PlatformUser?
-    @Published private(set) var localOllamaDetected: Bool = false
-    @Published private(set) var localOllamaReady: Bool = false
-    @Published var selectedModel: AIModel {
+    @Published var selectedModel: EnhancedAIModel {
         didSet {
             guard oldValue != selectedModel else { return }
-            UserDefaults.standard.set(selectedModel.rawValue, forKey: "SelectedModel")
-            // Update AI service to use equivalent enhanced model
-            if let enhancedModel = aiService.availableModels.first(where: { $0.modelID == selectedModel.rawValue }) {
-                aiService.selectModel(enhancedModel)
-            }
+            aiService.selectModel(selectedModel)
         }
     }
     @Published var systemPrompt: String {
         didSet { UserDefaults.standard.set(systemPrompt, forKey: "SystemPrompt") }
     }
-    /// Agent mode for next message (Plan, Full Stack, Argue, Spec). Per-message override.
+    /// Agent mode for next message (Plan, Build, Spec). Per-message override.
     @Published var agentMode: AgentMode {
         didSet { UserDefaults.standard.set(agentMode.rawValue, forKey: "AgentMode") }
-    }
-
-    /// Selected model mode (Thinking, Fast, 1M, etc.) — nil for models without modes.
-    @Published var selectedModelMode: ModelMode? {
-        didSet {
-            if let mode = selectedModelMode {
-                UserDefaults.standard.set(mode.id, forKey: "SelectedModelMode")
-            } else {
-                UserDefaults.standard.removeObject(forKey: "SelectedModelMode")
-            }
-        }
     }
 
     // New multi-provider system
     @Published var aiService = MultiProviderAIService()
 
-    let openRouterService = OpenRouterService()
     let activityStore = ActivityStore()
     internal var streamTask: Task<Void, Never>?
-    /// The OpenClaw session ID currently being processed, if any.
-    internal var activeOpenClawSessionId: String?
     private var cancellables = Set<AnyCancellable>()
     var syncDebounceTask: Task<Void, Never>?
     var syncDirty = false
@@ -176,26 +131,21 @@ class ChatViewModel: ObservableObject {
         SuggestionEngine.suggest(activityEntries: activityStore.entries, workingDirectory: workingDirectory)
     }
     static let appDirectoryName = "GRump"
-    static let legacyAppDirectoryName = "ClaudeLite"
     private static let draftsUserDefaultsKey = "GRumpConversationDrafts"
 
     var messages: [Message] {
         currentConversation?.messages ?? []
     }
 
-    /// Model actually used for requests (project config can override selectedModel).
-    /// Validated against tier; falls back to first allowed model if project config specifies a Pro model for free user.
-    var effectiveModel: AIModel {
-        // First try to get the enhanced model from AI service
-        if let enhancedModel = aiService.currentModel {
-            // Convert back to legacy AIModel for compatibility
-            return AIModel(rawValue: enhancedModel.modelID) ?? selectedModel
+    /// Model actually used for requests. A project config model id overrides
+    /// the user selection when it resolves in the registry; unknown ids are
+    /// ignored rather than crashing a request.
+    var effectiveModel: EnhancedAIModel {
+        if let projectModelID = projectConfig?.model,
+           let projectModel = aiService.modelRegistry.getModel(by: projectModelID) {
+            return projectModel
         }
-
-        // Fallback to legacy system
-        let candidate = projectConfig?.model.flatMap { AIModel(rawValue: $0) } ?? selectedModel
-        let allowed = AIModel.modelsForTier(platformTier)
-        return allowed.contains(candidate) ? candidate : AIModel.defaultForTier(platformTier)
+        return aiService.currentModel ?? selectedModel
     }
 
     /// Enhanced model currently selected
@@ -215,16 +165,11 @@ class ChatViewModel: ObservableObject {
 
     /// All models for a given provider from the registry
     func modelsForProvider(_ provider: AIProvider) -> [EnhancedAIModel] {
-        if provider == .onDevice {
-            return aiService.availableModels.filter { $0.provider == .onDevice }
-        }
         return aiService.modelRegistry.getModels(for: provider)
     }
 
-    /// All local models (Ollama + On-Device)
-    var localModels: [EnhancedAIModel] {
-        modelsForProvider(.ollama) + modelsForProvider(.onDevice)
-    }
+    /// No local models — all inference is cloud.
+    var localModels: [EnhancedAIModel] { [] }
 
     /// Whether a provider has any models available
     func providerHasModels(_ provider: AIProvider) -> Bool {
@@ -246,24 +191,19 @@ class ChatViewModel: ObservableObject {
         // Initialize AI service
         self.aiService = MultiProviderAIService()
 
-        // Load legacy API key
-        if let key = KeychainStorage.get(account: "OpenRouterAPIKey") {
-            self.apiKey = key
-        } else if let legacy = UserDefaults.standard.string(forKey: "OpenRouterAPIKey"), !legacy.isEmpty {
-            self.apiKey = legacy
-            KeychainStorage.set(account: "OpenRouterAPIKey", value: legacy)
-            UserDefaults.standard.removeObject(forKey: "OpenRouterAPIKey")
-        } else {
-            self.apiKey = ""
-        }
+        // Load the current provider's API key from its Keychain account.
+        // (didSet does not fire during init, so this is a read, not a write.)
+        let savedProvider = AIProvider(rawValue: UserDefaults.standard.string(forKey: "CurrentAIProvider") ?? "") ?? .anthropic
+        self.apiKey = KeychainStorage.get(account: savedProvider.keychainAccount) ?? ""
 
-        // Load legacy model selection
-        let savedModel = UserDefaults.standard.string(forKey: "SelectedModel") ?? AIModel.claudeSonnet4.rawValue
-        let migratedModel = Self.migrateLegacyModelID(savedModel)
-        self.selectedModel = AIModel(rawValue: migratedModel) ?? .claudeSonnet4
+        // Load the model selection from the registry (migration has already
+        // mapped any stale persisted ids).
+        let savedModelID = UserDefaults.standard.string(forKey: "CurrentAIModel") ?? ""
+        self.selectedModel = AIModelRegistry.shared.getModel(by: savedModelID)
+            ?? AIModelRegistry.shared.defaultModel()
         self.systemPrompt = UserDefaults.standard.string(forKey: "SystemPrompt") ?? GRumpDefaults.defaultSystemPrompt
-        let savedMode = UserDefaults.standard.string(forKey: "AgentMode") ?? AgentMode.standard.rawValue
-        self.agentMode = AgentMode(rawValue: savedMode) ?? .standard
+        let savedMode = UserDefaults.standard.string(forKey: "AgentMode") ?? AgentMode.plan.rawValue
+        self.agentMode = AgentMode(rawValue: savedMode) ?? .plan
         self.workingDirectory = UserDefaults.standard.string(forKey: "WorkingDirectory") ?? ""
         self.projectConfig = ProjectConfig.load(from: self.workingDirectory)
         if !self.workingDirectory.isEmpty {
@@ -281,36 +221,12 @@ class ChatViewModel: ObservableObject {
             self.loadConversations()
         }
 
-        // Network calls (Ollama, platform) run detached so they never
-        // block the main-actor cooperative queue during startup.
-        Task.detached(priority: .utility) { [weak self] in
-            guard let self else { return }
-            if await PlatformService.isLoggedIn {
-                await self.refreshPlatformUser()
-            }
-            await self.refreshLocalOllamaAvailability()
-        }
-
-        // Set up AI service observers
-        aiService.$currentProvider
-            .sink { [weak self] _ in
-                // Update legacy selectedModel when provider changes
-                if let enhancedModel = self?.aiService.currentModel {
-                    // Try to find equivalent legacy model
-                    if let legacyModel = AIModel(rawValue: enhancedModel.modelID) {
-                        self?.selectedModel = legacyModel
-                    }
-                }
-            }
-            .store(in: &cancellables)
-
+        // Set up AI service observers — keep selectedModel mirroring the
+        // service's current model (provider switches change it too).
         aiService.$currentModel
             .sink { [weak self] enhancedModel in
-                // Update legacy selectedModel when model changes
-                if let enhancedModel = enhancedModel,
-                   let legacyModel = AIModel(rawValue: enhancedModel.modelID) {
-                    self?.selectedModel = legacyModel
-                }
+                guard let self, let enhancedModel, self.selectedModel != enhancedModel else { return }
+                self.selectedModel = enhancedModel
             }
             .store(in: &cancellables)
 
@@ -323,75 +239,6 @@ class ChatViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
-
-        // Subscribe to OpenClaw messages from the gateway
-        NotificationCenter.default.publisher(for: .openClawMessageReceived)
-            .receive(on: RunLoop.main)
-            .sink { [weak self] notification in
-                guard let self,
-                      let userInfo = notification.userInfo,
-                      let sessionId = userInfo["sessionId"] as? String,
-                      let content = userInfo["content"] as? String else { return }
-                let model = userInfo["model"] as? String
-                Task { @MainActor in
-                    await self.handleOpenClawMessage(sessionId: sessionId, content: content, model: model)
-                }
-            }
-            .store(in: &cancellables)
-    }
-
-    /// Fetches /api/me and updates platformUser (credits, tier). Call after login or after a chat run.
-    func refreshPlatformUser() async {
-        guard PlatformService.isLoggedIn else {
-            await MainActor.run {
-                platformUser = nil
-                ensureSelectedModelValidForTier()
-            }
-            return
-        }
-        do {
-            let user = try await PlatformService.fetchMe()
-            await MainActor.run {
-                platformUser = user
-                ensureSelectedModelValidForTier()
-            }
-        } catch {
-            await MainActor.run {
-                platformUser = nil
-                ensureSelectedModelValidForTier()
-            }
-        }
-    }
-
-    func refreshLocalOllamaAvailability() async {
-        let registry = aiService.modelRegistry
-        let detected = await registry.isOllamaRunning()
-
-        if detected {
-            _ = await registry.refreshOllamaModels()
-        }
-
-        let hasPulledModels = !registry.getModels(for: .ollama).isEmpty
-
-        localOllamaDetected = detected
-        localOllamaReady = detected && hasPulledModels
-
-        guard localOllamaReady else { return }
-
-        let hasPlatformAuth = platformUser != nil
-        let hasLegacyAPIKey = !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        guard !hasPlatformAuth && !hasLegacyAPIKey else { return }
-
-        aiService.selectProvider(.ollama)
-        aiService.refreshModels()
-        if aiService.currentModel == nil, let fallback = aiService.availableModels.first {
-            aiService.selectModel(fallback)
-        }
-    }
-
-    func logoutPlatform() {
-        PlatformService.logout()
-        platformUser = nil
     }
 
     func saveDraft(_ text: String, forConversationId id: UUID) {
@@ -407,14 +254,6 @@ class ChatViewModel: ObservableObject {
     func loadDraft(forConversationId id: UUID) -> String {
         let dict = UserDefaults.standard.dictionary(forKey: Self.draftsUserDefaultsKey) as? [String: String] ?? [:]
         return dict[id.uuidString] ?? ""
-    }
-
-    /// Maps removed OpenRouter model IDs to current equivalents so existing users keep a sensible selection.
-    private static func migrateLegacyModelID(_ id: String) -> String {
-        switch id {
-        case "anthropic/claude-3.7-sonnet": return AIModel.claudeSonnet4.rawValue
-        default: return id
-        }
     }
 
     /// Project-level config loaded from .grump/config.json or grump.json when working directory is set.

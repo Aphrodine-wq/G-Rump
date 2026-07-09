@@ -5,36 +5,25 @@ extension ChatViewModel {
 
     // MARK: - Provider Stream Factory
 
-    /// Creates a streaming connection using the appropriate provider.
-    /// Uses the platform backend when authenticated, otherwise falls back
-    /// to the configured AI provider. This eliminates duplicated if/else
-    /// blocks across `runAgentLoop()`, `runFastReply()`, and `handleOpenClawMessage()`.
+    /// Creates a streaming connection via the multi-provider dispatcher.
+    /// (The Qwen-era backend proxy branch is gone — the slim backend spoke
+    /// DashScope only; re-adding a proxy is a separate follow-up.)
     func createProviderStream(
         messages: [Message],
         tools: [[String: Any]]
     ) -> AsyncThrowingStream<StreamEvent, Error> {
-        if let token = PlatformService.authToken, !token.isEmpty {
-            return openRouterService.streamMessageViaBackend(
-                messages: messages,
-                model: effectiveModel.rawValue,
-                backendBaseURL: PlatformService.baseURL,
-                authToken: token,
-                tools: tools.isEmpty ? nil : tools
-            )
-        } else {
-            return aiService.streamMessage(
-                messages: messages,
-                tools: tools.isEmpty ? nil : tools
-            )
-        }
+        return aiService.streamMessage(
+            messages: messages,
+            tools: tools.isEmpty ? nil : tools
+        )
     }
 
     /// Send a message and start streaming response
     func sendMessage() {
         let trimmed = userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty && platformUser == nil && !localOllamaReady {
-            errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key, or start Ollama locally."
+        if !isAIProviderConfigured && apiKey.trimmingCharacters(in: .whitespaces).isEmpty {
+            errorMessage = "No provider configured. Open Settings (\u{2318},) to add an API key."
             return
         }
 
@@ -87,11 +76,6 @@ extension ChatViewModel {
         thinkingContent = ""
         isThinking = false
         activeToolCalls = []
-        parallelAgents = []
-        orchestrationPlan = nil
-        synthesisingContent = ""
-        speculativeBranches = []
-        speculativeWinnerIndex = nil
         currentRunCodeChanges = []
 
         // Load temporal intelligence and intent continuity for this run
@@ -102,15 +86,7 @@ extension ChatViewModel {
 
         streamTask?.cancel()
         streamTask = Task {
-            if self.agentMode == .parallel {
-                await self.runParallelAgentLoop(userTask: task)
-            } else if self.agentMode == .speculative {
-                await self.runSpeculativeBranchLoop(userTask: task)
-            } else if self.agentMode == .standard && isSimpleConversationalMessage(task) {
-                await self.runFastReply()
-            } else {
-                await self.runAgentLoop()
-            }
+            await self.runAgentLoop()
             streamTask = nil
             isLoading = false
         }
@@ -148,75 +124,11 @@ extension ChatViewModel {
 
     /// Restart streaming with current conversation state
     func restartStreaming() {
-        orchestrationPlan = nil
-        synthesisingContent = ""
         streamTask?.cancel()
         streamTask = Task {
             await self.runAgentLoop()
             streamTask = nil
             isLoading = false
-        }
-    }
-
-    // MARK: - OpenClaw Message Handling
-
-    /// Process an incoming message from the OpenClaw gateway.
-    /// Routes it through the normal agent loop and streams the response back.
-    func handleOpenClawMessage(sessionId: String, content: String, model: String?) async {
-        // Don't interrupt an active generation
-        guard !isLoading else {
-            await OpenClawService.shared.sendResponse(
-                sessionId: sessionId,
-                content: "G-Rump is busy with another task. Please wait.",
-                done: true
-            )
-            return
-        }
-
-        activeOpenClawSessionId = sessionId
-
-        // Inject the message into the conversation
-        let userMessage = Message(role: .user, content: content)
-        if currentConversation == nil { createNewConversation() }
-        currentConversation?.messages.append(userMessage)
-        currentConversation?.updateTitle()
-        syncConversation()
-
-        // If the caller requested a specific model, try to select it
-        if let modelId = model, let aiModel = AIModel(rawValue: modelId) {
-            selectedModel = aiModel
-        }
-
-        // Run the agent loop (reuses the same streaming pipeline as normal chat)
-        isLoading = true
-        isPaused = false
-        errorMessage = nil
-        streamingContent = ""
-        activeToolCalls = []
-        currentRunCodeChanges = []
-
-        streamTask?.cancel()
-        streamTask = Task {
-            await self.runAgentLoop()
-            streamTask = nil
-            isLoading = false
-
-            // Send the final assistant response back to OpenClaw
-            let responseContent: String
-            if let lastAssistant = self.currentConversation?.messages.last(where: { $0.role == .assistant }) {
-                responseContent = lastAssistant.content
-            } else if let err = self.errorMessage {
-                responseContent = "Error: \(err)"
-            } else {
-                responseContent = "No response generated."
-            }
-
-            await OpenClawService.shared.sendResponse(
-                sessionId: sessionId,
-                content: responseContent,
-                done: true
-            )
-            self.activeOpenClawSessionId = nil
         }
     }
 }

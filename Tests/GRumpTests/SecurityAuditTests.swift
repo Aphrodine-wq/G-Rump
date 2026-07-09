@@ -58,7 +58,7 @@ final class SecurityAuditTests: XCTestCase {
 
     func testAPIKeyNotLeakedInModelRawValues() {
         // Ensure no AI model raw values accidentally contain API keys or tokens
-        for model in AIModel.allCases {
+        for model in AIModelRegistry.shared.getAllModels() {
             let rawValue = model.rawValue.lowercased()
             XCTAssertFalse(rawValue.contains("sk-"), "Model raw value contains suspicious key prefix: \(model.rawValue)")
             XCTAssertFalse(rawValue.contains("token"), "Model raw value contains 'token': \(model.rawValue)")
@@ -134,22 +134,10 @@ final class SecurityAuditTests: XCTestCase {
         XCTAssertNil(MCPCredentialVault.getValue(serverID: testID, key: "KEY1"))
     }
 
-    // MARK: - Platform Service URL Safety
-
-    func testPlatformServiceBaseURLIsHTTPS() {
-        // Verify the hardcoded platform API URL uses HTTPS
-        // PlatformService.defaultBaseURL is private, but we can check the tier display names
-        // which proves the service is properly configured
-        XCTAssertEqual(PlatformService.tierDisplayName("pro"), "Pro")
-        XCTAssertEqual(PlatformService.tierDisplayName("team"), "Team")
-        XCTAssertEqual(PlatformService.tierDisplayName("starter"), "Starter")
-        XCTAssertEqual(PlatformService.tierDisplayName("unknown"), "Free")
-    }
-
     // MARK: - Model Data Integrity
 
     func testAllModelsHaveValidContextConfigurations() {
-        for model in AIModel.allCases {
+        for model in AIModelRegistry.shared.getAllModels() {
             // Context window must be reasonable (>= 8K, <= 10M)
             XCTAssertGreaterThanOrEqual(model.contextWindow, 8_000,
                 "\(model.rawValue) context window too small: \(model.contextWindow)")
@@ -168,48 +156,17 @@ final class SecurityAuditTests: XCTestCase {
     }
 
     func testModelMigrationHandlesUnknownIds() {
-        // Unknown model IDs should return nil, not crash
-        XCTAssertNil(AIModel.migrateLegacyID("totally-fake/nonexistent-model-v99"))
-        XCTAssertNil(AIModel.migrateLegacyID(""))
-        XCTAssertNil(AIModel.migrateLegacyID(" "))
-    }
-
-    func testModelMigrationHandlesKnownLegacyIds() {
-        // Known legacy IDs must migrate correctly
-        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-pro-preview"), .gemini31Pro)
-        XCTAssertEqual(AIModel.migrateLegacyID("google/gemini-2.5-flash-preview"), .gemini31Flash)
+        // Unknown model IDs must fall back to a real model, not crash or return nil
+        XCTAssertEqual(ModelIDMigration.map("totally-fake-model-v99"), "claude-opus-4-8")
+        XCTAssertEqual(ModelIDMigration.map(""), "claude-opus-4-8")
+        XCTAssertEqual(ModelIDMigration.map(" "), "claude-opus-4-8")
     }
 
     func testModelMigrationPassesThroughCurrentIds() {
-        // Current model IDs should pass through
-        for model in AIModel.allCases {
-            XCTAssertEqual(AIModel.migrateLegacyID(model.rawValue), model,
-                "Current model \(model.rawValue) should pass through migration")
-        }
-    }
-
-    func testEveryTierHasDefaultModel() {
-        // Every tier should have a valid default
-        let tiers: [String?] = [nil, "free", "starter", "pro", "team", "enterprise"]
-        for tier in tiers {
-            let defaultModel = AIModel.defaultForTier(tier)
-            XCTAssertFalse(defaultModel.displayName.isEmpty, "Tier \(tier ?? "nil") has no default")
-        }
-    }
-
-    func testProTierIncludesFreeTierModels() {
-        // Pro users should see Pro models, not free ones (they're separate lists)
-        let proModels = AIModel.modelsForTier("pro")
-        let freeModels = AIModel.modelsForTier(nil)
-        let proSet = Set(proModels.map(\.rawValue))
-        let freeSet = Set(freeModels.map(\.rawValue))
-        // Pro and free should not overlap
-        let overlap = proSet.intersection(freeSet)
-        // This is a design choice: if they overlap, it's intentional (dual-tier models like claudeSonnet4)
-        // But no Pro-only model should appear in the free list
-        for model in proModels where model.requiresPaidTier {
-            XCTAssertFalse(freeSet.contains(model.rawValue),
-                "\(model.rawValue) requires paid tier but appears in free list")
+        // Every catalog id must survive migration untouched
+        for model in AIModelRegistry.shared.getAllModels() {
+            XCTAssertEqual(ModelIDMigration.map(model.id), model.id,
+                "Current model \(model.id) should pass through migration")
         }
     }
 

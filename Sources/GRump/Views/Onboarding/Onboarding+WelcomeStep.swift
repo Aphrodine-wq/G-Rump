@@ -22,7 +22,7 @@ extension OnboardingView {
                     .foregroundColor(themeManager.palette.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Your autonomous AI coding agent.\nSign in or connect a provider to get started.")
+                Text("Your autonomous AI coding agent.\nConnect an API key to get started.")
                     .font(Typography.body)
                     .foregroundColor(themeManager.palette.textSecondary)
                     .multilineTextAlignment(.center)
@@ -30,99 +30,41 @@ extension OnboardingView {
                     .frame(maxWidth: 480)
             }
 
-            // MARK: Sign In / Sign Up section
-            if !authSuccess {
-                emailAuthSection
-            } else {
-                HStack(spacing: Spacing.md) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.accentGreen)
-                    Text("Signed in successfully")
-                        .font(Typography.bodySemibold)
-                        .foregroundColor(.accentGreen)
-                }
-                .padding(Spacing.lg)
-                .frame(maxWidth: 420)
-                .background(Color.accentGreen.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            }
-
-            // Divider with "or continue as guest"
-            if !authSuccess {
-                HStack(spacing: Spacing.lg) {
-                    Rectangle()
-                        .fill(themeManager.palette.borderCrisp.opacity(0.3))
-                        .frame(height: 1)
-                    Text("or continue as guest")
-                        .font(Typography.captionSmall)
-                        .foregroundColor(themeManager.palette.textMuted)
-                        .layoutPriority(1)
-                    Rectangle()
-                        .fill(themeManager.palette.borderCrisp.opacity(0.3))
-                        .frame(height: 1)
-                }
-                .frame(maxWidth: 420)
-            }
-
             VStack(spacing: Spacing.xl) {
-                // Provider picker cards
-                VStack(spacing: Spacing.md) {
-                    Text("Choose a provider")
+                // Key entry for the selected provider (Anthropic by default).
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    Text("\(selectedOnboardingProvider.displayName) API Key")
                         .font(Typography.captionSemibold)
                         .foregroundColor(themeManager.palette.textMuted)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     HStack(spacing: Spacing.md) {
-                        onboardingProviderCard(.anthropic, icon: "sparkles", name: "Anthropic")
-                        onboardingProviderCard(.openAI, icon: "brain", name: "OpenAI")
-                        onboardingProviderCard(.ollama, icon: "desktopcomputer", name: "Ollama")
-                        onboardingProviderCard(.openRouter, icon: "globe", name: "OpenRouter")
+                        SecureField(apiKeyPlaceholder(for: selectedOnboardingProvider), text: $apiKeyInput)
+                            .textFieldStyle(.plain)
+                            .font(Typography.bodySmall)
+                            .padding(Spacing.lg)
+                            .background(themeManager.palette.bgInput)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                                .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+
+                        Button("Save") {
+                            saveProviderKey()
+                        }
+                        .font(Typography.bodySmallSemibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.xl)
+                        .padding(.vertical, Spacing.lg)
+                        .background(themeManager.palette.effectiveAccent)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .buttonStyle(.plain)
+                        .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
+
+                    KeyValidationFeedbackView(
+                        state: keyValidationState,
+                        providerName: selectedOnboardingProvider.displayName
+                    )
                 }
                 .frame(maxWidth: 420)
-
-                // API key field for cloud providers
-                if selectedOnboardingProvider.requiresAPIKey {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text("\(selectedOnboardingProvider.displayName) API Key")
-                            .font(Typography.captionSemibold)
-                            .foregroundColor(themeManager.palette.textMuted)
-                        HStack(spacing: Spacing.md) {
-                            SecureField(apiKeyPlaceholder(for: selectedOnboardingProvider), text: $apiKeyInput)
-                                .textFieldStyle(.plain)
-                                .font(Typography.bodySmall)
-                                .padding(Spacing.lg)
-                                .background(themeManager.palette.bgInput)
-                                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                                    .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-
-                            Button("Save") {
-                                saveProviderKey()
-                            }
-                            .font(Typography.bodySmallSemibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, Spacing.xl)
-                            .padding(.vertical, Spacing.lg)
-                            .background(themeManager.palette.effectiveAccent)
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                            .buttonStyle(.plain)
-                            .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
-                        }
-                    }
-                    .frame(maxWidth: 420)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                } else if selectedOnboardingProvider == .ollama {
-                    HStack(spacing: Spacing.md) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(themeManager.palette.effectiveAccent)
-                        Text("No API key needed. Make sure Ollama is running locally.")
-                            .font(Typography.captionSmall)
-                            .foregroundColor(themeManager.palette.textSecondary)
-                    }
-                    .frame(maxWidth: 420, alignment: .leading)
-                }
-
             }
 
             // Privacy consent
@@ -147,187 +89,13 @@ extension OnboardingView {
         }
     }
 
-    // MARK: - Email Auth Section
-
-    var emailAuthSection: some View {
-        VStack(spacing: Spacing.xl) {
-            // Sign In / Sign Up toggle
-            HStack(spacing: 0) {
-                Button {
-                    withAnimation(.easeInOut(duration: Anim.quick)) {
-                        isSignUpMode = true
-                        authError = nil
-                    }
-                } label: {
-                    Text("Sign Up")
-                        .font(Typography.bodySmallSemibold)
-                        .foregroundColor(isSignUpMode ? themeManager.palette.effectiveAccent : themeManager.palette.textMuted)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.lg)
-                        .background(isSignUpMode ? themeManager.palette.effectiveAccent.opacity(0.12) : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    withAnimation(.easeInOut(duration: Anim.quick)) {
-                        isSignUpMode = false
-                        authError = nil
-                    }
-                } label: {
-                    Text("Sign In")
-                        .font(Typography.bodySmallSemibold)
-                        .foregroundColor(!isSignUpMode ? themeManager.palette.effectiveAccent : themeManager.palette.textMuted)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.lg)
-                        .background(!isSignUpMode ? themeManager.palette.effectiveAccent.opacity(0.12) : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                }
-                .buttonStyle(.plain)
-            }
-            .background(themeManager.palette.bgInput)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                .stroke(themeManager.palette.borderCrisp.opacity(0.3), lineWidth: Border.thin))
-
-            // Display name field (sign up only)
-            if isSignUpMode {
-                TextField("Display name (optional)", text: $authDisplayName)
-                    .textFieldStyle(.plain)
-                    .font(Typography.bodySmall)
-                    .padding(Spacing.lg)
-                    .background(themeManager.palette.bgInput)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                        .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-
-            // Email field
-            TextField("Email", text: $authEmail)
-                .textFieldStyle(.plain)
-                .font(Typography.bodySmall)
-                .textContentType(.emailAddress)
-                #if os(macOS)
-                .disableAutocorrection(true)
-                #else
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .keyboardType(.emailAddress)
-                #endif
-                .padding(Spacing.lg)
-                .background(themeManager.palette.bgInput)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                    .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-
-            // Password field
-            SecureField("Password (8+ characters)", text: $authPassword)
-                .textFieldStyle(.plain)
-                .font(Typography.bodySmall)
-                .textContentType(isSignUpMode ? .newPassword : .password)
-                .padding(Spacing.lg)
-                .background(themeManager.palette.bgInput)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                    .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-
-            // Error message
-            if let error = authError {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
-                        .font(.system(size: 12))
-                    Text(error)
-                        .font(Typography.captionSmall)
-                        .foregroundColor(.red)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .transition(.opacity)
-            }
-
-            // Submit button
-            Button {
-                performEmailAuth()
-            } label: {
-                HStack(spacing: Spacing.md) {
-                    if authInProgress {
-                        ProgressView()
-                            .controlSize(.small)
-                            .tint(.white)
-                    }
-                    Text(isSignUpMode ? "Create Account" : "Sign In")
-                        .font(Typography.bodySemibold)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.lg)
-                .background(emailAuthButtonDisabled ? themeManager.palette.effectiveAccent.opacity(0.4) : themeManager.palette.effectiveAccent)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .disabled(emailAuthButtonDisabled)
-        }
-        .frame(maxWidth: 420)
-        .animation(.easeInOut(duration: Anim.quick), value: isSignUpMode)
-        .animation(.easeInOut(duration: Anim.quick), value: authError != nil)
-    }
-
-    var emailAuthButtonDisabled: Bool {
-        authInProgress
-        || authEmail.trimmingCharacters(in: .whitespaces).isEmpty
-        || authPassword.isEmpty
-        || authPassword.count < 8
-    }
-
-    func performEmailAuth() {
-        let email = authEmail.trimmingCharacters(in: .whitespaces)
-        let password = authPassword
-        guard !email.isEmpty, password.count >= 8 else { return }
-
-        authInProgress = true
-        authError = nil
-
-        Task {
-            do {
-                if isSignUpMode {
-                    let displayName = authDisplayName.trimmingCharacters(in: .whitespaces)
-                    let user = try await PlatformService.signUp(
-                        email: email,
-                        password: password,
-                        displayName: displayName.isEmpty ? nil : displayName
-                    )
-                    await MainActor.run {
-                        viewModel.platformUser = user
-                        authSuccess = true
-                        authInProgress = false
-                        GRumpLogger.general.info("Onboarding sign-up completed")
-                    }
-                } else {
-                    let user = try await PlatformService.signIn(email: email, password: password)
-                    await MainActor.run {
-                        viewModel.platformUser = user
-                        authSuccess = true
-                        authInProgress = false
-                        GRumpLogger.general.info("Onboarding sign-in completed")
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    authError = error.localizedDescription
-                    authInProgress = false
-                    GRumpLogger.general.error("Onboarding auth failed: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
     func onboardingProviderCard(_ provider: AIProvider, icon: String, name: String) -> some View {
         let isSelected = selectedOnboardingProvider == provider
         return Button {
             withAnimation(.easeInOut(duration: Anim.quick)) {
                 selectedOnboardingProvider = provider
                 apiKeyInput = ""
+                keyValidationState = .idle
             }
         } label: {
             VStack(spacing: Spacing.md) {
@@ -351,23 +119,26 @@ extension OnboardingView {
     }
 
     func apiKeyPlaceholder(for provider: AIProvider) -> String {
-        switch provider {
-        case .anthropic: return "sk-ant-..."
-        case .openAI: return "sk-..."
-        case .openRouter: return "sk-or-..."
-        case .google: return "AIza..."
-        default: return "API key..."
-        }
+        provider.keyPlaceholder
     }
 
     func saveProviderKey() {
         let key = apiKeyInput.trimmingCharacters(in: .whitespaces)
         guard !key.isEmpty else { return }
-        let config = ProviderConfiguration(provider: selectedOnboardingProvider, apiKey: key)
+        let provider = selectedOnboardingProvider
+        let config = ProviderConfiguration(provider: provider, apiKey: key)
         AIModelRegistry.shared.setProviderConfig(config)
-        viewModel.selectProvider(selectedOnboardingProvider)
-        if selectedOnboardingProvider == .openRouter {
-            viewModel.apiKey = key
+        viewModel.selectProvider(provider)
+        viewModel.apiKey = key
+
+        // Probe the saved key; drop the result if the user has switched
+        // providers meanwhile (the feedback row is shared across cards).
+        keyValidationState = .validating
+        Task { @MainActor in
+            let result = await AIKeyValidator.validate(provider: provider, apiKey: key)
+            if selectedOnboardingProvider == provider {
+                keyValidationState = .result(result)
+            }
         }
     }
 }

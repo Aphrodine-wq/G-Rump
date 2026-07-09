@@ -23,7 +23,7 @@ extension ChatViewModel {
     }
 
     /// Effective model, prompt, tools, and max steps (project config > preset > user default).
-    func effectiveAgentConfig() -> (model: AIModel, prompt: String, tools: [[String: Any]], maxSteps: Int) {
+    func effectiveAgentConfig() -> (model: EnhancedAIModel, prompt: String, tools: [[String: Any]], maxSteps: Int) {
         let storedMax = UserDefaults.standard.object(forKey: "MaxAgentSteps") as? Int ?? 200
         let baseMax = min(1000, max(5, storedMax))
         let presetMax = appliedPresetMaxAgentSteps.map { min(1000, max(5, $0)) } ?? baseMax
@@ -259,7 +259,7 @@ extension ChatViewModel {
             default: return "Network error: \(urlError.localizedDescription)"
             }
         }
-        if let serviceError = error as? OpenRouterService.ServiceError {
+        if let serviceError = error as? OpenAICompatibleService.ServiceError {
             if case .apiError(let code, let msg) = serviceError {
                 if code == 503 { return "Service temporarily unavailable. Please retry in a moment." }
                 if code == 429 { return "Rate limit reached. Please wait a moment and try again." }

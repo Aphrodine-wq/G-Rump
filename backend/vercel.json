@@ -11,12 +11,6 @@
       "maxDuration": 300
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron/prune",
-      "schedule": "0 3 * * *"
-    }
-  ],
   "env": {
     "NODE_ENV": "production"
   }

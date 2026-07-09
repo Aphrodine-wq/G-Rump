@@ -71,64 +71,6 @@ final class IntegrationValidationTests: XCTestCase {
         XCTAssertEqual(decoded.messages[3].toolCallId, "tc-2")
     }
 
-    // MARK: - Model Consistency Across All Properties
-
-    func testModelPropertyConsistency() {
-        // Every model must have all 6 properties populated correctly
-        for model in AIModel.allCases {
-            // rawValue should be a valid provider/model path
-            XCTAssertTrue(model.rawValue.contains("/"),
-                "\(model.rawValue) should be in 'provider/model' format")
-
-            // displayName should be human-readable (no slashes)
-            XCTAssertFalse(model.displayName.contains("/"),
-                "\(model.rawValue) displayName contains slashes")
-
-            // description should be a sentence
-            XCTAssertGreaterThan(model.description.count, 10,
-                "\(model.rawValue) description too short")
-
-            // tier must be valid
-            XCTAssertTrue(["Pro", "Fast", "Free"].contains(model.tier),
-                "\(model.rawValue) has invalid tier: \(model.tier)")
-
-            // id must equal rawValue
-            XCTAssertEqual(model.id, model.rawValue)
-        }
-    }
-
-    func testModelTierMatchesRequiresPaidTier() {
-        // Pro tier models must require paid tier
-        for model in AIModel.allCases {
-            if model.tier == "Pro" {
-                XCTAssertTrue(model.requiresPaidTier,
-                    "\(model.rawValue) is Pro tier but doesn't require paid")
-            }
-            if model.tier == "Free" {
-                XCTAssertFalse(model.requiresPaidTier,
-                    "\(model.rawValue) is Free tier but requires paid")
-            }
-        }
-    }
-
-    func testAllModelsAreAccountedForInTierLists() {
-        let proModels = Set(AIModel.modelsForTier("pro").map(\.rawValue))
-        let freeModels = Set(AIModel.modelsForTier(nil).map(\.rawValue))
-        let allModels = Set(AIModel.allCases.map(\.rawValue))
-
-        let covered = proModels.union(freeModels)
-        let uncovered = allModels.subtracting(covered)
-
-        // Claude Sonnet 4 is in the Free list but not Pro — that's by design
-        // But every model should appear in at least one tier's list
-        // Note: some models may intentionally not be in tier lists (hidden/deprecated)
-        // For now, just verify no model is orphaned
-        for modelRaw in uncovered {
-            // This is informational — some models may be intentionally excluded
-            print("⚠️ Model not in any tier list: \(modelRaw)")
-        }
-    }
-
     // MARK: - ToolCallStatus State Machine
 
     func testToolCallStatusTransitions() {
@@ -172,22 +114,6 @@ final class IntegrationValidationTests: XCTestCase {
         XCTAssertEqual(status.status, .cancelled)
     }
 
-    // MARK: - ParallelAgentState
-
-    func testParallelAgentStateCreation() {
-        let state = ParallelAgentState(
-            id: "sub-1",
-            agentIndex: 1,
-            taskDescription: "Read all files",
-            taskType: .research,
-            modelName: "claude-sonnet-4"
-        )
-        XCTAssertEqual(state.id, "sub-1")
-        XCTAssertEqual(state.agentIndex, 1)
-        XCTAssertEqual(state.status, .pending)
-        XCTAssertTrue(state.streamingText.isEmpty)
-        XCTAssertNil(state.result)
-    }
 
     // MARK: - SystemRunHistoryEntry
 

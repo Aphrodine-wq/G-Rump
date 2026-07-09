@@ -32,7 +32,6 @@ struct ConversationSidebar: View {
     @State private var conversationToDelete: IdentifiableConversationWrapper?
     @State private var newChatButtonHovered = false
     @State private var collapsedSections: Set<String> = []
-    @StateObject private var openClaw = OpenClawService.shared
 
     private var filteredConversations: [Conversation] {
         viewModel.conversations
@@ -246,31 +245,13 @@ struct ConversationSidebar: View {
 
             Button(action: { showProfile = true }) {
                 HStack(spacing: Spacing.xl) {
-                    ZStack(alignment: .topTrailing) {
-                        Image(systemName: "person.crop.circle")
-                            .font(Typography.bodySmall)
-                            .foregroundColor(themeManager.palette.textMuted)
-                        if openClaw.isEnabled && (openClaw.connectionState == .connected || openClaw.connectionState == .connecting) {
-                            Circle()
-                                .fill(openClaw.connectionState == .connected ? Color.green : Color.orange)
-                                .frame(width: 7, height: 7)
-                                .overlay(Circle().stroke(themeManager.palette.bgSidebar, lineWidth: 1.5))
-                                .offset(x: 2, y: -1)
-                        }
-                    }
+                    Image(systemName: "person.crop.circle")
+                        .font(Typography.bodySmall)
+                        .foregroundColor(themeManager.palette.textMuted)
                     Text("Profile")
                         .font(Typography.bodySmallMedium)
                         .foregroundColor(themeManager.palette.textSecondary)
                     Spacer()
-                    if let user = viewModel.platformUser {
-                        Text("\(user.creditsBalance)")
-                            .font(Typography.micro)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, 2)
-                            .background(themeManager.palette.effectiveAccent.opacity(0.8))
-                            .clipShape(Capsule())
-                    }
                     Image(systemName: "chevron.right")
                         .font(Typography.micro)
                         .foregroundColor(themeManager.palette.textMuted)

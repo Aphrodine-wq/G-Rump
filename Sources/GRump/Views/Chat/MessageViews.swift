@@ -18,7 +18,7 @@ struct MessageRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var viewModel: ChatViewModel
     let message: Message
-    var agentMode: AgentMode = .standard
+    var agentMode: AgentMode = .plan
     @State private var showCopyConfirm = false
     @State private var isHovered = false
     @State private var reaction: MessageReaction?
@@ -53,20 +53,16 @@ struct MessageRow: View {
     private var modeLineSpacing: CGFloat {
         switch agentMode {
         case .plan: return 2        // tighter for structured lists
-        case .argue: return 5       // more spacious for readability
         case .fullStack: return 3   // standard
         case .spec: return 4        // slightly spacious for Q&A
-        default: return 3
         }
     }
 
     private var modeBorderColor: Color? {
         switch agentMode {
-        case .argue: return Color(red: 1.0, green: 0.45, blue: 0.3).opacity(0.3)
         case .plan: return Color(red: 0.3, green: 0.6, blue: 1.0).opacity(0.3)
         case .fullStack: return Color(red: 0.2, green: 0.85, blue: 0.5).opacity(0.3)
         case .spec: return Color(red: 0.8, green: 0.6, blue: 1.0).opacity(0.3)
-        default: return nil
         }
     }
 

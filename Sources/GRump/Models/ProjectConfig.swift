@@ -41,11 +41,11 @@ struct ProjectConfig: Codable, Equatable {
     /// Merge project config into effective values. Returns (model, systemPrompt, toolAllowlist, maxSteps).
     /// Pass current user values; project config overrides when present.
     func merged(
-        currentModel: AIModel,
+        currentModel: EnhancedAIModel,
         currentPrompt: String,
         currentMaxSteps: Int
-    ) -> (model: AIModel, prompt: String, tools: [String]?, maxSteps: Int) {
-        let model = model.flatMap { AIModel(rawValue: $0) } ?? currentModel
+    ) -> (model: EnhancedAIModel, prompt: String, tools: [String]?, maxSteps: Int) {
+        let model = model.flatMap { AIModelRegistry.shared.getModel(by: $0) } ?? currentModel
         let prompt: String
         if let projPrompt = systemPrompt, !projPrompt.isEmpty {
             prompt = projPrompt

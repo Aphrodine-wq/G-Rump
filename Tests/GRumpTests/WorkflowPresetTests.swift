@@ -23,7 +23,7 @@ final class WorkflowPresetTests: XCTestCase {
         let preset = WorkflowPreset(
             id: id,
             name: "Full",
-            modelRawValue: AIModel.claudeSonnet4.rawValue,
+            modelRawValue: "claude-opus-4-8",
             systemPrompt: "prompt",
             toolAllowlist: ["read_file", "write_file"],
             maxAgentSteps: 100
@@ -39,10 +39,10 @@ final class WorkflowPresetTests: XCTestCase {
     func testModelResolvesValidRawValue() {
         let preset = WorkflowPreset(
             name: "Test",
-            modelRawValue: AIModel.claudeSonnet4.rawValue,
+            modelRawValue: "claude-opus-4-8",
             systemPrompt: "p"
         )
-        XCTAssertEqual(preset.model, .claudeSonnet4)
+        XCTAssertEqual(preset.model?.id, "claude-opus-4-8")
     }
 
     func testModelReturnsNilForInvalidRawValue() {
