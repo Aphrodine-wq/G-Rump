@@ -60,12 +60,55 @@ struct SimulatorDevice: Identifiable, Hashable {
 
 @MainActor
 final class SimulatorService: ObservableObject {
+    static let shared = SimulatorService()
+
     @Published var devices: [SimulatorDevice] = []
     @Published var isLoading = false
     #if os(macOS)
     @Published var lastScreenshot: NSImage?
     #endif
     @Published var errorMessage: String?
+
+    /// Pure parser for `simctl list devices -j` output: available devices only,
+    /// booted first, then by name.
+    nonisolated static func parseDeviceList(_ data: Data) -> [SimulatorDevice]? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let devicesDict = json["devices"] as? [String: [[String: Any]]] else {
+            return nil
+        }
+
+        var parsed: [SimulatorDevice] = []
+        for (runtime, deviceList) in devicesDict {
+            for device in deviceList {
+                guard let udid = device["udid"] as? String,
+                      let name = device["name"] as? String,
+                      let stateStr = device["state"] as? String,
+                      let isAvailable = device["isAvailable"] as? Bool,
+                      isAvailable else { continue }
+
+                let state: SimulatorDevice.DeviceState
+                switch stateStr {
+                case "Booted": state = .booted
+                case "Shutdown": state = .shutdown
+                case "Creating": state = .creating
+                default: state = .unknown
+                }
+
+                let deviceType = (device["deviceTypeIdentifier"] as? String) ?? ""
+                parsed.append(SimulatorDevice(
+                    id: udid, name: name, runtime: runtime,
+                    state: state, deviceType: deviceType
+                ))
+            }
+        }
+
+        parsed.sort { a, b in
+            if a.state == .booted && b.state != .booted { return true }
+            if a.state != .booted && b.state == .booted { return false }
+            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }
+        return parsed
+    }
 
     func refresh() {
         isLoading = true
@@ -83,44 +126,12 @@ final class SimulatorService: ObservableObject {
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
                 process.waitUntilExit()
 
-                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let devicesDict = json["devices"] as? [String: [[String: Any]]] else {
+                guard let parsed = Self.parseDeviceList(data) else {
                     await MainActor.run {
                         self.isLoading = false
                         self.errorMessage = "Failed to parse simulator list"
                     }
                     return
-                }
-
-                var parsed: [SimulatorDevice] = []
-                for (runtime, deviceList) in devicesDict {
-                    for device in deviceList {
-                        guard let udid = device["udid"] as? String,
-                              let name = device["name"] as? String,
-                              let stateStr = device["state"] as? String,
-                              let isAvailable = device["isAvailable"] as? Bool,
-                              isAvailable else { continue }
-
-                        let state: SimulatorDevice.DeviceState
-                        switch stateStr {
-                        case "Booted": state = .booted
-                        case "Shutdown": state = .shutdown
-                        case "Creating": state = .creating
-                        default: state = .unknown
-                        }
-
-                        let deviceType = (device["deviceTypeIdentifier"] as? String) ?? ""
-                        parsed.append(SimulatorDevice(
-                            id: udid, name: name, runtime: runtime,
-                            state: state, deviceType: deviceType
-                        ))
-                    }
-                }
-
-                parsed.sort { a, b in
-                    if a.state == .booted && b.state != .booted { return true }
-                    if a.state != .booted && b.state == .booted { return false }
-                    return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
                 }
 
                 await MainActor.run {
@@ -203,7 +214,7 @@ final class SimulatorService: ObservableObject {
 
 struct SimulatorDashboardView: View {
     @EnvironmentObject var themeManager: ThemeManager
-    @StateObject private var service = SimulatorService()
+    @ObservedObject private var service = SimulatorService.shared
     @State private var searchText = ""
     @State private var showScreenshot = false
 
