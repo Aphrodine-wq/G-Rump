@@ -1,0 +1,119 @@
+name: Bug report
+description: Something in G-Rump broke or behaved unexpectedly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Fill in what you can — the environment fields
+        make it far faster to reproduce. **Redact your API keys** from any logs
+        or screenshots before pasting.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you do, and what went wrong?
+      placeholder: I asked the agent to refactor a file in Build mode and it...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps if you can. A minimal repro helps most.
+      placeholder: |
+        1. Open a project at ...
+        2. Switch to Build mode
+        3. Send "..."
+        4. See error
+    validations:
+      required: false
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: e.g. 14.5 (Sonoma) or 15.1 (Sequoia)
+      placeholder: "14.5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: chip
+    attributes:
+      label: Chip
+      options:
+        - Apple Silicon (M-series)
+        - Intel
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install / run it?
+      options:
+        - Built from source (make build)
+        - make run
+        - DMG / .app download
+        - Other (note in "What happened")
+    validations:
+      required: true
+
+  - type: input
+    id: provider-model
+    attributes:
+      label: Provider and model
+      description: Which provider and model were active?
+      placeholder: "Anthropic — claude-opus-4-8"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: agent-mode
+    attributes:
+      label: Agent mode
+      options:
+        - Plan
+        - Build
+        - Spec
+        - Chat
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: exec-preset
+    attributes:
+      label: Exec-approval security preset
+      description: The shell-command approval level in Settings > Security.
+      options:
+        - Strict
+        - Balanced
+        - Permissive
+        - Custom
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: |
+        Logs go through `GRumpLogger`. Grab them from **Console.app** — filter by
+        the G-Rump subsystem — or from stderr if you launched via `make run`.
+        **Redact any API keys** before pasting.
+      render: text
+    validations:
+      required: false

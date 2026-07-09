@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/Aphrodine-wq/G-Rump/discussions
+    about: Questions, ideas, and general conversation. For anything that isn't a concrete bug or feature request, start here.
