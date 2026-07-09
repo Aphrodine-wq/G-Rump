@@ -206,9 +206,18 @@ final class AIModelRegistry: @unchecked Sendable {
         return models.first { $0.id == id }
     }
 
-    /// The app-wide default model: Claude Opus 4.8.
-    func defaultModel() -> EnhancedAIModel? {
-        return getModel(by: "claude-opus-4-8") ?? getModels(for: .anthropic).first
+    /// The app-wide default model: Claude Opus 4.8. Non-optional — the
+    /// bundled catalog guarantees an entry; the synthetic tail exists only so
+    /// a future empty-catalog bug degrades instead of crashing.
+    func defaultModel() -> EnhancedAIModel {
+        if let opus = getModel(by: "claude-opus-4-8") { return opus }
+        if let first = getModels(for: .anthropic).first ?? getAllModels().first { return first }
+        return EnhancedAIModel(
+            id: "claude-opus-4-8", provider: .anthropic, modelID: "claude-opus-4-8",
+            displayName: "Claude Opus 4.8", description: "Default model",
+            contextWindow: 1_000_000, maxOutput: 128_000, requiresPaidTier: false,
+            capabilities: .default, pricing: nil
+        )
     }
 
     /// Sensible default per provider (never Fable — premium, explicit-select only).

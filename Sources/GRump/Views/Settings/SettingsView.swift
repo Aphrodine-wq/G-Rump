@@ -14,7 +14,7 @@ import UIKit
 
 struct SettingsView: View {
     @Binding var apiKey: String
-    @Binding var selectedModel: AIModel
+    @Binding var selectedModel: EnhancedAIModel
     @Binding var systemPrompt: String
     @Binding var workingDirectory: String
     var onSetWorkingDirectory: (String) -> Void
@@ -319,7 +319,7 @@ struct SettingsView: View {
             settingsCard {
                 VStack(alignment: .leading, spacing: Spacing.xxl) {
                     sectionTitle("Backend", icon: "server.rack", accent: themeManager.accentColor)
-                    Text("Optional: route requests through a slim backend proxy. Leave blank to call Qwen (DashScope) directly with your API key below.")
+                    Text("Optional: route requests through a slim backend proxy. Leave blank to call your AI provider directly with your API key.")
                         .font(Typography.captionSmall)
                         .foregroundColor(.textMuted)
                     TextField("https://your-backend.example.com", text: $backendURL)
@@ -583,56 +583,6 @@ struct SettingsView: View {
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: Anim.quick), value: themeManager.accentColor)
-    }
-
-    func modelRow(_ model: AIModel) -> some View {
-        let accent = themeManager.palette.effectiveAccent
-        return Button(action: { selectedModel = model }) {
-            HStack(spacing: Spacing.xxl) {
-                ZStack {
-                    Circle()
-                        .stroke(selectedModel == model ? accent : Color.borderSubtle, lineWidth: 1.5)
-                        .frame(width: 16, height: 16)
-                    if selectedModel == model {
-                        Circle()
-                            .fill(accent)
-                            .frame(width: 8, height: 8)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(model.displayName)
-                        .font(Typography.bodySmallMedium)
-                        .foregroundColor(.textPrimary)
-                    HStack(spacing: Spacing.md) {
-                        Text(model.description)
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                        Text("·")
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                        Text(formatContextWindow(model.contextWindow))
-                            .font(Typography.captionSmall)
-                            .foregroundColor(.textMuted)
-                    }
-                }
-
-                Spacer()
-
-                if selectedModel == model {
-                    Image(systemName: "checkmark")
-                        .font(Typography.captionSmallSemibold)
-                        .foregroundColor(.accentGreen)
-                }
-            }
-            .padding(Spacing.xl)
-            .background(selectedModel == model ? accent.opacity(0.10) : themeManager.palette.bgInput)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
-                .stroke(selectedModel == model ? accent.opacity(0.4) : themeManager.palette.borderCrisp, lineWidth: Border.thin))
-        }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: Anim.quick), value: selectedModel)
     }
 
     func formatContextWindow(_ tokens: Int) -> String {

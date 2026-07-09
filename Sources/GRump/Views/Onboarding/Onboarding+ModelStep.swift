@@ -122,47 +122,4 @@ extension OnboardingView {
             .stroke(themeManager.palette.borderCrisp.opacity(0.2), lineWidth: 1))
     }
 
-    func modelCard(_ model: AIModel) -> some View {
-        let isSelected = viewModel.selectedModel == model
-        return Button {
-            viewModel.selectedModel = model
-        } label: {
-            HStack(spacing: Spacing.xl) {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack(spacing: Spacing.md) {
-                        Text(model.displayName)
-                            .font(Typography.bodySemibold)
-                            .foregroundColor(themeManager.palette.textPrimary)
-                        Text(model.tier)
-                            .font(Typography.micro)
-                            .foregroundColor(model.tier == "Free" ? .accentGreen : themeManager.palette.effectiveAccent)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background((model.tier == "Free" ? Color.accentGreen : themeManager.palette.effectiveAccent).opacity(0.15))
-                            .clipShape(Capsule())
-                    }
-                    Text(model.description)
-                        .font(Typography.captionSmall)
-                        .foregroundColor(themeManager.palette.textMuted)
-                        .lineLimit(1)
-                }
-                Spacer()
-                Text("\(model.contextWindow / 1000)K")
-                    .font(Typography.captionSmallSemibold)
-                    .foregroundColor(themeManager.palette.textMuted)
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(themeManager.palette.effectiveAccent)
-                }
-            }
-            .padding(Spacing.xl)
-            .background(isSelected
-                        ? themeManager.palette.effectiveAccent.opacity(0.1)
-                        : themeManager.palette.bgCard.opacity(0.6))
-            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                .stroke(isSelected ? themeManager.palette.effectiveAccent.opacity(0.5) : themeManager.palette.borderCrisp.opacity(0.3), lineWidth: isSelected ? 2 : 1))
-        }
-        .buttonStyle(.plain)
-    }
 }

@@ -5,8 +5,8 @@ import Foundation
 // Parameterized transport for any OpenAI-compatible chat-completions endpoint.
 // A `Configuration` selects the base URL, extra headers, the max-tokens field
 // name, OpenRouter routing hints, and whether to send `temperature`. This one
-// transport serves Qwen (Alibaba DashScope), OpenAI, and OpenRouter; the native
-// Anthropic and Google providers use their own request builders.
+// transport serves OpenAI and OpenRouter; the native Anthropic and Google
+// providers use their own request builders.
 //
 // The output-token cap arrives as an explicit `maxTokens` parameter — the caller
 // sources it from the selected model, so the transport no longer reaches back
@@ -17,7 +17,7 @@ class OpenAICompatibleService {
     // MARK: - Configuration
 
     /// Per-provider transport configuration. Pure value type — use one of the
-    /// static factories (`.qwen`, `.openAI`, `.openRouter`) or build a custom one.
+    /// static factories (`.openAI`, `.openRouter`) or build a custom one.
     struct Configuration {
         /// The `/v1` root (no trailing slash, no `/chat/completions`).
         var baseURL: String
@@ -27,8 +27,7 @@ class OpenAICompatibleService {
         /// `max_completion_tokens` (newer OpenAI models require the latter).
         var maxTokensField: String
         /// When true, attach OpenRouter routing headers (HTTP-Referer, X-Title,
-        /// X-Client-Platform) and the `provider` routing block. DashScope 400s on
-        /// these, so it stays false for Qwen.
+        /// X-Client-Platform) and the `provider` routing block.
         var includeOpenRouterRouting: Bool
         /// When true, send `temperature`. Claude 4.7+/5 reject it, so the native
         /// Anthropic builder omits it; here it gates OpenAI/OpenRouter/Qwen.
@@ -50,15 +49,6 @@ class OpenAICompatibleService {
             self.includeOpenRouterRouting = includeOpenRouterRouting
             self.includeTemperature = includeTemperature
             self.providerLabel = providerLabel
-        }
-
-        /// Qwen Cloud (Alibaba DashScope). Honors the `QwenBaseURL` override so the
-        /// mainland host can be swapped in without a rebuild.
-        static var qwen: Configuration {
-            let configured = UserDefaults.standard.string(forKey: "QwenBaseURL")?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            let base = (configured?.isEmpty == false ? configured! : "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
-            return Configuration(baseURL: base, providerLabel: "Qwen")
         }
 
         /// OpenAI. Newer models (gpt-5.x) require `max_completion_tokens`.
@@ -83,7 +73,7 @@ class OpenAICompatibleService {
 
     let configuration: Configuration
 
-    init(configuration: Configuration = .qwen) {
+    init(configuration: Configuration = .openAI) {
         self.configuration = configuration
     }
 
@@ -92,7 +82,7 @@ class OpenAICompatibleService {
         let base = configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
             .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         return URL(string: base + "/chat/completions")
-            ?? URL(string: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions")!
+            ?? URL(string: "https://api.openai.com/v1/chat/completions")!
     }
 
     // MARK: - Streaming
@@ -341,7 +331,7 @@ enum StreamingNetwork {
 /// Replaces per-provider byte-by-byte parsing with efficient line-based parsing.
 enum SSELineParser {
 
-    /// Parse an OpenAI-compatible SSE stream (OpenAI, OpenRouter, Qwen, Ollama via /v1).
+    /// Parse an OpenAI-compatible SSE stream (OpenAI, OpenRouter).
     /// Yields StreamEvents to the continuation. Returns when stream ends.
     static func parseOpenAICompatible(
         bytes: URLSession.AsyncBytes,

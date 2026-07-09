@@ -23,7 +23,7 @@ extension ChatViewModel {
     }
 
     /// Effective model, prompt, tools, and max steps (project config > preset > user default).
-    func effectiveAgentConfig() -> (model: AIModel, prompt: String, tools: [[String: Any]], maxSteps: Int) {
+    func effectiveAgentConfig() -> (model: EnhancedAIModel, prompt: String, tools: [[String: Any]], maxSteps: Int) {
         let storedMax = UserDefaults.standard.object(forKey: "MaxAgentSteps") as? Int ?? 200
         let baseMax = min(1000, max(5, storedMax))
         let presetMax = appliedPresetMaxAgentSteps.map { min(1000, max(5, $0)) } ?? baseMax

@@ -3,16 +3,22 @@ import XCTest
 
 final class ModelRouterTests: XCTestCase {
 
+    private var fallback: EnhancedAIModel {
+        AIModelRegistry.shared.defaultModel()
+    }
+
+    private var sonnet: EnhancedAIModel? {
+        AIModelRegistry.shared.getModel(by: "claude-sonnet-5")
+    }
+
     // MARK: - Basic Routing
 
     func testRouteReturnsModel() {
-        let fallback = AIModel.qwenCoderPlus
         let model = ModelRouter.route(taskType: .codeGen, fallback: fallback)
         XCTAssertFalse(model.displayName.isEmpty)
     }
 
     func testRouteAllTaskTypes() {
-        let fallback = AIModel.qwenCoderPlus
         for taskType in TaskType.allCases {
             let model = ModelRouter.route(taskType: taskType, fallback: fallback)
             XCTAssertFalse(model.rawValue.isEmpty,
@@ -20,10 +26,29 @@ final class ModelRouterTests: XCTestCase {
         }
     }
 
+    func testHeavyTasksRouteToOpus() {
+        for taskType in [TaskType.reasoning, .planning, .debugging, .codeGen, .testing] {
+            let model = ModelRouter.route(taskType: taskType, fallback: fallback)
+            XCTAssertEqual(model.id, "claude-opus-4-8", "\(taskType.rawValue) should lead with Opus")
+        }
+    }
+
+    func testLightTasksRouteToHaiku() {
+        for taskType in [TaskType.fileOps, .search] {
+            let model = ModelRouter.route(taskType: taskType, fallback: fallback)
+            XCTAssertEqual(model.id, "claude-haiku-4-5", "\(taskType.rawValue) should lead with Haiku")
+        }
+    }
+
+    func testGeneralRoutesToFallback() {
+        guard let sonnet else { return XCTFail("catalog missing sonnet") }
+        let model = ModelRouter.route(taskType: .general, fallback: sonnet)
+        XCTAssertEqual(model.id, sonnet.id)
+    }
+
     // MARK: - Fallback Chain
 
     func testFallbackChainNotEmpty() {
-        let fallback = AIModel.qwenPlus
         for taskType in TaskType.allCases {
             let chain = ModelRouter.fallbackChain(for: taskType, fallback: fallback)
             XCTAssertFalse(chain.isEmpty,
@@ -32,41 +57,48 @@ final class ModelRouterTests: XCTestCase {
     }
 
     func testFallbackChainContainsFallback() {
-        let fallback = AIModel.qwenTurbo
+        guard let sonnet else { return XCTFail("catalog missing sonnet") }
         for taskType in TaskType.allCases {
-            let chain = ModelRouter.fallbackChain(for: taskType, fallback: fallback)
-            XCTAssertTrue(chain.contains(fallback),
+            let chain = ModelRouter.fallbackChain(for: taskType, fallback: sonnet)
+            XCTAssertTrue(chain.contains(where: { $0.id == sonnet.id }),
                 "Fallback chain for \(taskType.rawValue) should contain the fallback model")
         }
     }
 
-    func testFallbackChainFirstIsPreferred() {
-        let fallback = AIModel.qwenCoderPlus
-        // For code gen, the first should be a coding-focused model
-        let chain = ModelRouter.fallbackChain(for: .codeGen, fallback: fallback)
-        XCTAssertGreaterThanOrEqual(chain.count, 2)
-        // First model should be a strong coder
-        let first = chain[0]
-        XCTAssertFalse(first.displayName.isEmpty)
+    func testFallbackChainNeverAutoRoutesToFable() {
+        for taskType in TaskType.allCases {
+            let chain = ModelRouter.fallbackChain(for: taskType, fallback: fallback)
+            XCTAssertFalse(chain.contains(where: { $0.id == "claude-fable-5" }),
+                "\(taskType.rawValue) chain must never auto-route to Fable (premium)")
+        }
+    }
+
+    func testFallbackChainHasNoDuplicates() {
+        guard let sonnet else { return XCTFail("catalog missing sonnet") }
+        for taskType in TaskType.allCases {
+            // Sonnet appears in most preference lists AND as the fallback —
+            // the chain must dedupe by id.
+            let chain = ModelRouter.fallbackChain(for: taskType, fallback: sonnet)
+            let ids = chain.map(\.id)
+            XCTAssertEqual(ids.count, Set(ids).count, "\(taskType.rawValue) chain has duplicates: \(ids)")
+        }
     }
 
     // MARK: - Context-Aware Routing
 
     func testRouteWithSmallTokenCount() {
-        let fallback = AIModel.qwenCoderPlus
         let model = ModelRouter.route(taskType: .codeGen, fallback: fallback, estimatedTokens: 1000)
         XCTAssertGreaterThan(model.contextWindow - model.maxOutput, 1000)
     }
 
-    func testRouteWithLargeTokenCount() {
-        let fallback = AIModel.qwenCoderPlus
-        let model = ModelRouter.route(taskType: .reasoning, fallback: fallback, estimatedTokens: 500_000)
-        // Should pick a model with large context
-        XCTAssertGreaterThan(model.contextWindow, 100_000)
+    func testRouteWithLargeTokenCountSkipsSmallContextModels() {
+        // 500K tokens exceeds Haiku's 200K window — fileOps must not pick it.
+        let model = ModelRouter.route(taskType: .fileOps, fallback: fallback, estimatedTokens: 500_000)
+        XCTAssertGreaterThan(model.contextWindow - model.maxOutput, 500_000)
+        XCTAssertNotEqual(model.id, "claude-haiku-4-5")
     }
 
     func testRouteWithZeroTokens() {
-        let fallback = AIModel.qwenPlus
         let model = ModelRouter.route(taskType: .general, fallback: fallback, estimatedTokens: 0)
         XCTAssertFalse(model.rawValue.isEmpty)
     }

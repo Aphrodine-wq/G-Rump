@@ -345,7 +345,7 @@ struct PrivacyDashboardView: View {
     // MARK: - Helpers
 
     private var isFullyLocal: Bool {
-        // Qwen is cloud-only; "fully local" only when the user forces Local Only mode.
+        // Inference is cloud-only; "fully local" only when the user forces Local Only mode.
         localOnlyMode
     }
 

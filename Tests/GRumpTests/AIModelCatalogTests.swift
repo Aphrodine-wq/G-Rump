@@ -9,8 +9,8 @@ final class AIModelCatalogTests: XCTestCase {
 
     func testDefaultModelIsOpus48() {
         let model = registry.defaultModel()
-        XCTAssertEqual(model?.id, "claude-opus-4-8")
-        XCTAssertEqual(model?.provider, .anthropic)
+        XCTAssertEqual(model.id, "claude-opus-4-8")
+        XCTAssertEqual(model.provider, .anthropic)
     }
 
     func testPerProviderDefaults() {

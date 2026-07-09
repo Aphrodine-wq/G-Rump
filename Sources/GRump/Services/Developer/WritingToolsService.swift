@@ -185,9 +185,7 @@ final class WritingToolsService: ObservableObject {
         // Ride the chat system's current model selection and Keychain keys.
         let registry = AIModelRegistry.shared
         let modelID = UserDefaults.standard.string(forKey: "CurrentAIModel") ?? ""
-        guard let model = registry.getModel(by: modelID) ?? registry.defaultModel() else {
-            throw WritingToolsError.processingFailed("No AI model selected. Choose a model in Settings.")
-        }
+        let model = registry.getModel(by: modelID) ?? registry.defaultModel()
         guard registry.isProviderConfigured(model.provider) else {
             throw WritingToolsError.processingFailed("No API key configured for \(model.provider.displayName). Set an API key in Settings to use Writing Tools.")
         }

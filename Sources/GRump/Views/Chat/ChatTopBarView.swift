@@ -13,7 +13,7 @@ struct ChatTopBarView: View {
     @State private var editedTitle = ""
     @State private var showInsightsPopover = false
 
-    // Qwen is a cloud provider — there is no local/on-device mode.
+    // All providers are cloud — there is no local/on-device mode.
     private var isLocalProvider: Bool { false }
 
     var body: some View {

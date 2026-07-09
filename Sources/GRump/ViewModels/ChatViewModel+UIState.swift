@@ -10,11 +10,11 @@ extension ChatViewModel {
         return true
     }
 
-    /// Ensures selectedModel is a valid Qwen model (single provider, no tiers).
+    /// Ensures selectedModel still resolves in the registry (catalog updates
+    /// can retire ids); falls back to the app default.
     func ensureSelectedModelValidForTier() {
-        let allowed = AIModel.modelsForTier(nil)
-        if !allowed.contains(selectedModel) {
-            selectedModel = AIModel.defaultForTier(nil)
+        if aiService.modelRegistry.getModel(by: selectedModel.id) == nil {
+            selectedModel = aiService.modelRegistry.defaultModel()
         }
     }
 

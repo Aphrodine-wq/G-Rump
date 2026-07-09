@@ -85,7 +85,8 @@ final class OpenAICompatibleServiceTransportTests: XCTestCase {
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "test/model", maxTokens: 8192, stream: true)
         let body = try XCTUnwrap(request.httpBody)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
-        XCTAssertNotNil(json["max_tokens"])
+        // Default configuration is .openAI, whose cap field is max_completion_tokens.
+        XCTAssertNotNil(json["max_completion_tokens"])
     }
 
     /// The transport must send exactly the caller-supplied max-tokens value — the
@@ -96,7 +97,7 @@ final class OpenAICompatibleServiceTransportTests: XCTestCase {
         let request = try service.buildRequest(messages: messages, apiKey: "key", model: "m", maxTokens: 4096, stream: true)
         let body = try XCTUnwrap(request.httpBody)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
-        XCTAssertEqual(json["max_tokens"] as? Int, 4096)
+        XCTAssertEqual(json["max_completion_tokens"] as? Int, 4096)
     }
 
     func testBuildRequestContainsTemperature() throws {

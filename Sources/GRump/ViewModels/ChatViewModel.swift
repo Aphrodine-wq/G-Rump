@@ -104,14 +104,10 @@ class ChatViewModel: ObservableObject {
             aiService.modelRegistry.setAPIKey(apiKey, for: aiService.currentProvider)
         }
     }
-    @Published var selectedModel: AIModel {
+    @Published var selectedModel: EnhancedAIModel {
         didSet {
             guard oldValue != selectedModel else { return }
-            UserDefaults.standard.set(selectedModel.rawValue, forKey: "SelectedModel")
-            // Update AI service to use equivalent enhanced model
-            if let enhancedModel = aiService.availableModels.first(where: { $0.modelID == selectedModel.rawValue }) {
-                aiService.selectModel(enhancedModel)
-            }
+            aiService.selectModel(selectedModel)
         }
     }
     @Published var systemPrompt: String {
@@ -125,7 +121,6 @@ class ChatViewModel: ObservableObject {
     // New multi-provider system
     @Published var aiService = MultiProviderAIService()
 
-    let openAICompatibleService = OpenAICompatibleService()
     let activityStore = ActivityStore()
     internal var streamTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
@@ -142,19 +137,15 @@ class ChatViewModel: ObservableObject {
         currentConversation?.messages ?? []
     }
 
-    /// Model actually used for requests (project config can override selectedModel).
-    /// Validated against tier; falls back to first allowed model if project config specifies a Pro model for free user.
-    var effectiveModel: AIModel {
-        // First try to get the enhanced model from AI service
-        if let enhancedModel = aiService.currentModel {
-            // Convert back to legacy AIModel for compatibility
-            return AIModel(rawValue: enhancedModel.modelID) ?? selectedModel
+    /// Model actually used for requests. A project config model id overrides
+    /// the user selection when it resolves in the registry; unknown ids are
+    /// ignored rather than crashing a request.
+    var effectiveModel: EnhancedAIModel {
+        if let projectModelID = projectConfig?.model,
+           let projectModel = aiService.modelRegistry.getModel(by: projectModelID) {
+            return projectModel
         }
-
-        // Fallback to legacy system
-        let candidate = projectConfig?.model.flatMap { AIModel(rawValue: $0) } ?? selectedModel
-        let allowed = AIModel.modelsForTier(nil)
-        return allowed.contains(candidate) ? candidate : AIModel.defaultForTier(nil)
+        return aiService.currentModel ?? selectedModel
     }
 
     /// Enhanced model currently selected
@@ -177,7 +168,7 @@ class ChatViewModel: ObservableObject {
         return aiService.modelRegistry.getModels(for: provider)
     }
 
-    /// No local models in the Qwen build (all inference is cloud).
+    /// No local models — all inference is cloud.
     var localModels: [EnhancedAIModel] { [] }
 
     /// Whether a provider has any models available
@@ -205,10 +196,11 @@ class ChatViewModel: ObservableObject {
         let savedProvider = AIProvider(rawValue: UserDefaults.standard.string(forKey: "CurrentAIProvider") ?? "") ?? .anthropic
         self.apiKey = KeychainStorage.get(account: savedProvider.keychainAccount) ?? ""
 
-        // Load legacy model selection
-        let savedModel = UserDefaults.standard.string(forKey: "SelectedModel") ?? AIModel.qwenCoderPlus.rawValue
-        let migratedModel = Self.migrateLegacyModelID(savedModel)
-        self.selectedModel = AIModel(rawValue: migratedModel) ?? .qwenCoderPlus
+        // Load the model selection from the registry (migration has already
+        // mapped any stale persisted ids).
+        let savedModelID = UserDefaults.standard.string(forKey: "CurrentAIModel") ?? ""
+        self.selectedModel = AIModelRegistry.shared.getModel(by: savedModelID)
+            ?? AIModelRegistry.shared.defaultModel()
         self.systemPrompt = UserDefaults.standard.string(forKey: "SystemPrompt") ?? GRumpDefaults.defaultSystemPrompt
         let savedMode = UserDefaults.standard.string(forKey: "AgentMode") ?? AgentMode.plan.rawValue
         self.agentMode = AgentMode(rawValue: savedMode) ?? .plan
@@ -229,26 +221,12 @@ class ChatViewModel: ObservableObject {
             self.loadConversations()
         }
 
-        // Set up AI service observers
-        aiService.$currentProvider
-            .sink { [weak self] _ in
-                // Update legacy selectedModel when provider changes
-                if let enhancedModel = self?.aiService.currentModel {
-                    // Try to find equivalent legacy model
-                    if let legacyModel = AIModel(rawValue: enhancedModel.modelID) {
-                        self?.selectedModel = legacyModel
-                    }
-                }
-            }
-            .store(in: &cancellables)
-
+        // Set up AI service observers — keep selectedModel mirroring the
+        // service's current model (provider switches change it too).
         aiService.$currentModel
             .sink { [weak self] enhancedModel in
-                // Update legacy selectedModel when model changes
-                if let enhancedModel = enhancedModel,
-                   let legacyModel = AIModel(rawValue: enhancedModel.modelID) {
-                    self?.selectedModel = legacyModel
-                }
+                guard let self, let enhancedModel, self.selectedModel != enhancedModel else { return }
+                self.selectedModel = enhancedModel
             }
             .store(in: &cancellables)
 
@@ -276,12 +254,6 @@ class ChatViewModel: ObservableObject {
     func loadDraft(forConversationId id: UUID) -> String {
         let dict = UserDefaults.standard.dictionary(forKey: Self.draftsUserDefaultsKey) as? [String: String] ?? [:]
         return dict[id.uuidString] ?? ""
-    }
-
-    /// Maps any legacy (multi-provider) model ID onto a current Qwen model so
-    /// existing users keep a valid selection after the single-provider migration.
-    private static func migrateLegacyModelID(_ id: String) -> String {
-        (AIModel.migrateLegacyID(id) ?? .qwenCoderPlus).rawValue
     }
 
     /// Project-level config loaded from .grump/config.json or grump.json when working directory is set.

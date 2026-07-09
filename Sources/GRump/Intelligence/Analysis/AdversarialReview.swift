@@ -180,7 +180,7 @@ final class AdversarialReviewEngine: ObservableObject {
     func review(
         codeChanges: [CodeChange],
         conversationContext: String,
-        primaryModel: AIModel
+        primaryModel: EnhancedAIModel
     ) async -> AdversarialReviewReport? {
         guard isEnabled, !codeChanges.isEmpty else { return nil }
 

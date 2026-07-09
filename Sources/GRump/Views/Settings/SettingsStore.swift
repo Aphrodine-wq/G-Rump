@@ -11,7 +11,7 @@ final class SettingsStore: ObservableObject {
     @AppStorage("ProjectMemoryEnabled") var projectMemoryEnabled: Bool = true
 
     /// Optional slim-backend base URL. When non-empty, chat requests route through
-    /// the backend proxy (Bearer = appAPIKey) instead of calling Qwen directly.
+    /// the backend proxy (Bearer = appAPIKey) instead of calling the provider directly.
     @AppStorage("BackendURL") var backendURL: String = ""
 
     /// Shared backend API key (APP_API_KEY). Stored in Keychain, not UserDefaults.

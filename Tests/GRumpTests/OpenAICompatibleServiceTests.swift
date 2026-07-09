@@ -23,21 +23,21 @@ final class OpenAICompatibleServiceTests: XCTestCase {
         return try XCTUnwrap(obj as? [String: Any], "Body should be a JSON object")
     }
 
-    // MARK: - URL targets DashScope (default configuration)
+    // MARK: - URL targets the configured host (default = OpenAI)
 
-    func testRequestTargetsDashScopeHost() throws {
+    func testRequestTargetsConfiguredHost() throws {
         let service = OpenAICompatibleService()
         let request = try service.buildRequest(
             messages: sampleMessages(),
             apiKey: "sk-test-key",
-            model: "qwen-coder-plus",
+            model: "gpt-5.2",
             maxTokens: 65_536,
             stream: true,
             tools: nil
         )
         let host = try XCTUnwrap(request.url?.host)
-        XCTAssertTrue(host.contains("dashscope"), "URL host should target DashScope, got \(host)")
-        XCTAssertEqual(request.url?.path, "/compatible-mode/v1/chat/completions")
+        XCTAssertEqual(host, "api.openai.com")
+        XCTAssertEqual(request.url?.path, "/v1/chat/completions")
     }
 
     // MARK: - Authorization header

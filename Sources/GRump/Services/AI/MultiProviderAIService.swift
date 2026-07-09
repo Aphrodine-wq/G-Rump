@@ -113,9 +113,7 @@ class MultiProviderAIService: ObservableObject {
         tools: [[String: Any]]? = nil
     ) -> AsyncThrowingStream<StreamEvent, Error> {
         let registry = AIModelRegistry.shared
-        guard let model = registry.getModel(by: modelID) ?? registry.defaultModel() else {
-            return errorStream(AIServiceError.noModelSelected)
-        }
+        let model = registry.getModel(by: modelID) ?? registry.defaultModel()
         guard let config = registry.getProviderConfig(for: model.provider) else {
             return errorStream(AIServiceError.providerNotConfigured)
         }

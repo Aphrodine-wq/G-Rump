@@ -22,7 +22,7 @@ extension OnboardingView {
                     .foregroundColor(themeManager.palette.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Your autonomous AI coding agent.\nConnect your Qwen (DashScope) API key to get started.")
+                Text("Your autonomous AI coding agent.\nConnect an API key to get started.")
                     .font(Typography.body)
                     .foregroundColor(themeManager.palette.textSecondary)
                     .multilineTextAlignment(.center)
