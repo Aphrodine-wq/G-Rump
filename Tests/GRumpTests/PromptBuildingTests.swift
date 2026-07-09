@@ -93,4 +93,38 @@ final class PromptBuildingTests: XCTestCase {
         XCTAssertTrue(extensions.contains(".swift"))
         XCTAssertTrue(extensions.contains(".md"))
     }
+
+    // MARK: - Developer Profile Layer
+
+    @MainActor
+    func testDeveloperProfileBlockSitsBeforeBasePrompt() {
+        let vm = ChatViewModel()
+        let profile = DeveloperProfile(preferredStack: "SwiftUI")
+        let result = vm.prependDeveloperProfileContent(to: "BASE", profile: profile)
+        let blockRange = result.range(of: "--- Developer Profile ---")
+        let baseRange = result.range(of: "BASE")
+        XCTAssertNotNil(blockRange)
+        XCTAssertNotNil(baseRange)
+        if let blockRange, let baseRange {
+            XCTAssertTrue(blockRange.lowerBound < baseRange.lowerBound,
+                          "profile block must precede the base prompt")
+        }
+    }
+
+    @MainActor
+    func testDeveloperProfileLayerComposesWithModeInstructions() {
+        // [Mode][...][DevProfile][Base]: mode instructions must wrap outside the profile block.
+        let vm = ChatViewModel()
+        vm.agentMode = .plan
+        let profile = DeveloperProfile(name: "James")
+        let result = vm.prependModeInstructions(to: vm.prependDeveloperProfileContent(to: "BASE", profile: profile))
+        let modeIdx = result.range(of: "Plan")?.lowerBound
+        let profileIdx = result.range(of: "--- Developer Profile ---")?.lowerBound
+        XCTAssertNotNil(modeIdx)
+        XCTAssertNotNil(profileIdx)
+        if let modeIdx, let profileIdx {
+            XCTAssertTrue(modeIdx < profileIdx, "mode instructions must precede the profile block")
+        }
+        XCTAssertTrue(result.hasSuffix("BASE"))
+    }
 }

@@ -50,6 +50,14 @@ extension ChatViewModel {
         return soulBlock + basePrompt
     }
 
+    /// Prepends the developer profile (Profile → You) so it lands between Mind
+    /// and Soul in the final prompt order. Pass a profile explicitly for tests;
+    /// nil loads `~/.grump/profile.json`.
+    func prependDeveloperProfileContent(to basePrompt: String, profile: DeveloperProfile? = nil) -> String {
+        guard let block = (profile ?? DeveloperProfile.load()).promptBlock else { return basePrompt }
+        return block + basePrompt
+    }
+
     /// Prepends MIND.md identity content as the outermost foundation layer (before Soul).
     func prependMindContent(to basePrompt: String) -> String {
         guard let mind = MindStorage.loadMind(workingDirectory: workingDirectory) else { return basePrompt }
