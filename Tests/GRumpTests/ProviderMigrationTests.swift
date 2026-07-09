@@ -4,11 +4,15 @@ import XCTest
 final class ProviderMigrationTests: XCTestCase {
 
     private var defaults: UserDefaults!
-    private let suiteName = "ProviderMigrationTests"
+    // Unique per test instance: `swift test --parallel` spreads methods across
+    // worker processes, and a fixed suite name is a shared cfprefsd domain —
+    // sibling tests contaminate each other through it.
+    private var suiteName = ""
     private var keychainWrites: [(account: String, value: String)] = []
 
     override func setUp() {
         super.setUp()
+        suiteName = "ProviderMigrationTests-\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         keychainWrites = []
