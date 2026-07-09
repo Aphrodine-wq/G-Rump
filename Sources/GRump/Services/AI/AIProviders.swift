@@ -8,10 +8,10 @@ import Foundation
 // MARK: - AI Provider System
 
 enum AIProvider: String, CaseIterable, Identifiable, Codable {
-    case openRouter = "openrouter"
-    case openAI = "openai"
     case anthropic = "anthropic"
+    case openAI = "openai"
     case google = "google"
+    case openRouter = "openrouter"
     case ollama = "ollama"
     case onDevice = "ondevice"
 

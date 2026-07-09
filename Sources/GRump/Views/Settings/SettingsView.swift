@@ -69,7 +69,7 @@ struct SettingsView: View {
     @State var expandedCategories: Set<String> = ["AI", "Workspace", "General"]
 
     // Provider state
-    @State var selectedProvider: AIProvider = .openRouter
+    @State var selectedProvider: AIProvider = .anthropic
     @State var providerAPIKeys: [String: String] = [:]
     @State var providerBaseURLs: [String: String] = [:]
     @State var ollamaDetected = false
