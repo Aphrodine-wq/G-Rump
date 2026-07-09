@@ -1,7 +1,7 @@
 import XCTest
 @testable import GRump
 
-/// Additional coverage for the WALT-brain subsystems and the CI headless guard.
+/// Additional coverage for the brain subsystems and the CI headless guard.
 final class BrainCoverageTests: XCTestCase {
 
     // MARK: - GRumpRuntime (locks in the CI segfault fix)

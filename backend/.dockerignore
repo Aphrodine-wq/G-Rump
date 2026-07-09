@@ -1,8 +1,0 @@
-node_modules
-npm-debug.log
-.env
-.env.local
-data
-tests
-*.md
-.DS_Store

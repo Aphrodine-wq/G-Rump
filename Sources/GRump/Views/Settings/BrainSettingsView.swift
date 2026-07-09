@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings → Brain. Generic, user-owned configuration for the WALT-inspired brain
+/// Settings → Brain. Generic, user-owned configuration for the cognitive brain
 /// subsystems fused into G-Rump. Feature flags persist to `~/.grump/brain.json`.
 struct BrainSettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager

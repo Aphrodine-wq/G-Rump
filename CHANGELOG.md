@@ -10,7 +10,7 @@ G-Rump 2.0 is the multi-provider release. The app is no longer tied to a single
 AI vendor: bring your own key for Anthropic (default), OpenAI, Google, or
 OpenRouter, and G-Rump speaks each provider's native wire format with full
 streaming tool calls. The release also lands the cognitive-memory engine, the
-WALT brain subsystems, and a large platform cleanup that removes the SaaS
+brain subsystems, and a large platform cleanup that removes the SaaS
 billing layer entirely — G-Rump is now a local-first app with your keys in the
 macOS Keychain and no accounts.
 
@@ -36,7 +36,7 @@ macOS Keychain and no accounts.
 - **Cognitive memory (Track 1: MemoryAgent).** Cross-session memory with
   relevance x recency x salience ranking, recall within a fixed token budget,
   and deliberate forgetting of stale context.
-- **WALT brain subsystems.** Vault, voice, eyes, mind, and daemon fused into
+- **Brain subsystems.** Vault, voice, eyes, mind, and daemon fused into
   the app.
 - **Richer chat rendering.** Task lists, inline code pills, images, H4-H6
   headings, improved streaming code blocks, expandable tool timeline with

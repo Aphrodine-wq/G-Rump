@@ -6,7 +6,7 @@
 set -euo pipefail
 
 TAG="${1:-v2.0.0}"
-REPO="${2:-jameswalton/G-Rump}"
+REPO="${2:-Aphrodine-wq/G-Rump}"
 
 echo "=== G-Rump Release: $TAG ==="
 
