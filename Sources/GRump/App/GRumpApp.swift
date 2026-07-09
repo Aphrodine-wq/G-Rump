@@ -21,6 +21,7 @@ struct GRumpApp: App {
     @AppStorage("EnableMCPServer") private var enableMCPServer = false
     @StateObject private var sparkleService = SparkleUpdateService()
     @StateObject private var globalHotkey = GlobalHotkeyService.shared
+    @Environment(\.openWindow) private var openWindow
     #endif
 
     #if !GRUMP_SPM_BUILD
@@ -165,6 +166,14 @@ struct GRumpApp: App {
                 }
                 .keyboardShortcut("n", modifiers: .command)
             }
+            #if os(macOS)
+            CommandGroup(before: .windowList) {
+                Button("Welcome to G-Rump") {
+                    openWindow(id: "welcome")
+                }
+                .keyboardShortcut("1", modifiers: [.command, .shift])
+            }
+            #endif
             CommandGroup(after: .sidebar) {
                 Button("Toggle Sidebar") {
                     NotificationCenter.default.post(name: .init("GRumpToggleSidebar"), object: nil)
@@ -233,6 +242,16 @@ struct GRumpApp: App {
             }
         }
         #if os(macOS)
+        Window("Welcome to G-Rump", id: "welcome") {
+            WelcomeWindowView()
+                .environmentObject(themeManager)
+                .environmentObject(viewModel)
+                .preferredColorScheme(themeManager.colorScheme)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultSize(width: 780, height: 480)
+
         MenuBarExtra("G-Rump", systemImage: "brain.head.profile", isInserted: $showMenuBarExtra) {
             MenuBarAgent()
                 .environmentObject(viewModel)

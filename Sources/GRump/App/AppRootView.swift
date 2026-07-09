@@ -9,6 +9,10 @@ struct AppRootView: View {
     @EnvironmentObject var frameLoop: FrameLoopService
     @Environment(\.scenePhase) private var scenePhase
     @State private var showWhatsNew = false
+    #if os(macOS)
+    @AppStorage("ShowWelcomeWindowOnLaunch") private var showWelcomeWindowOnLaunch = true
+    @Environment(\.openWindow) private var openWindow
+    #endif
 
     private var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -34,6 +38,12 @@ struct AppRootView: View {
             if !hasCompletedOnboarding && (viewModel.isAIProviderConfigured || !viewModel.conversations.isEmpty) {
                 hasCompletedOnboarding = true
             }
+            #if os(macOS)
+            // No project open → offer the welcome window (unless opted out).
+            if hasCompletedOnboarding && viewModel.workingDirectory.isEmpty && showWelcomeWindowOnLaunch {
+                openWindow(id: "welcome")
+            }
+            #endif
             // FrameLoop is NOT started here — it auto-starts via markActive() when streaming begins.
             // Initialize PerformanceAdvisor early so thermal/memory monitoring is active
             _ = PerformanceAdvisor.shared
@@ -52,5 +62,13 @@ struct AppRootView: View {
                 frameLoop.stop()
             }
         }
+        #if os(macOS)
+        .onChange(of: hasCompletedOnboarding) { _, completed in
+            // Fresh onboarding just finished with no project picked → welcome window.
+            if completed && viewModel.workingDirectory.isEmpty {
+                openWindow(id: "welcome")
+            }
+        }
+        #endif
     }
 }
