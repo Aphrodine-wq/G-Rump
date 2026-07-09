@@ -150,11 +150,17 @@ extension SettingsView {
                             var config = ProviderConfiguration(provider: provider, apiKey: key, baseURL: baseURL)
                             config.isEnabled = true
                             registry.setProviderConfig(config)
+                            validateSavedKey(for: provider, key: key, baseURL: baseURL)
                         }
                         .font(Typography.captionSmallSemibold)
                         .buttonStyle(.borderedProminent)
                         .tint(themeManager.palette.effectiveAccent)
                     }
+
+                    KeyValidationFeedbackView(
+                        state: providerKeyValidation[provider.rawValue] ?? .idle,
+                        providerName: provider.displayName
+                    )
                 }
             }
 
@@ -170,6 +176,21 @@ extension SettingsView {
 
     func providerIcon(_ provider: AIProvider) -> String {
         provider.iconName
+    }
+
+    /// Probes the just-saved key and posts the outcome inline. The save has
+    /// already happened — a failed probe warns, it never blocks or un-saves.
+    func validateSavedKey(for provider: AIProvider, key: String, baseURL: String?) {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            providerKeyValidation[provider.rawValue] = .idle
+            return
+        }
+        providerKeyValidation[provider.rawValue] = .validating
+        Task { @MainActor in
+            let result = await AIKeyValidator.validate(provider: provider, apiKey: trimmed, baseURL: baseURL)
+            providerKeyValidation[provider.rawValue] = .result(result)
+        }
     }
 
     func enhancedModelRow(_ model: EnhancedAIModel) -> some View {

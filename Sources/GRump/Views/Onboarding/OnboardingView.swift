@@ -26,6 +26,7 @@ struct OnboardingView: View {
     @State var signInInProgress = false
     @State var signInError: String?
     @State var apiKeyInput = ""
+    @State var keyValidationState: KeyValidationState = .idle
     @State var showAPIKeyField = false
     @State var direction: Edge = .trailing
     @State var selectedOnboardingProvider: AIProvider = .anthropic

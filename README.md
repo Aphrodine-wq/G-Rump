@@ -1,18 +1,18 @@
 # G-Rump
 
-**An autonomous AI coding agent for macOS, built entirely on Qwen** -- 54K lines of Swift, a persistent cross-session memory, 100+ local tools, MCP integration, agent modes, and an approval-gated autonomous daemon.
+**An autonomous AI coding agent for macOS** -- 54K lines of Swift, a persistent cross-session memory, 100+ local tools, MCP integration, agent modes, and an approval-gated autonomous daemon.
 
-G-Rump is a native macOS AI coding agent built with Swift and SwiftUI, powered end-to-end by **Qwen on Alibaba Cloud (Qwen Cloud / DashScope)**. It executes over 100 local tools (file operations, shell, git, Docker, browser, Apple-native APIs), implements the full Model Context Protocol, and runs an autonomous daemon that works coding goals on a scratch branch behind human approval gates.
+G-Rump is a native macOS AI coding agent built with Swift and SwiftUI, powered by **Anthropic Claude (default), OpenAI, Google Gemini, or OpenRouter** with your own API keys. It executes over 100 local tools (file operations, shell, git, Docker, browser, Apple-native APIs), implements the full Model Context Protocol, and runs an autonomous daemon that works coding goals on a scratch branch behind human approval gates.
 
 Its defining feature is a **persistent, cross-session brain**: G-Rump accumulates experience, recalls the most relevant memories *within a fixed token budget*, and *forgets* stale context on purpose -- a memory that behaves like a brain rather than an append-only vector log.
 
-> Built for the Global AI Hackathon with Qwen Cloud -- **Track 1: MemoryAgent**. The backend runs on Alibaba Cloud and calls Qwen via the OpenAI-compatible DashScope endpoint (see [`backend/`](./backend)).
+> Originally built for the Global AI Hackathon with Qwen Cloud -- **Track 1: MemoryAgent**. The optional [`backend/`](./backend) proxy still speaks Qwen/DashScope; the app now calls providers directly by default.
 
 ---
 
 ## Features
 
-- **Powered by Qwen** -- Qwen Coder Plus, Qwen Max, Qwen Plus, and Qwen Turbo via Qwen Cloud (Alibaba DashScope), with task-aware routing across the tiers
+- **Multi-Provider AI** -- Anthropic Claude (Opus 4.8 default; Fable 5, Sonnet 5, Haiku 4.5), OpenAI GPT-5.x, Google Gemini, and OpenRouter passthroughs, with provider-aware task routing across the tiers
 - **Persistent Cognitive Memory** -- cross-session memory that ranks by relevance x recency x salience, recalls within a fixed token budget, and consolidates/forgets stale memories (Track 1: MemoryAgent)
 - **Autonomous Daemon** -- works pending goals on a scratch branch with a Conscience safety gate and per-write approval
 - **100+ Local Tools** -- File, shell, git, Docker, browser, cloud deploy, Apple-native (Spotlight, Keychain, Calendar, OCR, xcodebuild), and more
@@ -146,8 +146,8 @@ GitHub Actions pipeline runs on push/PR to `main`:
 | Component | Technology |
 |-----------|-----------|
 | Frontend | Swift 5.9+ / SwiftUI |
-| Backend | Node.js / Express on Alibaba Cloud |
-| Model | Qwen (Coder Plus / Max / Plus / Turbo) via Qwen Cloud (DashScope) |
+| Backend | Node.js / Express (optional legacy Qwen proxy) |
+| Models | Claude Opus 4.8 (default) / Fable 5 / Sonnet 5 / Haiku 4.5 · GPT-5.2 · Gemini 3 Pro / 2.5 Flash · OpenRouter routes |
 | Embeddings | Qwen text-embedding (Apple NLEmbedding offline fallback) |
 | Protocol | Model Context Protocol (MCP) |
 | Persistence | SwiftData (Xcode) / JSON (SPM) |

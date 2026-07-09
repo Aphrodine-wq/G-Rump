@@ -58,6 +58,11 @@ extension OnboardingView {
                         .buttonStyle(.plain)
                         .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
+
+                    KeyValidationFeedbackView(
+                        state: keyValidationState,
+                        providerName: selectedOnboardingProvider.displayName
+                    )
                 }
                 .frame(maxWidth: 420)
             }
@@ -90,6 +95,7 @@ extension OnboardingView {
             withAnimation(.easeInOut(duration: Anim.quick)) {
                 selectedOnboardingProvider = provider
                 apiKeyInput = ""
+                keyValidationState = .idle
             }
         } label: {
             VStack(spacing: Spacing.md) {
@@ -119,9 +125,20 @@ extension OnboardingView {
     func saveProviderKey() {
         let key = apiKeyInput.trimmingCharacters(in: .whitespaces)
         guard !key.isEmpty else { return }
-        let config = ProviderConfiguration(provider: selectedOnboardingProvider, apiKey: key)
+        let provider = selectedOnboardingProvider
+        let config = ProviderConfiguration(provider: provider, apiKey: key)
         AIModelRegistry.shared.setProviderConfig(config)
-        viewModel.selectProvider(selectedOnboardingProvider)
+        viewModel.selectProvider(provider)
         viewModel.apiKey = key
+
+        // Probe the saved key; drop the result if the user has switched
+        // providers meanwhile (the feedback row is shared across cards).
+        keyValidationState = .validating
+        Task { @MainActor in
+            let result = await AIKeyValidator.validate(provider: provider, apiKey: key)
+            if selectedOnboardingProvider == provider {
+                keyValidationState = .result(result)
+            }
+        }
     }
 }

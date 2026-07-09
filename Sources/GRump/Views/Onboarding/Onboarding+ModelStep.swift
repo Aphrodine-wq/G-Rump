@@ -103,7 +103,7 @@ extension OnboardingView {
     var otherProvidersTeaser: some View {
         HStack(spacing: Spacing.xl) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("OpenAI, Anthropic, Ollama, On-Device")
+                Text("OpenAI, Google, OpenRouter")
                     .font(Typography.bodySmallMedium)
                     .foregroundColor(themeManager.palette.textPrimary)
                 Text("Configure API keys in Settings → Providers after setup.")

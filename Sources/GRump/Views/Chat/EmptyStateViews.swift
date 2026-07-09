@@ -77,7 +77,7 @@ struct EmptyStateViews {
                             .font(Typography.displayMedium)
                             .foregroundColor(.textPrimary)
                             .multilineTextAlignment(.center)
-                        Text("Add an API key in Settings, or start Ollama locally.")
+                        Text("Add an API key in Settings to get started.")
                             .font(Typography.body)
                             .foregroundColor(.textSecondary)
                             .multilineTextAlignment(.center)

@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI) with a Node.js backend, built entirely on **Qwen** (Alibaba Qwen Cloud / DashScope, OpenAI-compatible). It provides chat-based AI assistance with 100+ local file system, shell, git, and system control tools, a persistent cognitive memory (Track 1: MemoryAgent), and an approval-gated autonomous daemon. Models: Qwen Coder Plus (default), Qwen Max, Qwen Plus, Qwen Turbo.
+G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI), multi-provider: **Anthropic (default), OpenAI, Google, and OpenRouter**. It provides chat-based AI assistance with 100+ local file system, shell, git, and system control tools, a persistent cognitive memory (Track 1: MemoryAgent), and an approval-gated autonomous daemon. Default model: **claude-opus-4-8**; Fable 5 is premium and never auto-routed. The Node.js backend is an optional legacy Qwen/DashScope proxy (re-pointing it is a follow-up ticket).
+
+### AI Providers
+
+- `AIProvider` (AIProviders.swift): `.anthropic` / `.openAI` / `.google` / `.openRouter`. API keys live in the **Keychain only** (one account per provider via `keychainAccount`); `ProviderConfiguration` excludes `apiKey` from Codable so keys never touch UserDefaults.
+- Model catalog is the single data file `AIModelCatalog.swift`. Registry default is `claude-opus-4-8`; `ModelRouter` picks provider-aware chains and never auto-routes to Fable 5.
+- Dispatch: `MultiProviderAIService` — native wire formats for Anthropic + Google, `OpenAICompatibleService` transport for OpenAI + OpenRouter. Anthropic requests omit temperature (Claude 4.7+/5 reject it) and pin `anthropic-version: 2023-06-01`.
+- `ProviderMigration` runs once (flag `ProviderMigration_v1`) from `AIModelRegistry.init` to map Qwen-era persisted state; never touch `AIModelRegistry.shared` inside it (deadlock).
+- `AIKeyValidator` probes a just-saved key with a cheap authed GET (`/models`; OpenRouter `/key`) and reports valid / invalid / indeterminate inline in Settings and onboarding. Keys are saved before the probe — a failed probe warns, it never blocks or un-saves.
 
 ## Build & Run Commands
 
@@ -62,7 +70,7 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 **Entry point**: `GRumpApp.swift` → `ContentView.swift` (main chat UI with sidebar). `AppDelegate.swift` enforces single-instance to prevent SQLite lock freezes.
 
 **ChatViewModel** is the central state manager, split into extensions:
-- `ChatViewModel+Streaming.swift` — Qwen (DashScope) streaming responses
+- `ChatViewModel+Streaming.swift` — provider streaming responses (dispatched per provider)
 - `ChatViewModel+ToolExecution.swift` — Tool dispatch, parallel execution, retry logic
 - `ChatViewModel+Memory.swift` — Activity tracking, memory store
 - `ChatViewModel+Messages.swift` — Message management
@@ -100,8 +108,8 @@ AI personality via `~/.grump/SOUL.md` (global) and `.grump/SOUL.md` (project, ov
 
 ### Key Services
 
-- `OpenRouterService` — Qwen chat completion streaming (DashScope; direct or via the Alibaba backend proxy). Carries the tool-call-complete request body.
-- `MultiProviderAIService` — Qwen model selection/registry (single provider)
+- `OpenAICompatibleService` — parameterized OpenAI-compatible streaming transport (serves OpenAI and OpenRouter). Carries the tool-call-complete request body.
+- `MultiProviderAIService` — per-provider dispatch: native Anthropic + Google wire formats, OpenAI/OpenRouter via the transport
 - `LSPService` — Language Server Protocol / SourceKit-LSP integration
 - `ExecApprovals` — Security approval workflow for shell commands
 - `ConnectionMonitor` — `NWPathMonitor` + periodic health checks to `openrouter.ai` (30s interval). Exposes `.connected`/`.degraded`/`.disconnected` status.

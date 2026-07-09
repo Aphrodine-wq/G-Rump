@@ -34,7 +34,6 @@ struct SettingsView: View {
     var onRestartOnboarding: (() -> Void)?
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
-    @State var apiKeyVisible = false
     @State var selectedTab: SettingsTab = .account
     @AppStorage("BackendURL") var backendURL: String = ""
     @State var appAPIKeyInput: String = KeychainStorage.get(account: "AppAPIKey") ?? ""
@@ -63,6 +62,7 @@ struct SettingsView: View {
     @State var selectedProvider: AIProvider = .anthropic
     @State var providerAPIKeys: [String: String] = [:]
     @State var providerBaseURLs: [String: String] = [:]
+    @State var providerKeyValidation: [String: KeyValidationState] = [:]
 
     // Tools state
     @State var toolsDenylist: Set<String> = []
@@ -312,7 +312,8 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Account (backend proxy + API key)
+    // MARK: - Account (backend proxy)
+    // Per-provider API keys live in the Providers tab, not here.
 
     var accountSection: some View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
@@ -368,36 +369,6 @@ struct SettingsView: View {
                 }
             }
 
-            settingsCard {
-                VStack(alignment: .leading, spacing: Spacing.xxl) {
-                    sectionTitle("OpenRouter API key", icon: "key.fill", accent: themeManager.accentColor)
-                    Text("Optional: use your own OpenRouter key for direct API access.")
-                        .font(Typography.captionSmall)
-                        .foregroundColor(.textMuted)
-                    HStack(spacing: Spacing.xl) {
-                        if apiKeyVisible {
-                            TextField("sk-…", text: $apiKey)
-                                .font(Typography.bodySmall)
-                                .fontDesign(.monospaced)
-                        } else {
-                            SecureField("sk-…", text: $apiKey)
-                                .font(Typography.bodySmall)
-                                .fontDesign(.monospaced)
-                        }
-                        Button(action: { apiKeyVisible.toggle() }) {
-                            Image(systemName: apiKeyVisible ? "eye.slash" : "eye")
-                                .foregroundColor(.textMuted)
-                                .font(Typography.bodySmall)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(Spacing.xl)
-                    .background(themeManager.palette.bgInput)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
-                        .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-                }
-            }
         }
     }
 

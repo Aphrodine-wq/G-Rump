@@ -10,7 +10,6 @@ import AppKit
 
 struct PrivacyDashboardView: View {
     @EnvironmentObject var themeManager: ThemeManager
-    @AppStorage("LocalOnlyMode") private var localOnlyMode = false
     @AppStorage("ShowPrivacyBadge") private var showPrivacyBadge = true
 
     var currentProvider: AIProvider = .anthropic
@@ -54,9 +53,7 @@ struct PrivacyDashboardView: View {
                     .font(Typography.heading2)
                     .foregroundColor(themeManager.palette.textPrimary)
 
-                Text(isFullyLocal
-                     ? "All inference runs on-device. Your code never leaves your Mac."
-                     : "Some requests are sent to cloud providers. Enable Local Only mode for full privacy.")
+                Text("Chat requests go to your configured AI provider. Files, tools, and memory stay on your Mac.")
                     .font(Typography.bodySmall)
                     .foregroundColor(themeManager.palette.textSecondary)
             }
@@ -66,15 +63,15 @@ struct PrivacyDashboardView: View {
             // Privacy status badge
             HStack(spacing: Spacing.sm) {
                 Circle()
-                    .fill(isFullyLocal ? Color.accentGreen : Color.accentOrange)
+                    .fill(Color.accentOrange)
                     .frame(width: 8, height: 8)
-                Text(isFullyLocal ? "Fully Local" : "Cloud Active")
+                Text("Cloud Active")
                     .font(Typography.captionSmallSemibold)
-                    .foregroundColor(isFullyLocal ? .accentGreen : .accentOrange)
+                    .foregroundColor(.accentOrange)
             }
             .padding(.horizontal, Spacing.xl)
             .padding(.vertical, Spacing.md)
-            .background((isFullyLocal ? Color.accentGreen : Color.accentOrange).opacity(0.12))
+            .background(Color.accentOrange.opacity(0.12))
             .clipShape(Capsule())
         }
         .padding(Spacing.huge)
@@ -192,18 +189,6 @@ struct PrivacyDashboardView: View {
     private var controlsCard: some View {
         VStack(alignment: .leading, spacing: Spacing.xxl) {
             sectionHeader("Privacy Controls", icon: "slider.horizontal.3", color: themeManager.palette.effectiveAccent)
-
-            Toggle(isOn: $localOnlyMode) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Local Only Mode")
-                        .font(Typography.bodySmallSemibold)
-                        .foregroundColor(themeManager.palette.textPrimary)
-                    Text("Restrict to on-device and Ollama models only. No data leaves your Mac.")
-                        .font(Typography.captionSmall)
-                        .foregroundColor(themeManager.palette.textMuted)
-                }
-            }
-            .tint(.accentGreen)
 
             Toggle(isOn: $showPrivacyBadge) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -343,11 +328,6 @@ struct PrivacyDashboardView: View {
     }
 
     // MARK: - Helpers
-
-    private var isFullyLocal: Bool {
-        // Inference is cloud-only; "fully local" only when the user forces Local Only mode.
-        localOnlyMode
-    }
 
     private func sectionHeader(_ title: String, icon: String, color: Color) -> some View {
         HStack(spacing: Spacing.md) {
