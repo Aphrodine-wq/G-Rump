@@ -38,6 +38,19 @@ extension ChatViewModel {
         currentConversation?.updateTitle()
         syncConversation()
 
+        // Two-stage outcome: if this message corrects the previous run, flip
+        // that run's recorded success before the new run begins.
+        let rejectedBlocks = CodeApplyService.shared.blockStates.values.filter { $0 == .rejected }.count
+        let corrections = UserCorrectionDetector.reasons(
+            message: trimmed,
+            rejectedCodeBlocks: rejectedBlocks,
+            approvalDenials: approvalDenialsSinceLastRun
+        )
+        approvalDenialsSinceLastRun = 0
+        if !corrections.isEmpty {
+            Task { await outcomeLedger.amendLastOutcome(corrections: corrections) }
+        }
+
         // Apple Intelligence: classify intent and detect frustration
         let intel = AppleIntelligenceService.shared
         let intent = intel.classifyUserIntent(trimmed)

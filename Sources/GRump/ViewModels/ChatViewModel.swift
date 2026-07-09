@@ -76,6 +76,10 @@ class ChatViewModel: ObservableObject {
     let regressionTracker = CausalRegressionTracker()
     /// Intent continuity — persists high-level goals across sessions with progress tracking.
     let intentContinuity = IntentContinuityService()
+    /// Durable per-project run outcomes — the learning loop's raw material.
+    let outcomeLedger = OutcomeLedger()
+    /// Approvals denied since the last agent run (a correction signal).
+    var approvalDenialsSinceLastRun = 0
     /// Tracks code changes made during the current agent run for adversarial review.
     var currentRunCodeChanges: [CodeChange] = []
 
@@ -93,6 +97,9 @@ class ChatViewModel: ObservableObject {
         guard let cont = systemRunApprovalContinuation else { return }
         systemRunApprovalContinuation = nil
         pendingSystemRunApproval = nil
+        if case .deny = response {
+            approvalDenialsSinceLastRun += 1
+        }
         cont.resume(returning: response)
     }
     #endif

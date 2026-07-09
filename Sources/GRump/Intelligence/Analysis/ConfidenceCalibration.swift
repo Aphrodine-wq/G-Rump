@@ -117,9 +117,58 @@ final class ConfidenceCalibration: ObservableObject {
 
     private let logger = GRumpLogger.general
 
-    // Calibration history for self-improvement
+    // Calibration history for self-improvement — persisted so the correction
+    // survives restarts instead of resetting to uncalibrated every launch.
     private var calibrationHistory: [(predicted: ConfidenceLevel, actualSuccess: Bool)] = []
     private let maxHistorySize = 200
+    private let historyFileURL: URL
+
+    static var defaultHistoryFileURL: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".grump")
+            .appendingPathComponent("confidence-calibration.json")
+    }
+
+    init(historyFileURL: URL = ConfidenceCalibration.defaultHistoryFileURL) {
+        self.historyFileURL = historyFileURL
+        loadHistory()
+    }
+
+    // MARK: - History persistence
+
+    private struct CalibrationRecord: Codable {
+        let predicted: Int      // index into levelOrder
+        let success: Bool
+    }
+
+    private static let levelOrder: [ConfidenceLevel] = [.veryLow, .low, .moderate, .high, .veryHigh]
+
+    private func loadHistory() {
+        guard FileManager.default.fileExists(atPath: historyFileURL.path),
+              let data = try? Data(contentsOf: historyFileURL),
+              let records = try? JSONDecoder().decode([CalibrationRecord].self, from: data) else {
+            return
+        }
+        calibrationHistory = records.compactMap { record in
+            guard Self.levelOrder.indices.contains(record.predicted) else { return nil }
+            return (predicted: Self.levelOrder[record.predicted], actualSuccess: record.success)
+        }
+    }
+
+    private func saveHistory() {
+        let records = calibrationHistory.compactMap { entry -> CalibrationRecord? in
+            guard let index = Self.levelOrder.firstIndex(of: entry.predicted) else { return nil }
+            return CalibrationRecord(predicted: index, success: entry.actualSuccess)
+        }
+        do {
+            try FileManager.default.createDirectory(
+                at: historyFileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
+            try JSONEncoder().encode(records).write(to: historyFileURL)
+        } catch {
+            logger.error("ConfidenceCalibration history save failed: \(error.localizedDescription)")
+        }
+    }
 
     // MARK: - Assessment
 
@@ -225,6 +274,7 @@ final class ConfidenceCalibration: ObservableObject {
         if calibrationHistory.count > maxHistorySize {
             calibrationHistory.removeFirst(calibrationHistory.count - maxHistorySize)
         }
+        saveHistory()
     }
 
     /// System prompt fragment injected when confidence is low.

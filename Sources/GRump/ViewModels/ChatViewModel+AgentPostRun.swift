@@ -39,6 +39,7 @@ extension ChatViewModel {
         streamMetrics.endStream()
 
         // --- Adversarial Self-Review (Build mode only) ---
+        var adversarialCriticals = 0
         if agentMode == .fullStack && !currentRunCodeChanges.isEmpty {
             let userMessage = currentConversation?.messages.last(where: { $0.role == .user })?.content ?? ""
             if let report = await adversarialReview.review(
@@ -46,6 +47,7 @@ extension ChatViewModel {
                 conversationContext: userMessage,
                 primaryModel: effectiveModel
             ) {
+                adversarialCriticals = report.criticalCount
                 let reviewMsg = Message(role: .assistant, content: report.markdownSummary)
                 currentConversation?.messages.append(reviewMsg)
                 syncConversation()
@@ -93,6 +95,44 @@ extension ChatViewModel {
         if let lastAssistant = currentConversation?.messages.last(where: { $0.role == .assistant }) {
             followUpSuggestions = FollowUpGenerator.generate(from: lastAssistant.content, agentMode: agentMode)
         }
+
+        // --- Outcome Ledger: persist this run's signals for the learning loop ---
+        let userRequest = currentConversation?.messages.first(where: { $0.role == .user })?.content ?? ""
+        let conversationId = currentConversation?.id
+        let runEntries = activityStore.entries
+            .prefix(60)
+            .filter { $0.conversationId == conversationId }
+        var toolStats: [String: RunOutcome.ToolStat] = [:]
+        for entry in runEntries {
+            var stat = toolStats[entry.toolName] ?? RunOutcome.ToolStat(name: entry.toolName, calls: 0, failures: 0)
+            stat.calls += 1
+            if !entry.success { stat.failures += 1 }
+            toolStats[entry.toolName] = stat
+        }
+        let buildFailures = runEntries
+            .filter { ["run_build", "xcodebuild", "run_tests", "swift_package"].contains($0.toolName) && !$0.success }
+            .count
+        let regressionSummary: String?
+        if let analysis = regressionTracker.lastAnalysis, Date().timeIntervalSince(analysis.timestamp) < 600 {
+            regressionSummary = analysis.suspectedCommit.map {
+                "suspected \($0.shortHash): \($0.message)"
+            } ?? "regression analyzed, no suspect commit"
+        } else {
+            regressionSummary = nil
+        }
+        let outcome = RunOutcome(
+            conversationId: conversationId,
+            taskType: TaskType.classify(from: userRequest).rawValue,
+            iterations: iterationCount,
+            toolStats: toolStats.values.sorted { $0.name < $1.name },
+            buildFailures: buildFailures,
+            loopPivots: loopPivots,
+            regressionSummary: regressionSummary,
+            adversarialCriticals: adversarialCriticals,
+            injectedLessonIds: [],   // wired when lesson injection lands
+            success: !hasErrors
+        )
+        Task { await outcomeLedger.record(outcome) }
 
         flushSync() // Ensure final state is persisted immediately
         saveToProjectMemoryIfEnabled()
