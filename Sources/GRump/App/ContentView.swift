@@ -15,6 +15,9 @@ struct ContentView: View {
     @StateObject var state = ContentViewState()
     @FocusState var messageFieldFocused: Bool
     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    #if os(macOS)
+    @Environment(\.openSettings) private var openSettings
+    #endif
 
     var body: some View {
         bodyContent
@@ -71,6 +74,15 @@ struct ContentView: View {
             }
 
             #if os(macOS)
+            // Bridge: every legacy entry point still flips state.showSettings —
+            // route it (plus any requested tab) into the Settings{} scene.
+            .onChange(of: state.showSettings) { _, isShowing in
+                guard isShowing else { return }
+                SettingsRouter.shared.pendingTab = state.settingsInitialTab
+                state.settingsInitialTab = nil
+                state.showSettings = false
+                openSettings()
+            }
             .onReceive(NotificationCenter.default.publisher(for: .init("GRumpToggleActivityBar"))) { _ in
                 withAnimation(.easeInOut(duration: Anim.quick)) {
                     state.layoutOptions.activityBarVisible.toggle()

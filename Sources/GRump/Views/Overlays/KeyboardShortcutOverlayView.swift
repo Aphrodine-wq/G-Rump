@@ -15,8 +15,11 @@ struct KeyboardShortcutOverlayView: View {
         Group {
             Button(action: { viewModel.createNewConversation() }) { EmptyView() }
                 .keyboardShortcut("n", modifiers: .command)
+            // ⌘, on macOS belongs to the Settings{} scene's native menu item.
+            #if os(iOS)
             Button(action: { showSettings = true }) { EmptyView() }
                 .keyboardShortcut(",", modifiers: .command)
+            #endif
             Button(action: { if viewModel.isLoading { viewModel.stopGeneration() } }) { EmptyView() }
                 .keyboardShortcut(".", modifiers: .command)
             Button(action: { messageFieldFocused = true }) { EmptyView() }

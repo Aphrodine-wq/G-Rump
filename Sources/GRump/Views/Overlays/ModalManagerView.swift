@@ -25,12 +25,16 @@ struct ModalManagerView<Content: View>: View {
                 ThreadNavigationView(viewModel: viewModel)
                     .frame(minWidth: 320, minHeight: 400)
             }
+            // macOS settings live in the Settings{} scene; ContentView bridges
+            // showSettings → openSettings. Only iOS still presents a sheet.
+            #if os(iOS)
             .sheet(isPresented: $showSettings, onDismiss: {
                 settingsInitialTab = nil
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { messageFieldFocused = true }
             }) {
                 settingsSheetContent
             }
+            #endif
     }
 
     // MARK: - Sheet Contents
@@ -49,31 +53,9 @@ struct ModalManagerView<Content: View>: View {
         )
     }
 
-    @ViewBuilder
+    #if os(iOS)
     private var settingsSheetContent: some View {
-        #if os(macOS)
         SettingsView(
-            apiKey: $viewModel.apiKey,
-            selectedModel: $viewModel.selectedModel,
-            systemPrompt: $viewModel.systemPrompt,
-            workingDirectory: $viewModel.workingDirectory,
-            onSetWorkingDirectory: { viewModel.setWorkingDirectory($0) },
-            initialTab: settingsInitialTab,
-            onExportJSON: { viewModel.runExportJSONPanel() },
-            onExportMarkdown: { viewModel.runExportMarkdownPanel(onlyCurrent: false) },
-            onImport: { viewModel.runImportPanel() },
-            onApplyPreset: { viewModel.applyPreset($0) },
-            onClearPreset: { viewModel.clearAppliedPreset() },
-            appliedPresetName: viewModel.appliedPresetName,
-            systemRunHistory: viewModel.systemRunHistory,
-            onRestartOnboarding: {
-                showSettings = false
-                UserDefaults.standard.set(false, forKey: "HasCompletedOnboarding")
-            }
-        )
-        #else
-        SettingsView(
-            apiKey: $viewModel.apiKey,
             selectedModel: $viewModel.selectedModel,
             systemPrompt: $viewModel.systemPrompt,
             workingDirectory: $viewModel.workingDirectory,
@@ -88,6 +70,6 @@ struct ModalManagerView<Content: View>: View {
                 UserDefaults.standard.set(false, forKey: "HasCompletedOnboarding")
             }
         )
-        #endif
     }
+    #endif
 }

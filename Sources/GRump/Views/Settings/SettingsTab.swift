@@ -38,14 +38,15 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         var list: [(icon: String, label: String, tabs: [SettingsTab])] = [
             ("person.crop.circle.fill", "Account", [.account]),
             ("cpu", "AI", [.providers, .presets, .behavior, .streaming, .advanced]),
-            ("folder.fill", "Workspace", [.project, .tools, .mcp, .skills, .soul, .brain]),
+            ("folder.fill", "Project", [.project, .tools, .mcp]),
+            ("brain.head.profile", "Agent", [.skills, .soul, .brain, .memory]),
             ("paintbrush.fill", "Appearance", [.appearance]),
-            ("gearshape", "General", [.notifications, .shortcuts, .updates, .data, .memory, .privacy]),
+            ("gearshape", "General", [.notifications, .shortcuts, .updates, .data, .privacy]),
             ("info.circle.fill", "About", [.about])
         ]
         #if os(macOS)
-        if let idx = list.firstIndex(where: { $0.label == "Workspace" }) {
-            list[idx] = ("folder.fill", "Workspace", [.project, .tools, .mcp, .skills, .soul, .brain, .security])
+        if let idx = list.firstIndex(where: { $0.label == "Project" }) {
+            list[idx] = ("folder.fill", "Project", [.project, .tools, .mcp, .security])
         }
         #endif
         return list
@@ -112,29 +113,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Top-level tab groups for horizontal tab bar. (Label, tabs in group)
-    static var tabGroups: [(String, [SettingsTab])] {
-        var list: [(String, [SettingsTab])] = [
-            ("Account", [.account]),
-            ("AI & Providers", [.providers, .presets, .behavior, .streaming]),
-            ("Advanced", [.advanced]),
-            ("Workspace", [.project]),
-            ("Appearance", [.appearance]),
-            ("Tools", [.tools]),
-            ("General", [.notifications, .shortcuts, .updates, .data, .memory, .privacy]),
-            ("About", [.about])
-        ]
-        #if os(macOS)
-        if let idx = list.firstIndex(where: { $0.0 == "Tools" }) {
-            list[idx] = ("Tools & Security", [.tools, .mcp, .skills, .soul, .brain, .security])
-        }
-        #else
-        if let idx = list.firstIndex(where: { $0.0 == "Tools" }) {
-            list[idx] = ("Tools", [.tools, .mcp, .skills, .soul, .brain])
-        }
-        #endif
-        return list
-    }
 }
 
 // MARK: - Notification & Updates UserDefaults Keys

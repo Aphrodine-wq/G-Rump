@@ -13,7 +13,6 @@ import UIKit
 // - Settings+TabViews.swift        (all other tab content sections)
 
 struct SettingsView: View {
-    @Binding var apiKey: String
     @Binding var selectedModel: EnhancedAIModel
     @Binding var systemPrompt: String
     @Binding var workingDirectory: String
@@ -53,7 +52,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKeys.showMenuBarExtra) var showMenuBarExtra: Bool = false
     @State var execConfig: ExecApprovalsConfig = .default
     #endif
-    @State var expandedCategories: Set<String> = ["AI", "Workspace", "General"]
+    @State var expandedCategories: Set<String> = ["AI", "Project", "Agent", "General"]
 
     // Provider state
     @State var selectedProvider: AIProvider = .anthropic
@@ -126,6 +125,8 @@ struct SettingsView: View {
                     tabContent(selectedTab)
                         .padding(Spacing.huge)
                 }
+                .frame(maxWidth: 720, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(themeManager.palette.bgDark)
@@ -166,6 +167,7 @@ struct SettingsView: View {
         }
         #endif
         }
+        #if os(iOS)
         .overlay(alignment: .topTrailing) {
             Button {
                 dismiss()
@@ -183,12 +185,25 @@ struct SettingsView: View {
             .padding(.top, 24)
             .padding(.trailing, 24)
         }
+        #endif
         #if os(macOS)
-        .frame(minWidth: 860, minHeight: 720)
+        .frame(minWidth: 940, idealWidth: 1040, minHeight: 640, idealHeight: 760)
         #endif
         .onAppear {
             if let tab = initialTab {
                 selectedTab = tab
+            }
+            if let pending = SettingsRouter.shared.pendingTab {
+                selectedTab = pending
+                SettingsRouter.shared.pendingTab = nil
+            }
+        }
+        // The Settings window persists across opens — onAppear won't re-fire,
+        // so tab routing also arrives live through the router.
+        .onReceive(SettingsRouter.shared.$pendingTab) { pending in
+            if let pending {
+                selectedTab = pending
+                SettingsRouter.shared.pendingTab = nil
             }
         }
     }

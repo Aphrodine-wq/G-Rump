@@ -242,6 +242,13 @@ struct GRumpApp: App {
             }
         }
         #if os(macOS)
+        Settings {
+            SettingsSceneRoot()
+                .environmentObject(themeManager)
+                .environmentObject(viewModel)
+                .preferredColorScheme(themeManager.colorScheme)
+        }
+
         Window("Welcome to G-Rump", id: "welcome") {
             WelcomeWindowView()
                 .environmentObject(themeManager)
