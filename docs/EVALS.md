@@ -1,86 +1,73 @@
 # Testing & Evaluating G-Rump
 
-G-Rump's UI is a native macOS app, but **you do not need a Mac to verify that it
-works on Qwen.** Its intelligence (model calls, tool calling, embeddings) runs
-through a cross-platform backend, and the agent's core logic is covered by an
-automated test suite. This doc explains exactly how to test it, at three levels.
+G-Rump is a native macOS app that calls AI providers directly. Its agent logic —
+the tool-call loop, request shaping, cognitive memory, and mode behavior — is
+covered by an automated Swift test suite, and the full product is verifiable by
+running the app. This doc explains how to test it at three levels.
 
 | Level | Needs | Verifies |
 |---|---|---|
-| 1. Qwen integration | Any OS + Node 18 + a Qwen key | The agentic loop on Qwen: chat, multi-turn tool calling, embeddings |
-| 2. Automated suites | macOS (or CI) | Agent logic, cognitive memory, request shaping — 1,447 checks |
-| 3. Full app | macOS | The end-to-end product (daemon, approval gates, memory in the UI) |
+| 1. Automated suites | macOS (or CI) | Agent logic, cognitive memory, request shaping — ~1,449 checks |
+| 2. Full app | macOS | The end-to-end product (daemon, approval gates, memory in the UI) |
+| 3. Legacy smoke tests | Any OS + Node 18 + an OpenAI-compatible key | A chat / tool-call / embeddings round-trip (historical tooling) |
 
 ---
 
-## Level 1 — Verify the Qwen integration (any OS, ~30s)
-
-The single most important claim — *that the agentic tool-call loop actually runs
-on Qwen* — is verifiable by anyone with a Qwen key, no Mac required:
+## Level 1 — Automated test suites (macOS / CI)
 
 ```bash
-QWEN_API_KEY=sk-...  node scripts/judge-verify.mjs
+swift test -j 12          # ~1,449 app tests (agent logic, modes, memory, request shaping)
 ```
 
-It runs three live checks and prints PASS/FAIL (exit 0 = all pass):
+Tests that directly evidence the core claims:
 
-1. **Chat connectivity** — a basic Qwen completion.
-2. **Multi-turn tool calling** — the agent's lifeblood: Qwen emits a
-   `read_file` `tool_call`, we reconstruct its JSON arguments, return a `tool`
-   result with the matching `tool_call_id`, and Qwen continues correctly. This
-   is the exact loop that powers autonomous coding.
-3. **Embeddings** — `text-embedding-v4`, which backs the cognitive memory.
-
-To verify the **Alibaba-hosted backend** specifically (proof it runs on Alibaba
-Cloud and calls Qwen), point the script at it:
-
-```bash
-BACKEND_URL=https://<your-alibaba-host>  APP_API_KEY=...  node scripts/judge-verify.mjs
-```
-
-The backend itself is one Docker command (`backend/README-DEPLOY.md`); all of its
-Alibaba Cloud calls are centralized in `backend/alibaba.js`.
-
----
-
-## Level 2 — Automated test suites (macOS / CI)
-
-```bash
-swift test -j 12          # 1,437 app tests (agent logic, modes, memory, request shaping)
-cd backend && npm test    # 4 backend tests (health, validation, proxy surface)
-```
-
-Tests that directly evidence the hackathon claims:
-
-- **`CognitiveMemoryTests`** (6) — the Track 1 differentiator, proven deterministically:
+- **`CognitiveMemoryTests`** — the memory engine, proven deterministically:
   - budget-aware recall packs the highest-scoring memories into a fixed token
     window; ranking is relevance × recency × salience;
   - the consolidation pass decays, merges near-duplicates, and forgets stale
     memories (the "timely forgetting" requirement).
-- **`QwenServiceTests`** — the request sent to Qwen is OpenAI-compatible: Bearer
-  auth, `tool_choice: auto` + `tools`, and **no** foreign fields
-  (`provider`, `HTTP-Referer`, `anthropic-version`).
-- **`AIProvidersTests` / `ModelsTests`** — the app is single-provider Qwen only.
+- **Provider request-shaping tests** — each provider's request is well-formed:
+  Anthropic pins `anthropic-version: 2023-06-01` and omits temperature, Google
+  uses native `functionResponse` parts, and OpenAI/OpenRouter ride the shared
+  OpenAI-compatible transport.
+- **`AIProvidersTests` / `ModelsTests`** — the multi-provider catalog and routing
+  behave as specified (default `claude-opus-4-8`; Fable 5 never auto-routed).
 
-CI (`.github/workflows/ci.yml`) runs the Swift suite, SwiftLint (strict), and the
-backend tests on every push.
+CI (`.github/workflows/ci.yml`) runs the Swift suite and SwiftLint (strict) on
+every push.
 
 ---
 
-## Level 3 — The full app (macOS)
+## Level 2 — The full app (macOS)
 
 ```bash
 make run     # build debug + launch
 ```
 
-Onboard with a Qwen (DashScope) key, then exercise the agent:
+Onboard with a provider key (Anthropic by default), then exercise the agent:
 
 - **Autonomous coding** — give the daemon a goal; watch it plan, call tools, and
   hit an **approval gate** before any write, working on a scratch branch.
 - **Memory across sessions** — in a new session, ask about prior work; the system
   prompt shows a **"Relevant Memory (recalled within budget)"** block.
 
-See `docs/HACKATHON.md` for the 3-minute demo script.
+---
+
+## Level 3 — Legacy smoke tests (any OS)
+
+Two Node scripts remain in `scripts/` from the original single-provider build:
+
+```bash
+node scripts/judge-verify.mjs      # chat, multi-turn tool calling, embeddings
+node scripts/agent-eval.mjs        # 4-task agent battery on a real tool loop
+```
+
+They exercise an OpenAI-compatible chat / tool-call / embeddings loop and can be
+pointed at any OpenAI-compatible endpoint (for example, an OpenRouter base URL)
+through their `*_BASE_URL` / `*_MODEL` environment overrides. Their built-in
+defaults, and the optional proxy path they support, target infrastructure that no
+longer ships — **treat these scripts as historical**. The supported verification
+is the Swift suite in Level 1.
 
 ---
 
@@ -88,17 +75,6 @@ See `docs/HACKATHON.md` for the 3-minute demo script.
 
 Beyond unit tests, the agent is evaluated on **task batteries** — concrete
 coding tasks with objective success criteria — and a **memory eval**.
-
-A **runnable, cross-platform agent eval** ships in the repo — it drives Qwen
-through the real tool-call loop over a mock repo and scores task completion:
-
-```bash
-QWEN_API_KEY=sk-...  node scripts/agent-eval.mjs
-```
-
-It runs four scenarios (single read, discover-then-read, find-the-bug,
-grep-locate), executes the mock tools, and passes only if the model *used the
-tools* and reached the correct answer. Exits 0 if the pass rate ≥ 75%.
 
 ### Coding task battery (full app/daemon on macOS; scored 0–1)
 
@@ -120,16 +96,17 @@ and minimality of the diff. The approval gate keeps a human in the loop, so
 - **Forgetting** — a stale, low-salience memory is demoted/pruned by the
   consolidation pass; near-duplicates merge into one reinforced memory.
 
-### Tool-calling reliability (covered by `judge-verify.mjs` + `QwenServiceTests`)
+### Tool-calling reliability
 
-- Qwen emits well-formed `tool_calls`, arguments reconstruct to valid JSON, and
-  the `tool_call_id` round-trip continues the conversation — the property the
-  autonomous loop depends on.
+- The agent loop drives every provider identically: models emit well-formed
+  `tool_calls`, arguments reconstruct to valid JSON, and the tool-result
+  round-trip continues the conversation — the property the autonomous loop
+  depends on.
 
 ---
 
 ## If you only do one thing
 
-Run `node scripts/judge-verify.mjs` with a Qwen key. If it prints **VERIFIED**,
-G-Rump's agentic loop works on Qwen — chat, tool calling, and embeddings — which
-is the foundation everything else is built on.
+Run `swift test`. A green suite means G-Rump's agent logic — the tool-call loop,
+provider request shaping, and the cognitive memory — works, which is the
+foundation everything else is built on.

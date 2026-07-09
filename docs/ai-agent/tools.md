@@ -1,6 +1,6 @@
 # Tools
 
-G-Rump provides 100+ tools the AI agent can invoke during conversations.
+G-Rump provides 153 tools the AI agent can invoke during conversations.
 
 ## Tool Categories
 

@@ -1,3 +1,5 @@
+*Historical document — describes the original Qwen Cloud Hackathon build (mid-2026). Kept for provenance; the current architecture is multi-provider with no backend. See [../../ARCHITECTURE.md](../../ARCHITECTURE.md).*
+
 # G-Rump on Qwen — Architecture
 
 G-Rump is a native macOS autonomous coding agent whose reasoning, tool-use, and

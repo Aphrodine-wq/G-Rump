@@ -1,6 +1,6 @@
 # Settings
 
-G-Rump has 22 settings tabs organized into categories.
+G-Rump has 20 settings tabs organized into categories.
 
 ## Settings Tabs
 
@@ -16,7 +16,7 @@ G-Rump has 22 settings tabs organized into categories.
 ### AI & Model
 | Tab | Description |
 |---|---|
-| **Providers** | API keys for Anthropic, OpenAI, OpenRouter, Ollama, CoreML |
+| **Providers** | API keys for Anthropic, OpenAI, Google, OpenRouter (validated on save) |
 | **Behavior** | System prompt, temperature, max tokens, agent step limit |
 | **Streaming** | Animation style, token buffer size |
 | **Advanced** | Context window, retry policy, timeout settings |
@@ -32,14 +32,12 @@ G-Rump has 22 settings tabs organized into categories.
 | **OpenClaw** | OpenClaw integration settings |
 | **Tools** | Tool enable/disable, custom tool definitions |
 
-### Account
+### Data & Privacy
 | Tab | Description |
 |---|---|
-| **Profile** | User profile, avatar |
-| **Billing** | Subscription, credits, usage analytics |
 | **Data** | Export/import conversations and settings |
 | **Memory** | Project memory management |
-| **Privacy** | Privacy dashboard, on-device mode, privacy manifest |
+| **Privacy** | Privacy dashboard, privacy manifest |
 
 ### Security (macOS only)
 | Tab | Description |
@@ -50,8 +48,7 @@ G-Rump has 22 settings tabs organized into categories.
 
 - `SettingsView.swift` — Main settings view, tab enum, tab routing
 - `Views/Settings/Settings+TabViews.swift` — Individual tab content views
-- `PrivacyDashboardView.swift` — Privacy & On-Device settings
-- `BillingView.swift` — Billing & subscription management
+- `PrivacyDashboardView.swift` — Privacy dashboard and manifest generator
 
 ## Persistence
 

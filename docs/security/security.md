@@ -41,9 +41,8 @@ Configure in **Settings → Security → Exec Approvals**.
 ## Keychain Integration
 
 API keys and credentials are stored in macOS Keychain via `KeychainService`:
-- AI provider API keys
+- AI provider API keys (one account per provider)
 - MCP server credentials
-- Backend authentication tokens
 
 ## Secure Enclave
 

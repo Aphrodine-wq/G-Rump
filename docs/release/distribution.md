@@ -79,11 +79,11 @@ make app                                # .icns is auto-generated during packagi
 ## Entitlements
 
 The app uses `GRump.entitlements` at the project root. Key entitlements:
-- **Network client/server** — for AI API calls and local Ollama
+- **Network client/server** — for AI provider API calls
 - **File access** — for reading/writing project files
 - **JIT / unsigned memory** — for terminal emulation and LSP
 
-Sandbox is **disabled** (`com.apple.security.app-sandbox = false`) because G-Rump needs to run shell commands, access arbitrary project directories, and spawn child processes (LSP, Ollama, etc.).
+Sandbox is **disabled** (`com.apple.security.app-sandbox = false`) because G-Rump needs to run shell commands, access arbitrary project directories, and spawn child processes (LSP, language servers, etc.).
 
 ## Update Mechanism
 

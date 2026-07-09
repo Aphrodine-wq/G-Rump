@@ -1,34 +1,24 @@
 # Privacy
 
-G-Rump prioritizes user privacy with on-device processing options and transparent data flow.
+G-Rump prioritizes user privacy: your API keys stay in the Keychain, there is no
+backend, and nothing is sent anywhere except directly to the AI provider you
+chose.
 
 ## Privacy Dashboard
 
-**Settings → Privacy & On-Device** shows:
-- **Data flow visualization** — Which data goes where (local, cloud, backend)
-- **Privacy controls** — Local Only Mode, Privacy Badge
-- **Apple Silicon status** — Chip, RAM, Neural Engine availability
+**Settings → Privacy** shows:
+- **Data flow visualization** — Which data goes where (local vs. the selected cloud provider)
+- **Apple Silicon status** — Chip, RAM, hardware capabilities
 - **Privacy manifest generator** — Generate PrivacyInfo.xcprivacy for your projects
-
-## Local Only Mode
-
-When enabled, restricts all AI inference to on-device providers:
-- **Ollama** — Local LLM server
-- **CoreML** — Apple Neural Engine models
-
-No code or conversation data leaves your Mac.
-
-## Privacy Badge
-
-Shows a green shield icon ("On-Device") in the chat top bar when the current provider is fully local.
 
 ## Data Flow
 
+The app calls providers directly — there is no G-Rump backend in the path.
+
 | Destination | What's Sent | When |
 |---|---|---|
-| **On-Device** | Nothing leaves Mac | Ollama / CoreML selected |
-| **Cloud Providers** | Conversation context + tool results | OpenRouter / OpenAI / Anthropic |
-| **G-Rump Backend** | Auth tokens, credit tracking | Always (no code sent) |
+| **Local** | Nothing leaves the Mac | File reads, shell, git, and other local tools |
+| **Cloud Provider** | Conversation context + tool results | Sent to the active provider (Anthropic, OpenAI, Google, or OpenRouter) |
 
 ## Privacy Manifest Generator
 
@@ -41,8 +31,7 @@ Access via **Settings → Privacy → Generate Privacy Manifest**.
 
 ## On-Device Processing
 
-Apple Silicon features used:
-- **Neural Engine** — CoreML model inference
+Apple frameworks used locally (no data leaves the Mac):
 - **Secure Enclave** — Key storage and biometric auth
-- **NaturalLanguage** — Text analysis and language detection
+- **NaturalLanguage** — Text analysis, language detection, and local embeddings for memory recall
 - **Vision** — OCR and document scanning

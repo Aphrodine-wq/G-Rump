@@ -1,3 +1,5 @@
+*Historical document — describes the original Qwen Cloud Hackathon build (mid-2026). Kept for provenance; the current architecture is multi-provider with no backend. See [../../ARCHITECTURE.md](../../ARCHITECTURE.md).*
+
 # G-Rump — Global AI Hackathon with Qwen Cloud
 
 **Track: 1 — MemoryAgent** (demonstrated through Track 4 autonomous-agent capabilities)

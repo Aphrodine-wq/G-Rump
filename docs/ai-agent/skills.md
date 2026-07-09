@@ -82,7 +82,7 @@ When enabled, a skill's content is injected into the system prompt, giving the a
 - **Competitive Analysis** — Market positioning and differentiation
 - **Competitive Intelligence** — Systematic competitor research and monitoring
 - **Product Strategy** — Vision, roadmaps, and prioritization
-- **Pricing & Monetization** — Pricing models, tiers, billing strategy
+- **Pricing & Monetization** — Pricing models, tiers, monetization strategy
 - **Growth Analytics** — Funnels, experimentation, retention analysis
 - **Pitch Deck Review** — Fundraising deck evaluation
 - **Technical Due Diligence** — Codebase and team assessment for M&A
@@ -92,7 +92,7 @@ When enabled, a skill's content is injected into the system prompt, giving the a
 - **Writing** — Clear, effective technical and business writing
 - **Planning** — Project scoping, breakdown, and risk assessment
 - **Specification** — Requirements gathering and spec writing
-- **Argumentation** — Structured reasoning and debate
+- **Argumentation** — Structured reasoning and argument construction
 - **Rapid Prototyping** — MVP scaffolding and validation
 - **Regex Expert** — Pattern design across engines
 - **Data Science** — ML pipelines, statistics, visualization

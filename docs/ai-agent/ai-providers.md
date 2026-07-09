@@ -1,43 +1,57 @@
 # AI Providers
 
-G-Rump supports multiple AI providers with automatic routing and fallback.
+G-Rump is multi-provider. Bring your own key for any of four providers; the app
+speaks each provider's wire format directly — there is no backend.
 
 ## Supported Providers
 
 | Provider | Type | Models |
 |---|---|---|
-| **Anthropic** | Cloud | Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku |
-| **OpenAI** | Cloud | GPT-4o, GPT-4 Turbo, GPT-3.5 Turbo |
-| **OpenRouter** | Cloud | 100+ models from multiple providers |
-| **Ollama** | Local | Any GGUF model (Llama, Mistral, CodeLlama, etc.) |
-| **CoreML (On-Device)** | Local | Apple Neural Engine optimized models |
+| **Anthropic** (default) | Cloud | Claude Opus 4.8 (default), Claude Fable 5 (premium, manual select), Claude Sonnet 5, Claude Haiku 4.5 |
+| **OpenAI** | Cloud | GPT-5.2, GPT-5.3-Codex |
+| **Google** | Cloud | Gemini 3 Pro, Gemini 2.5 Flash |
+| **OpenRouter** | Cloud | Routes to Claude Sonnet 5, GPT-5.3-Codex, Gemini 3 Pro, Qwen3 Coder |
+
+The model catalog lives in a single data file, `AIModelCatalog.swift`. The
+registry default is **claude-opus-4-8**. Fable 5 is premium and never
+auto-selected — you pick it explicitly.
 
 ## Configuration
 
-API keys are stored in macOS Keychain via `KeychainService`. Configure in **Settings → Providers**.
+API keys are stored in the **macOS Keychain only**, one account per provider.
+`ProviderConfiguration` excludes the key from serialization, so keys never touch
+UserDefaults or any config file. Configure in **Settings → Providers**.
 
-### OpenRouter (Default)
-```
-API Key: sk-or-v1-...
-Base URL: https://openrouter.ai/api/v1
-```
+### Key validation on save
 
-### Ollama (Local)
-```
-Base URL: http://localhost:11434
-No API key required
-```
+When you save a key, `AIKeyValidator` runs a cheap authenticated probe
+(a `/models` GET; OpenRouter uses `/key`) and reports **verified**, **rejected**,
+or **could-not-verify** inline in Settings and onboarding. Keys always save
+first — a failed probe warns you, it never blocks the save or removes the key.
+Probes send the key in headers only (Google via `x-goog-api-key`), never in a URL.
 
-### CoreML (On-Device)
-Download models in **Settings → Providers → On-Device**. Models run on Apple Neural Engine with zero network usage.
+## Dispatch
+
+`MultiProviderAIService` routes each request to the right transport:
+
+- **Anthropic** and **Google** use their native wire formats with streaming
+  tool calls.
+- **OpenAI** and **OpenRouter** ride a shared parameterized
+  `OpenAICompatibleService` transport.
+
+Anthropic requests pin `anthropic-version: 2023-06-01` and omit temperature
+(Claude 4.7+/5 models reject it). All providers normalize stop reasons to the
+same `tool_calls` / `stop` signals, so the agent loop drives identically
+everywhere.
 
 ## Model Router
 
-`ModelRouter` selects the optimal model based on:
-- Task complexity (simple → small model, complex → large model)
+`ModelRouter` selects a model based on:
+- Task complexity (light tasks → a smaller model, heavy tasks → a larger one)
+- The active provider (routing picks provider-aware heavy/light chains)
 - User preference (per-conversation or global default)
-- Cost controls (`OpenClawCostControl`)
-- Workflow preset overrides
+
+The router never auto-routes to Fable 5.
 
 ## Streaming
 
@@ -46,10 +60,11 @@ All providers stream responses token-by-token. Streaming animation styles:
 - **Typewriter** — Character-by-character
 - **Instant** — Full blocks appear at once
 
-Configure in **Settings → AI & Model → Streaming**.
+Configure in **Settings → Streaming**.
 
-## Privacy
+## Settings migration
 
-- **Local Only Mode** — Restricts to Ollama and CoreML only
-- **Privacy Badge** — Shows shield icon when running fully local
-- Configure in **Settings → Privacy & On-Device**
+A one-shot migration (flag `ProviderMigration_v1`) runs from
+`AIModelRegistry.init` to remap any single-provider-era configuration: provider
+and model IDs are updated and stray keys are hoisted into the Keychain. No manual
+steps.

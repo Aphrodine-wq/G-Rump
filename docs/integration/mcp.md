@@ -1,6 +1,6 @@
 # MCP Integration
 
-G-Rump integrates with 58 pre-configured Model Context Protocol (MCP) servers.
+G-Rump ships with roughly 60 pre-configured Model Context Protocol (MCP) servers.
 
 ## Overview
 

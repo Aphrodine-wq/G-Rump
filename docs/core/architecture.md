@@ -12,7 +12,7 @@ G-Rump is a native macOS AI coding agent built with Swift and SwiftUI, targeting
 
 ```
 User Input → ChatInputView → ChatViewModel → AIService (provider router)
-                                            → ToolExecutor (100+ tools)
+                                            → ToolExecutor (153 tools)
                                             → StreamingResponse → MessageListView
 ```
 
