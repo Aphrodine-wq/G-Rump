@@ -18,7 +18,7 @@ Comprehensive documentation for the G-Rump AI coding agent.
 - [Soul](ai-agent/soul.md) — SOUL.md personality system, templates
 
 ### IDE Features
-- [Panels](ide/panels.md) — All 18 IDE panels
+- [Panels](ide/panels.md) — All 20 IDE panels
 - [Layout](ide/layout.md) — Layout customization, Zen Mode, Activity Bar
 - [Keyboard Shortcuts](ide/keyboard-shortcuts.md) — Complete shortcut reference
 - [LSP](ide/lsp.md) — SourceKit-LSP integration, diagnostics, symbol graph

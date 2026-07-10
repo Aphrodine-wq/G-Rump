@@ -45,7 +45,7 @@ no telemetry middleman, and no backend.
 | Memory | 3-tier store (session / project / global), hybrid vector + keyword + recency recall, deliberate forgetting |
 | Skills | 73 bundled `SKILL.md` skills in 21 packs, plus your own global and per-project skills with relevance scoring |
 | Build & run | Xcode-style toolbar — ⌘R builds (xcodebuild/SPM) and runs to a booted simulator with live app logs; streamed build console with parsed, fixable issues |
-| IDE surface | 19 dock panels + a ⌘0 project navigator — build console, git, terminal, simulator, tests, logs, profiling — with live SourceKit-LSP diagnostics |
+| IDE surface | 20 dock panels + a ⌘0 project navigator — build console, git, terminal, simulator, tests, logs, profiling — with live SourceKit-LSP diagnostics |
 | Autonomy | An opt-in daemon that works queued goals on a scratch branch, behind approval gates, and never pushes |
 | Tests | 1,500+ tests, SwiftLint strict, CI on every push |
 

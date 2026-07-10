@@ -1,6 +1,6 @@
 # Panels
 
-G-Rump has 18 built-in IDE panels accessible from the right sidebar icon bar.
+G-Rump has 20 built-in IDE panels accessible from the right sidebar icon bar.
 
 ## Panel List
 
@@ -12,6 +12,7 @@ G-Rump has 18 built-in IDE panels accessible from the right sidebar icon bar.
 | **Simulator** | `iphone` | iOS simulator controls |
 | **Git** | `arrow.triangle.branch` | Git status, diff, commit, branch management |
 | **Tests** | `checkmark.circle.fill` | Test explorer with run/debug |
+| **Build** | `hammer.circle` | Build console — Log and Issues tabs, Fix-with-G-Rump, Reveal in Navigator |
 | **Assets** | `photo.on.rectangle` | Asset catalog browser |
 | **Localization** | `globe` | String catalog and localization management |
 | **Schema** | `cylinder.split.1x2` | Data model schema viewer |
@@ -24,14 +25,15 @@ G-Rump has 18 built-in IDE panels accessible from the right sidebar icon bar.
 | **App Store** | `bag.fill` | App Store submission tools |
 | **Accessibility** | `figure.stand` | Accessibility audit panel |
 | **Memory** | `brain.head.profile` | Cognitive memory browser — stored memories, recall, consolidation |
+| **Learning** | `graduationcap` | Learning loop — pending skill proposals as diffs, lessons with confidence bars, recent outcomes |
 
 ## Panel Groups
 
 Panels are organized into three groups in the sidebar:
 
 - **Primary** — Chat, Files, Preview, Simulator
-- **Apple Dev** — Git, Tests, Assets, Localization, Schema, Profiling, Logs, SPM, Xcode, Docs
-- **Content** — Terminal, App Store, Accessibility, Memory
+- **Apple Dev** — Git, Tests, Build, Assets, Localization, Schema, Profiling, Logs, SPM, Xcode, Docs
+- **Content** — Terminal, App Store, Accessibility, Memory, Learning
 
 ## Key Files
 
