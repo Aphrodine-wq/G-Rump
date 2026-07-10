@@ -60,6 +60,8 @@ final class ToolDispatchTests: XCTestCase {
         "port_scan", "ssl_check", "cron_parse", "json_schema_validate",
         // Interactive
         "ask_user",
+        // Learning loop
+        "record_lesson", "remember", "reflect", "propose_skill", "add_goal",
     ]
 
     // MARK: - Tests

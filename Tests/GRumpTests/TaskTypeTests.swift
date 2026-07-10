@@ -76,7 +76,7 @@ final class TaskTypeTests: XCTestCase {
     // MARK: - CaseIterable
 
     func testTaskTypeCount() {
-        XCTAssertEqual(TaskType.allCases.count, 12)
+        XCTAssertEqual(TaskType.allCases.count, 13)
     }
 
     // MARK: - Codable Round-Trip
