@@ -18,6 +18,9 @@ extension ChatViewModel {
         let tools = nativeTools + mcpTools
 
         var iterationCount = 0
+        // Survives `continue` so transient stream errors deep in a run retry
+        // with backoff instead of dying (reset after each successful stream).
+        var streamRetriesThisTurn = 0
         currentAgentStepMax = maxIterations
 
         repeat {
@@ -116,6 +119,7 @@ extension ChatViewModel {
                 let finalDisplay = Self.extractThinkingBlocks(from: textBuffer, thinkingContent: &thinkingContent)
                 streamingContent = finalDisplay
                 isThinking = false
+                streamRetriesThisTurn = 0
             } catch is CancellationError {
                 currentAgentStep = nil
                 currentAgentStepMax = nil
@@ -125,15 +129,19 @@ extension ChatViewModel {
                 streamMetrics.endStream()
                 return
             } catch {
+                streamRetriesThisTurn += 1
+                if shouldRetry(error: error, attempt: streamRetriesThisTurn) {
+                    // Retrying the SAME turn: don't burn an agent step, and don't
+                    // stack "(Partial response…)" messages on every attempt.
+                    iterationCount -= 1
+                    try? await Task.sleep(nanoseconds: UInt64(retryDelay(attempt: streamRetriesThisTurn) * 1_000_000_000))
+                    continue
+                }
+
                 if !textBuffer.isEmpty {
                     let partial = Message(role: .assistant, content: textBuffer + "\n\n(Partial response: stream interrupted.)")
                     currentConversation?.messages.append(partial)
                     syncConversation()
-                }
-
-                if shouldRetry(error: error, attempt: iterationCount) {
-                    try? await Task.sleep(nanoseconds: UInt64(retryDelay(attempt: iterationCount) * 1_000_000_000))
-                    continue
                 }
 
                 currentAgentStep = nil

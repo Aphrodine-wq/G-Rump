@@ -78,7 +78,7 @@ extension ToolDefinitions {
         "type": "function",
         "function": [
             "name": "edit_file",
-            "description": "Make a targeted edit to a file by finding exact old content and replacing it with new content. Preserves the rest of the file. The old_content must match exactly (including whitespace and indentation). Always read_file first to see exact content.",
+            "description": "Make a targeted edit to a file by finding old content and replacing it with new content. Preserves the rest of the file. old_content must be UNIQUE in the file — if it matches multiple locations the edit fails; include more surrounding lines or pass replace_all. If the exact text isn't found, a whitespace-tolerant match is attempted (applied only when unambiguous, and flagged in the result so you can verify). Always read_file first to see exact content.",
             "parameters": [
                 "type": "object",
                 "properties": [
@@ -88,11 +88,15 @@ extension ToolDefinitions {
                     ],
                     "old_content": [
                         "type": "string",
-                        "description": "The exact content to find (must match file contents exactly)"
+                        "description": "The content to find — must match exactly one location unless replace_all is true"
                     ],
                     "new_content": [
                         "type": "string",
                         "description": "The replacement content"
+                    ],
+                    "replace_all": [
+                        "type": "boolean",
+                        "description": "Replace every occurrence of old_content instead of requiring a unique match (default false)"
                     ]
                 ],
                 "required": ["path", "old_content", "new_content"]

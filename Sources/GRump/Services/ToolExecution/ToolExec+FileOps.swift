@@ -108,26 +108,58 @@ extension ChatViewModel {
               let newContent = args["new_content"] as? String else {
             return "Error: missing path, old_content, or new_content"
         }
+        let replaceAll = args["replace_all"] as? Bool ?? false
         let resolved = resolvePath(path)
         do {
             var fileContent = try String(contentsOfFile: resolved, encoding: .utf8)
-            guard fileContent.contains(oldContent) else {
-                let lines = fileContent.components(separatedBy: "\n")
-                let searchLines = oldContent.components(separatedBy: "\n")
-                if let firstSearchLine = searchLines.first {
-                    let matches = lines.enumerated().filter { $0.element.contains(firstSearchLine.trimmingCharacters(in: .whitespaces)) }
-                    if !matches.isEmpty {
-                        let locations = matches.prefix(3).map { "line \($0.offset + 1)" }.joined(separator: ", ")
-                        return "Error: exact old_content not found, but similar content exists at \(locations). Check whitespace/indentation and try again with the exact content."
-                    }
-                }
-                return "Error: old_content not found in \(resolved). Use read_file to verify the current content first."
-            }
             let occurrences = fileContent.components(separatedBy: oldContent).count - 1
-            fileContent = fileContent.replacingOccurrences(of: oldContent, with: newContent)
-            try fileContent.write(toFile: resolved, atomically: true, encoding: .utf8)
-            let newLineCount = fileContent.components(separatedBy: "\n").count
-            return "Edited \(resolved) (\(occurrences) replacement\(occurrences == 1 ? "" : "s"), \(newLineCount) lines total)"
+
+            if occurrences > 1 && !replaceAll {
+                return "Error: old_content matches \(occurrences) locations in \(resolved). Include more surrounding lines to make it unique, or pass replace_all: true to replace every occurrence."
+            }
+
+            if occurrences >= 1 {
+                fileContent = fileContent.replacingOccurrences(of: oldContent, with: newContent)
+                try fileContent.write(toFile: resolved, atomically: true, encoding: .utf8)
+                let newLineCount = fileContent.components(separatedBy: "\n").count
+                return "Edited \(resolved) (\(occurrences) replacement\(occurrences == 1 ? "" : "s"), \(newLineCount) lines total)"
+            }
+
+            // Whitespace-tolerant fallback: slide a window over the file comparing
+            // per-line trimmed content. Applied ONLY on exactly one match; the
+            // replacement lines are spliced VERBATIM (no re-indent guessing).
+            let fileLines = fileContent.components(separatedBy: "\n")
+            let searchLines = oldContent.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+            if !searchLines.isEmpty && searchLines.count <= fileLines.count {
+                var matchStarts: [Int] = []
+                for start in 0...(fileLines.count - searchLines.count) {
+                    var allMatch = true
+                    for offset in 0..<searchLines.count where fileLines[start + offset].trimmingCharacters(in: .whitespaces) != searchLines[offset] {
+                        allMatch = false
+                        break
+                    }
+                    if allMatch { matchStarts.append(start) }
+                }
+                if matchStarts.count == 1, let start = matchStarts.first {
+                    var updatedLines = fileLines
+                    updatedLines.replaceSubrange(start..<(start + searchLines.count), with: newContent.components(separatedBy: "\n"))
+                    try updatedLines.joined(separator: "\n").write(toFile: resolved, atomically: true, encoding: .utf8)
+                    return "Edited \(resolved) via whitespace-tolerant match at lines \(start + 1)-\(start + searchLines.count) — the exact old_content was not found, so verify the result with read_file."
+                }
+                if matchStarts.count > 1 {
+                    return "Error: old_content matches \(matchStarts.count) locations (whitespace-tolerant) in \(resolved). Include more surrounding lines to make it unique."
+                }
+            }
+
+            // Near-miss hints (kept as the final fallback).
+            if let firstSearchLine = oldContent.components(separatedBy: "\n").first {
+                let matches = fileLines.enumerated().filter { $0.element.contains(firstSearchLine.trimmingCharacters(in: .whitespaces)) }
+                if !matches.isEmpty {
+                    let locations = matches.prefix(3).map { "line \($0.offset + 1)" }.joined(separator: ", ")
+                    return "Error: exact old_content not found, but similar content exists at \(locations). Check whitespace/indentation and try again with the exact content."
+                }
+            }
+            return "Error: old_content not found in \(resolved). Use read_file to verify the current content first."
         } catch {
             return "Error editing file: \(error.localizedDescription)"
         }

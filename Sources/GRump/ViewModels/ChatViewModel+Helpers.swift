@@ -31,6 +31,9 @@ extension ChatViewModel {
             var prompt = prependModeInstructions(to: prependSkillsContent(to: prependMindContent(to: prependDeveloperProfileContent(to: prependSoulContent(to: systemPrompt)))))
             if !workingDirectory.isEmpty {
                 prompt += "\n\nCurrent working directory: \(workingDirectory)"
+                // A project can carry .grump/context.md without any config.json —
+                // the default instance's nil contextFile falls back to it.
+                ProjectConfig().appendContext(to: &prompt, baseDir: workingDirectory)
             }
             appendSymbolGraphSummary(to: &prompt)
             appendProjectMemory(to: &prompt)
