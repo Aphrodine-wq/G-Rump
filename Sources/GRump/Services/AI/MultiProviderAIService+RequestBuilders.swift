@@ -109,14 +109,16 @@ extension MultiProviderAIService {
         flushToolResults()
 
         // Prompt caching: three ephemeral breakpoints — system, last tool,
-        // and the last message's last content block. The message breakpoint
-        // advances every turn, so long agentic runs get incremental cache
-        // reads over the whole prior transcript.
+        // and an advancing message breakpoint, so long agentic runs get
+        // incremental cache reads over the prior transcript. The breakpoint
+        // goes on the SECOND-to-last message: the final position can hold a
+        // volatile trailing note (e.g. the tracked-plan snapshot) that changes
+        // between turns and would otherwise kill every transcript cache hit.
         if enableCaching, !apiMessages.isEmpty {
-            let lastIdx = apiMessages.count - 1
-            if var content = apiMessages[lastIdx]["content"] as? [[String: Any]], !content.isEmpty {
+            let markIdx = apiMessages.count >= 2 ? apiMessages.count - 2 : apiMessages.count - 1
+            if var content = apiMessages[markIdx]["content"] as? [[String: Any]], !content.isEmpty {
                 content[content.count - 1]["cache_control"] = ["type": "ephemeral"]
-                apiMessages[lastIdx]["content"] = content
+                apiMessages[markIdx]["content"] = content
             }
         }
 

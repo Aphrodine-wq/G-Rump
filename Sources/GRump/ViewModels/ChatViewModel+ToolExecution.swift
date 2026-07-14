@@ -465,6 +465,8 @@ extension ChatViewModel {
             return await executeProposeSkill(args)
         case "add_goal":
             return await executeAddGoal(args)
+        case "update_plan":
+            return executeUpdatePlan(args)
         case "swift_format":
             return await executeSwiftFormat(args)
         case "swift_lint":

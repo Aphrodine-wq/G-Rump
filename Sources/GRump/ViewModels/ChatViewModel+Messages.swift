@@ -9,6 +9,7 @@ extension ChatViewModel {
         let conversation = Conversation(title: "New Chat")
         conversations.insert(conversation, at: 0)
         currentConversation = conversation
+        currentPlan = nil
         userInput = ""
         syncDirty = true
         flushSync()
@@ -55,6 +56,9 @@ extension ChatViewModel {
     func selectConversation(_ conversation: Conversation) {
         if let currentId = currentConversation?.id {
             saveDraft(userInput, forConversationId: currentId)
+        }
+        if currentConversation?.id != conversation.id {
+            currentPlan = nil
         }
         currentConversation = conversation
         userInput = loadDraft(forConversationId: conversation.id)

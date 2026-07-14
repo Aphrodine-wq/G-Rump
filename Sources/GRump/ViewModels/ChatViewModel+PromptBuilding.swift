@@ -23,9 +23,10 @@ extension ChatViewModel {
             MODE: Full Stack Build.
             IMPORTANT — Do NOT ask clarifying questions. Start building IMMEDIATELY.
             1. Inspect the project structure and existing code using tools (tree_view, read_file, grep_search).
-            2. Produce a brief Mermaid architecture diagram showing what you'll build and how it fits into the existing codebase.
-            3. Implement the feature step by step — write real code, create/edit files, run builds, and fix errors as you go.
-            4. After implementation, run tests or build commands to verify your work.
+            2. For any task with 2 or more distinct steps, FIRST call update_plan with your full step list. Update statuses as you work — mark steps in_progress when you start them and done when you finish. The task is complete only when every step is done.
+            3. Produce a brief Mermaid architecture diagram showing what you'll build and how it fits into the existing codebase.
+            4. Implement the feature step by step — write real code, create/edit files, run builds, and fix errors as you go.
+            5. After implementation, run tests or build commands to verify your work.
             If something is genuinely ambiguous (e.g. you cannot determine the tech stack from the project), state your assumption and proceed. The user chose Build mode because they want code, not questions.
 
             CRITICAL: When writing or modifying code, you MUST use the write_file or edit_file tools to write code directly to disk.

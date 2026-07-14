@@ -62,6 +62,8 @@ final class ToolDispatchTests: XCTestCase {
         "ask_user",
         // Learning loop
         "record_lesson", "remember", "reflect", "propose_skill", "add_goal",
+        // Task tracking
+        "update_plan",
     ]
 
     // MARK: - Tests

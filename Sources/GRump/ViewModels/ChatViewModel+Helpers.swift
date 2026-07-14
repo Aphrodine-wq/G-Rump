@@ -102,6 +102,12 @@ extension ChatViewModel {
                 apiMessages.append(contentsOf: msgs)
             }
         }
+
+        // Tracked plan rides as a TRAILING user-role note: trailing keeps the
+        // cached prefix stable, user-role avoids the system-block hoist.
+        if let plan = currentPlan, !plan.steps.isEmpty {
+            apiMessages.append(Message(role: .user, content: "[Agent notice] Current tracked plan:\n\(plan.markdownSnapshot())"))
+        }
         return apiMessages
     }
 

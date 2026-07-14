@@ -84,6 +84,9 @@ class ChatViewModel: ObservableObject {
     var lastInjectedLessonIds: [String] = []
     /// Tracks code changes made during the current agent run for adversarial review.
     var currentRunCodeChanges: [CodeChange] = []
+    /// The agent's tracked checklist (update_plan tool). Conversation-scoped,
+    /// in-memory only — cleared when the conversation changes, not per run.
+    var currentPlan: AgentPlan?
 
     /// Preserved partial response content when a stream error occurs.
     @Published var streamErrorPartialContent: String?

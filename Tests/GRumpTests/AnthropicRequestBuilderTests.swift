@@ -172,17 +172,29 @@ final class AnthropicRequestBuilderTests: XCTestCase {
         XCTAssertEqual((tools.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
     }
 
-    func testCachingMarksLastContentBlockOfLastMessage() {
+    func testCachingMarksSecondToLastMessage() {
+        // The final slot can hold a volatile trailing note (plan snapshot);
+        // the breakpoint sits one message earlier so transcript hits survive.
         let result = cachedBody(messages: [
             Message(role: .user, content: "first"),
-            Message(role: .user, content: "second")
+            Message(role: .user, content: "second"),
+            Message(role: .user, content: "volatile trailing note")
         ])
         let messages = result["messages"] as? [[String: Any]] ?? []
-        XCTAssertEqual(messages.count, 2)
-        let firstBlocks = messages.first?["content"] as? [[String: Any]] ?? []
-        XCTAssertNil(firstBlocks.last?["cache_control"], "earlier messages carry no breakpoint")
+        XCTAssertEqual(messages.count, 3)
+        let markedBlocks = messages[1]["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual((markedBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
         let lastBlocks = messages.last?["content"] as? [[String: Any]] ?? []
-        XCTAssertEqual((lastBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+        XCTAssertNil(lastBlocks.last?["cache_control"], "the volatile final message must carry no breakpoint")
+        let firstBlocks = messages.first?["content"] as? [[String: Any]] ?? []
+        XCTAssertNil(firstBlocks.last?["cache_control"])
+    }
+
+    func testCachingSingleMessageStillMarked() {
+        let result = cachedBody(messages: [Message(role: .user, content: "only")])
+        let messages = result["messages"] as? [[String: Any]] ?? []
+        let blocks = messages.first?["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual((blocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
     }
 
     func testCachingMarksToolResultBlocks() {
@@ -192,10 +204,15 @@ final class AnthropicRequestBuilderTests: XCTestCase {
             Message(role: .assistant, content: "", toolCalls: [call]),
             Message(role: .tool, content: "file contents", toolCallId: "toolu_9")
         ])
+        // tool results collapse into a trailing user message; the breakpoint
+        // sits on the second-to-last (the assistant tool_use turn).
         let messages = result["messages"] as? [[String: Any]] ?? []
+        XCTAssertEqual(messages.count, 3)
+        let markedBlocks = messages[1]["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual((markedBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
         let lastBlocks = messages.last?["content"] as? [[String: Any]] ?? []
         XCTAssertEqual(lastBlocks.last?["type"] as? String, "tool_result")
-        XCTAssertEqual((lastBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+        XCTAssertNil(lastBlocks.last?["cache_control"])
     }
 
     func testCachingDisabledKeepsLegacyShape() {
