@@ -161,3 +161,7 @@ SwiftLint strict), and how to run the suite. Bugs and ideas go to
 ## License
 
 MIT — see [LICENSE](./LICENSE). Copyright (c) 2025–2026 James Walton.
+
+---
+
+Built and maintained by [Walt Builds](https://waltbuilds.com) — Oxford, Mississippi.
