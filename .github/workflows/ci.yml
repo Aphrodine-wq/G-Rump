@@ -341,10 +341,17 @@ jobs:
           *Full changes in [CHANGELOG.md](https://github.com/Aphrodine-wq/G-Rump/blob/main/CHANGELOG.md).*"
           fi
 
-          gh release create "$TAG" \
-            --title "G-Rump $TAG" \
-            --notes "$RELEASE_NOTES" \
-            "dist/G-Rump-$VERSION.zip"
+          # Idempotent: a release may already exist (created via
+          # scripts/create-release.sh) — attach the artifact instead of failing.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — uploading artifact only."
+            gh release upload "$TAG" "dist/G-Rump-$VERSION.zip" --clobber
+          else
+            gh release create "$TAG" \
+              --title "G-Rump $TAG" \
+              --notes "$RELEASE_NOTES" \
+              "dist/G-Rump-$VERSION.zip"
+          fi
 
       - name: Cleanup keychain
         if: always() && env.KEYCHAIN_PATH != ''
