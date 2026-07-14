@@ -32,6 +32,9 @@ class OpenAICompatibleService {
         /// When true, send `temperature`. Claude 4.7+/5 reject it, so the native
         /// Anthropic builder omits it; here it gates OpenAI/OpenRouter/Qwen.
         var includeTemperature: Bool
+        /// When false (local providers like Ollama), an empty API key is fine:
+        /// no missing-key error and no Authorization header.
+        var requiresAPIKey: Bool
         /// Human-readable provider name for logging/error copy.
         var providerLabel: String
 
@@ -41,6 +44,7 @@ class OpenAICompatibleService {
             maxTokensField: String = "max_tokens",
             includeOpenRouterRouting: Bool = false,
             includeTemperature: Bool = true,
+            requiresAPIKey: Bool = true,
             providerLabel: String = "AI"
         ) {
             self.baseURL = baseURL
@@ -48,6 +52,7 @@ class OpenAICompatibleService {
             self.maxTokensField = maxTokensField
             self.includeOpenRouterRouting = includeOpenRouterRouting
             self.includeTemperature = includeTemperature
+            self.requiresAPIKey = requiresAPIKey
             self.providerLabel = providerLabel
         }
 
@@ -67,6 +72,15 @@ class OpenAICompatibleService {
                 baseURL: "https://openrouter.ai/api/v1",
                 includeOpenRouterRouting: true,
                 providerLabel: "OpenRouter"
+            )
+        }
+
+        /// Ollama's OpenAI-compatible endpoint on the local machine. Keyless.
+        static var ollama: Configuration {
+            Configuration(
+                baseURL: AIProvider.ollama.defaultBaseURL,
+                requiresAPIKey: false,
+                providerLabel: "Ollama"
             )
         }
     }
@@ -141,12 +155,14 @@ class OpenAICompatibleService {
         stream: Bool,
         tools: [[String: Any]]? = nil
     ) throws -> URLRequest {
-        guard !apiKey.isEmpty else { throw ServiceError.missingAPIKey }
+        guard !apiKey.isEmpty || !configuration.requiresAPIKey else { throw ServiceError.missingAPIKey }
 
         var request = URLRequest(url: chatCompletionsURL)
         request.httpMethod = "POST"
         request.timeoutInterval = 180
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        if !apiKey.isEmpty {
+            request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         for (field, value) in configuration.extraHeaders {
             request.addValue(value, forHTTPHeaderField: field)
@@ -215,8 +231,13 @@ class OpenAICompatibleService {
             body["temperature"] = temp
         }
 
-        body["tools"] = tools ?? ToolDefinitions.allTools
-        body["tool_choice"] = "auto"
+        // An explicit empty array means "this model doesn't support tools" —
+        // omit the block entirely (some backends reject an empty tools list).
+        let resolvedTools = tools ?? ToolDefinitions.allTools
+        if !resolvedTools.isEmpty {
+            body["tools"] = resolvedTools
+            body["tool_choice"] = "auto"
+        }
         if configuration.includeOpenRouterRouting {
             body["provider"] = [
                 "sort": "price",

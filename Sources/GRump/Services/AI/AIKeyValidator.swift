@@ -34,7 +34,8 @@ enum AIKeyValidator {
     /// an error, because the caller has already persisted the key.
     static func validate(provider: AIProvider, apiKey: String, baseURL: String? = nil) async -> KeyValidationResult {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return .invalid }
+        // Keyless providers (Ollama) probe reachability instead of a key.
+        guard !trimmed.isEmpty || !provider.requiresAPIKey else { return .invalid }
         guard let request = validationRequest(for: provider, apiKey: trimmed, baseURL: baseURL) else {
             return .indeterminate("The base URL for \(provider.displayName) is not a valid URL")
         }
@@ -56,6 +57,16 @@ enum AIKeyValidator {
     /// the canonical "is this key alive" endpoint. Keys travel in headers
     /// only — never in the URL, where they would leak into logs.
     static func validationRequest(for provider: AIProvider, apiKey: String, baseURL: String? = nil) -> URLRequest? {
+        // Ollama: unauthenticated reachability probe against the native API.
+        if provider == .ollama {
+            let root = OllamaModelDiscovery.nativeAPIRoot(from: baseURL)
+            guard let url = URL(string: root + "/api/tags"), url.scheme != nil else { return nil }
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.timeoutInterval = timeout
+            return request
+        }
+
         let base = baseURL ?? provider.defaultBaseURL
         let path = provider == .openRouter ? "/key" : "/models"
         guard let url = URL(string: base + path), url.scheme != nil else { return nil }
@@ -71,6 +82,8 @@ enum AIKeyValidator {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         case .google:
             request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        case .ollama:
+            break // handled above
         }
         return request
     }

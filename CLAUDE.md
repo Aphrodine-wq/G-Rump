@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI), multi-provider: **Anthropic (default), OpenAI, Google, and OpenRouter**. It provides chat-based AI assistance with 150+ local file system, shell, git, and system control tools, a persistent cognitive memory, and an approval-gated autonomous daemon. Default model: **claude-opus-4-8**; Fable 5 is premium and never auto-routed. The app calls providers directly — there is no backend.
+G-Rump is an autonomous AI coding agent macOS/iOS app written in Swift (SwiftUI), multi-provider: **Anthropic (default), OpenAI, Google, OpenRouter, and local Ollama**. It provides chat-based AI assistance with 150+ local file system, shell, git, and system control tools, a persistent cognitive memory, and an approval-gated autonomous daemon. Default model: **claude-opus-4-8**; Fable 5 is premium and never auto-routed. The app calls providers directly — there is no backend.
 
 ### AI Providers
 
-- `AIProvider` (AIProviders.swift): `.anthropic` / `.openAI` / `.google` / `.openRouter`. API keys live in the **Keychain only** (one account per provider via `keychainAccount`); `ProviderConfiguration` excludes `apiKey` from Codable so keys never touch UserDefaults.
-- Model catalog is the single data file `AIModelCatalog.swift`. Registry default is `claude-opus-4-8`; `ModelRouter` picks provider-aware chains and never auto-routes to Fable 5.
-- Dispatch: `MultiProviderAIService` — native wire formats for Anthropic + Google, `OpenAICompatibleService` transport for OpenAI + OpenRouter. Anthropic requests omit temperature (Claude 4.7+/5 reject it) and pin `anthropic-version: 2023-06-01`.
+- `AIProvider` (AIProviders.swift): `.anthropic` / `.openAI` / `.google` / `.openRouter` / `.ollama`. API keys live in the **Keychain only** (one account per provider via `keychainAccount`); `ProviderConfiguration` excludes `apiKey` from Codable so keys never touch UserDefaults. `.ollama` is keyless (`requiresAPIKey == false`) and local (`isLocal == true` — bypasses the offline guard in `sendMessage()`).
+- Model catalog is the single data file `AIModelCatalog.swift` (cloud providers only). Ollama models are discovered live by `OllamaModelDiscovery` (`/api/tags` + `/api/show` for tools/vision/context) and merged via `AIModelRegistry.replaceModels(for:with:)`; discovery runs at launch, on provider select, and from the Settings "Refresh" probe. Registry default is `claude-opus-4-8`; `ModelRouter` picks provider-aware chains and never auto-routes to Fable 5 or to Ollama models.
+- Dispatch: `MultiProviderAIService` — native wire formats for Anthropic + Google, `OpenAICompatibleService` transport for OpenAI + OpenRouter + Ollama (`localhost:11434/v1`, keyless config). Tool blocks are gated per model: `capabilities.supportsTools == false` sends no tools at all. Anthropic requests omit temperature (Claude 4.7+/5 reject it) and pin `anthropic-version: 2023-06-01`.
 - `ProviderMigration` runs once (flag `ProviderMigration_v1`) from `AIModelRegistry.init` to map Qwen-era persisted state; never touch `AIModelRegistry.shared` inside it (deadlock).
-- `AIKeyValidator` probes a just-saved key with a cheap authed GET (`/models`; OpenRouter `/key`) and reports valid / invalid / indeterminate inline in Settings and onboarding. Keys are saved before the probe — a failed probe warns, it never blocks or un-saves.
+- `AIKeyValidator` probes a just-saved key with a cheap authed GET (`/models`; OpenRouter `/key`; Ollama an unauthenticated `/api/tags` reachability check) and reports valid / invalid / indeterminate inline in Settings and onboarding. Keys are saved before the probe — a failed probe warns, it never blocks or un-saves.
 
 ## Build & Run Commands
 
@@ -65,7 +65,7 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 - `ChatViewModel+Messages.swift` — Message management
 - `ChatViewModel+UIState.swift` — UI state management
 
-**Agent modes**: `plan`, `fullStack` ("Build"), `spec` (see `AgentMode.swift`)
+**Agent modes**: `plan`, `fullStack` ("Build"), `spec` (see `AgentMode.swift`). Mode selection: an inline `ModeSelectCard` gates the first user message of every new conversation (UI-level gate in `ContentView+ChatDetail.gatedSend()` — programmatic `sendMessage()` callers bypass it), ⇧⇥ cycles modes from the chat input (`InputTextView.shiftTabHandler`), and the status bar shows the current mode next to the connection label with a switcher popover.
 
 ### Tool System (4 definition files + 6 execution files)
 

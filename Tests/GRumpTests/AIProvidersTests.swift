@@ -6,7 +6,7 @@ final class AIProvidersTests: XCTestCase {
     // MARK: - AIProvider Enum
 
     func testAllCases() {
-        XCTAssertEqual(AIProvider.allCases, [.anthropic, .openAI, .google, .openRouter],
+        XCTAssertEqual(AIProvider.allCases, [.anthropic, .openAI, .google, .openRouter, .ollama],
                        "Anthropic leads; order drives UI sections")
     }
 
@@ -15,6 +15,7 @@ final class AIProvidersTests: XCTestCase {
         XCTAssertEqual(AIProvider.openAI.rawValue, "openai")
         XCTAssertEqual(AIProvider.google.rawValue, "google")
         XCTAssertEqual(AIProvider.openRouter.rawValue, "openrouter")
+        XCTAssertEqual(AIProvider.ollama.rawValue, "ollama")
     }
 
     func testDisplayNames() {
@@ -36,9 +37,17 @@ final class AIProvidersTests: XCTestCase {
         }
     }
 
-    func testAllProvidersRequireAPIKey() {
-        for provider in AIProvider.allCases {
+    func testCloudProvidersRequireAPIKeyAndOllamaDoesNot() {
+        for provider in AIProvider.allCases where !provider.isLocal {
             XCTAssertTrue(provider.requiresAPIKey, "\(provider.rawValue) should require an API key")
+        }
+        XCTAssertFalse(AIProvider.ollama.requiresAPIKey, "Ollama is keyless")
+    }
+
+    func testOnlyOllamaIsLocal() {
+        for provider in AIProvider.allCases {
+            XCTAssertEqual(provider.isLocal, provider == .ollama,
+                           "\(provider.rawValue) local flag wrong")
         }
     }
 
@@ -47,6 +56,7 @@ final class AIProvidersTests: XCTestCase {
         XCTAssertEqual(AIProvider.openAI.defaultBaseURL, "https://api.openai.com/v1")
         XCTAssertEqual(AIProvider.google.defaultBaseURL, "https://generativelanguage.googleapis.com/v1beta")
         XCTAssertEqual(AIProvider.openRouter.defaultBaseURL, "https://openrouter.ai/api/v1")
+        XCTAssertEqual(AIProvider.ollama.defaultBaseURL, "http://localhost:11434/v1")
     }
 
     func testKeychainAccountMapping() {

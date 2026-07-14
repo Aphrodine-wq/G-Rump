@@ -162,6 +162,21 @@ extension SettingsView {
                         providerName: provider.displayName
                     )
                 }
+            } else if provider == .ollama {
+                Divider()
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    Text("Local Server")
+                        .font(Typography.captionSemibold)
+                        .foregroundColor(.textSecondary)
+                    HStack(spacing: Spacing.md) {
+                        ollamaStatusLabel(providerKeyValidation[provider.rawValue] ?? .idle)
+                        Spacer()
+                        Button("Refresh") { probeOllamaServer() }
+                            .font(Typography.captionSmallSemibold)
+                            .buttonStyle(.bordered)
+                    }
+                }
+                .onAppear { probeOllamaServer() }
             }
 
             Divider()
@@ -176,6 +191,50 @@ extension SettingsView {
 
     func providerIcon(_ provider: AIProvider) -> String {
         provider.iconName
+    }
+
+    // MARK: - Ollama Reachability
+
+    /// Probes the local Ollama server and refreshes its model list. Reuses the
+    /// key-validation state slot — Ollama has no key, so the slot is free.
+    func probeOllamaServer() {
+        providerKeyValidation[AIProvider.ollama.rawValue] = .validating
+        Task { @MainActor in
+            if await MultiProviderAIService.shared.refreshOllamaModels() != nil {
+                providerKeyValidation[AIProvider.ollama.rawValue] = .result(.valid)
+            } else {
+                providerKeyValidation[AIProvider.ollama.rawValue] = .result(.indeterminate("Not reachable"))
+            }
+        }
+    }
+
+    @ViewBuilder
+    func ollamaStatusLabel(_ state: KeyValidationState) -> some View {
+        switch state {
+        case .idle, .validating:
+            HStack(spacing: Spacing.sm) {
+                ProgressView().scaleEffect(0.5).frame(width: 12, height: 12)
+                Text("Checking for Ollama…")
+                    .font(Typography.captionSmall)
+                    .foregroundColor(.textMuted)
+            }
+        case .result(.valid):
+            let count = AIModelRegistry.shared.getModels(for: .ollama).count
+            HStack(spacing: Spacing.sm) {
+                Circle().fill(Color.accentGreen).frame(width: 6, height: 6)
+                Text(count == 1 ? "Ollama running — 1 model installed"
+                                : "Ollama running — \(count) models installed")
+                    .font(Typography.captionSmall)
+                    .foregroundColor(.textSecondary)
+            }
+        case .result:
+            HStack(spacing: Spacing.sm) {
+                Circle().fill(Color.accentOrange).frame(width: 6, height: 6)
+                Text("Not reachable — install Ollama or run `ollama serve`")
+                    .font(Typography.captionSmall)
+                    .foregroundColor(.textSecondary)
+            }
+        }
     }
 
     /// Probes the just-saved key and posts the outcome inline. The save has

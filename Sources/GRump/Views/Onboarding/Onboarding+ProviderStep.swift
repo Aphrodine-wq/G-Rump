@@ -1,8 +1,9 @@
 // MARK: - Onboarding Step 2: Provider + API Key
 //
-// Provider card grid (all four providers), API key entry with inline
-// validation, and an explicit "add a key later" deferral — the only
-// honest way past this step without a key.
+// Provider card grid (all providers), API key entry with inline
+// validation (Ollama swaps the key field for a local-server check),
+// and an explicit "add a key later" deferral — the only honest way
+// past this step without a configured provider.
 
 import SwiftUI
 
@@ -36,46 +37,80 @@ extension OnboardingView {
             .frame(maxWidth: 440)
 
             VStack(alignment: .leading, spacing: Spacing.md) {
-                HStack {
-                    Text("\(selectedOnboardingProvider.displayName) API Key")
-                        .font(Typography.captionSemibold)
-                        .foregroundColor(themeManager.palette.textMuted)
-                    Spacer()
-                    if let url = selectedOnboardingProvider.keyConsoleURL {
-                        Link("Get a key", destination: url)
-                            .font(Typography.captionSmallMedium)
-                            .foregroundColor(themeManager.palette.effectiveAccent)
+                if selectedOnboardingProvider.requiresAPIKey {
+                    HStack {
+                        Text("\(selectedOnboardingProvider.displayName) API Key")
+                            .font(Typography.captionSemibold)
+                            .foregroundColor(themeManager.palette.textMuted)
+                        Spacer()
+                        if let url = selectedOnboardingProvider.keyConsoleURL {
+                            Link("Get a key", destination: url)
+                                .font(Typography.captionSmallMedium)
+                                .foregroundColor(themeManager.palette.effectiveAccent)
+                        }
                     }
-                }
 
-                HStack(spacing: Spacing.md) {
-                    SecureField(selectedOnboardingProvider.keyPlaceholder, text: $apiKeyInput)
-                        .textFieldStyle(.plain)
-                        .font(Typography.bodySmall)
-                        .padding(Spacing.lg)
-                        .background(themeManager.palette.bgInput)
+                    HStack(spacing: Spacing.md) {
+                        SecureField(selectedOnboardingProvider.keyPlaceholder, text: $apiKeyInput)
+                            .textFieldStyle(.plain)
+                            .font(Typography.bodySmall)
+                            .padding(Spacing.lg)
+                            .background(themeManager.palette.bgInput)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                                .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+                            .onSubmit { saveProviderKey() }
+
+                        Button("Validate") {
+                            saveProviderKey()
+                        }
+                        .font(Typography.bodySmallSemibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.xl)
+                        .padding(.vertical, Spacing.lg)
+                        .background(themeManager.palette.effectiveAccent)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                            .stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
-                        .onSubmit { saveProviderKey() }
-
-                    Button("Validate") {
-                        saveProviderKey()
+                        .buttonStyle(.plain)
+                        .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                    .font(Typography.bodySmallSemibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, Spacing.xl)
-                    .padding(.vertical, Spacing.lg)
-                    .background(themeManager.palette.effectiveAccent)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                    .buttonStyle(.plain)
-                    .disabled(apiKeyInput.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
 
-                KeyValidationFeedbackView(
-                    state: keyValidationState,
-                    providerName: selectedOnboardingProvider.displayName
-                )
+                    KeyValidationFeedbackView(
+                        state: keyValidationState,
+                        providerName: selectedOnboardingProvider.displayName
+                    )
+                } else {
+                    // Keyless local provider (Ollama): reachability, not a key.
+                    HStack {
+                        Text("Local Server")
+                            .font(Typography.captionSemibold)
+                            .foregroundColor(themeManager.palette.textMuted)
+                        Spacer()
+                        if let url = selectedOnboardingProvider.keyConsoleURL {
+                            Link("Install Ollama", destination: url)
+                                .font(Typography.captionSmallMedium)
+                                .foregroundColor(themeManager.palette.effectiveAccent)
+                        }
+                    }
+
+                    HStack(spacing: Spacing.md) {
+                        Text("No API key needed — G-Rump talks to Ollama on this Mac.")
+                            .font(Typography.captionSmall)
+                            .foregroundColor(themeManager.palette.textMuted)
+                        Spacer()
+                        Button("Check connection") {
+                            connectOllama()
+                        }
+                        .font(Typography.bodySmallSemibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.xl)
+                        .padding(.vertical, Spacing.lg)
+                        .background(themeManager.palette.effectiveAccent)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .buttonStyle(.plain)
+                    }
+
+                    ollamaConnectionFeedback
+                }
 
                 if hasSavedKey && keyValidationState == .idle {
                     Text("A provider is already configured. You're set — or save a new key above.")
@@ -136,6 +171,61 @@ extension OnboardingView {
         .buttonStyle(.plain)
         .accessibilityLabel("\(provider.displayName) provider")
         .accessibilityHint(provider.description)
+    }
+
+    // MARK: - Ollama Connect
+
+    @ViewBuilder
+    var ollamaConnectionFeedback: some View {
+        switch keyValidationState {
+        case .idle:
+            EmptyView()
+        case .validating:
+            HStack(spacing: Spacing.md) {
+                ProgressView().controlSize(.small)
+                Text("Checking for Ollama at localhost:11434…")
+                    .font(Typography.captionSmall)
+                    .foregroundColor(.textMuted)
+            }
+        case .result(.valid):
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.md) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.accentGreen)
+                Text("Ollama is running. Your local models are ready to use.")
+                    .font(Typography.captionSmall)
+                    .foregroundColor(.textSecondary)
+            }
+        case .result:
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.md) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.accentOrange)
+                Text("Ollama isn't reachable. Install it or run `ollama serve`, then check again.")
+                    .font(Typography.captionSmall)
+                    .foregroundColor(.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// Probe the local Ollama server; a successful probe configures the
+    /// provider (keyless) and counts as "key saved" for step advancement.
+    func connectOllama() {
+        keyValidationState = .validating
+        Task { @MainActor in
+            let modelCount = await MultiProviderAIService.shared.refreshOllamaModels()
+            guard selectedOnboardingProvider == .ollama else { return }
+            if modelCount != nil {
+                let config = ProviderConfiguration(provider: .ollama)
+                AIModelRegistry.shared.setProviderConfig(config)
+                viewModel.selectProvider(.ollama)
+                hasSavedKey = true
+                keyValidationState = .result(.valid)
+            } else {
+                keyValidationState = .result(.indeterminate("Not reachable"))
+            }
+        }
     }
 
     // MARK: - Key Save + Probe

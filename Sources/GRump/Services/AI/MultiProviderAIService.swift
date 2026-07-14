@@ -23,6 +23,7 @@ class MultiProviderAIService: ObservableObject {
     init() {
         loadConfiguration()
         refreshModels()
+        discoverOllamaModels()
     }
 
     // MARK: - Configuration
@@ -68,6 +69,30 @@ class MultiProviderAIService: ObservableObject {
         currentProvider = provider
         refreshModels()
         saveConfiguration()
+        if provider == .ollama {
+            discoverOllamaModels()
+        }
+    }
+
+    /// Fire-and-forget Ollama refresh; pickers update via refreshModels().
+    func discoverOllamaModels() {
+        Task { [weak self] in
+            await self?.refreshOllamaModels()
+        }
+    }
+
+    /// Refresh the registry's Ollama models from the local server. Returns the
+    /// discovered model count, or nil when the server is unreachable (the last
+    /// known set is kept so an idle server doesn't wipe the picker).
+    @discardableResult
+    func refreshOllamaModels() async -> Int? {
+        let baseURL = AIModelRegistry.shared.getProviderConfig(for: .ollama)?.baseURL
+        guard let discovered = await OllamaModelDiscovery.discoverModels(baseURL: baseURL) else {
+            return nil
+        }
+        AIModelRegistry.shared.replaceModels(for: .ollama, with: discovered)
+        refreshModels()
+        return discovered.count
     }
 
     func selectModel(_ model: EnhancedAIModel) {
@@ -128,15 +153,20 @@ class MultiProviderAIService: ObservableObject {
         config: ProviderConfiguration,
         tools: [[String: Any]]?
     ) -> AsyncThrowingStream<StreamEvent, Error> {
+        // Models without tool support (common for local Ollama models) get an
+        // explicit empty tools list — the builders then omit the block entirely.
+        let gatedTools: [[String: Any]]? = model.capabilities.supportsTools ? tools : []
         switch model.provider {
         case .openAI:
-            return openAICompatibleStream(.openAI, messages: messages, model: model, config: config, tools: tools)
+            return openAICompatibleStream(.openAI, messages: messages, model: model, config: config, tools: gatedTools)
         case .openRouter:
-            return openAICompatibleStream(.openRouter, messages: messages, model: model, config: config, tools: tools)
+            return openAICompatibleStream(.openRouter, messages: messages, model: model, config: config, tools: gatedTools)
+        case .ollama:
+            return openAICompatibleStream(.ollama, messages: messages, model: model, config: config, tools: gatedTools)
         case .anthropic:
-            return anthropicStream(messages: messages, model: model, config: config, tools: tools)
+            return anthropicStream(messages: messages, model: model, config: config, tools: gatedTools)
         case .google:
-            return googleStream(messages: messages, model: model, config: config, tools: tools)
+            return googleStream(messages: messages, model: model, config: config, tools: gatedTools)
         }
     }
 

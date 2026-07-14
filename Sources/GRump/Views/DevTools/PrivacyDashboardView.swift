@@ -5,15 +5,24 @@ import AppKit
 
 // MARK: - Privacy Dashboard View
 //
-// Shows data flow visualization, on-device status, and privacy controls.
-// Designed to signal Apple's #1 differentiator: "your code never leaves your Mac."
+// Shows where data actually flows for the live provider selection: local
+// (Ollama on this Mac) vs. cloud (the configured provider). There is no
+// G-Rump backend — requests go straight to the provider or to localhost.
 
 struct PrivacyDashboardView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("ShowPrivacyBadge") private var showPrivacyBadge = true
+    @ObservedObject private var aiService = MultiProviderAIService.shared
 
-    var currentProvider: AIProvider = .anthropic
-    var onDeviceAvailable: Bool = false
+    private var currentProvider: AIProvider {
+        aiService.currentModel?.provider ?? aiService.currentProvider
+    }
+
+    private var isLocal: Bool { currentProvider.isLocal }
+
+    private var localModelsInstalled: Bool {
+        !AIModelRegistry.shared.getModels(for: .ollama).isEmpty
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.huge) {
@@ -53,25 +62,27 @@ struct PrivacyDashboardView: View {
                     .font(Typography.heading2)
                     .foregroundColor(themeManager.palette.textPrimary)
 
-                Text("Chat requests go to your configured AI provider. Files, tools, and memory stay on your Mac.")
+                Text(isLocal
+                     ? "Chat requests stay on this Mac (Ollama). Files, tools, and memory never leave it."
+                     : "Chat requests go to your configured AI provider. Files, tools, and memory stay on your Mac.")
                     .font(Typography.bodySmall)
                     .foregroundColor(themeManager.palette.textSecondary)
             }
 
             Spacer()
 
-            // Privacy status badge
+            // Privacy status badge — reflects the live provider selection
             HStack(spacing: Spacing.sm) {
                 Circle()
-                    .fill(Color.accentOrange)
+                    .fill(isLocal ? Color.accentGreen : Color.accentOrange)
                     .frame(width: 8, height: 8)
-                Text("Cloud Active")
+                Text(isLocal ? "Local Active" : "Cloud Active")
                     .font(Typography.captionSmallSemibold)
-                    .foregroundColor(.accentOrange)
+                    .foregroundColor(isLocal ? .accentGreen : .accentOrange)
             }
             .padding(.horizontal, Spacing.xl)
             .padding(.vertical, Spacing.md)
-            .background(Color.accentOrange.opacity(0.12))
+            .background((isLocal ? Color.accentGreen : Color.accentOrange).opacity(0.12))
             .clipShape(Capsule())
         }
         .padding(Spacing.huge)
@@ -92,26 +103,18 @@ struct PrivacyDashboardView: View {
             VStack(spacing: Spacing.lg) {
                 dataFlowRow(
                     icon: "desktopcomputer",
-                    label: "On-Device (Core ML)",
-                    detail: "Code stays on your Mac",
+                    label: "Local (Ollama)",
+                    detail: "Requests stay on this Mac — nothing leaves localhost",
                     status: .local,
-                    isActive: false
+                    isActive: isLocal
                 )
 
                 dataFlowRow(
                     icon: "cloud",
-                    label: "\(currentProvider.displayName) API",
+                    label: isLocal ? "Cloud providers" : "\(currentProvider.displayName) API",
                     detail: "Encrypted in transit, not stored by the provider",
                     status: .cloud,
-                    isActive: true
-                )
-
-                dataFlowRow(
-                    icon: "server.rack",
-                    label: "G-Rump Backend",
-                    detail: "Auth & credit tracking only — no code is sent",
-                    status: .metadata,
-                    isActive: true
+                    isActive: !isLocal
                 )
             }
         }
@@ -125,7 +128,7 @@ struct PrivacyDashboardView: View {
     }
 
     private enum DataFlowStatus {
-        case local, cloud, metadata
+        case local, cloud
     }
 
     private func dataFlowRow(icon: String, label: String, detail: String, status: DataFlowStatus, isActive: Bool) -> some View {
@@ -172,7 +175,6 @@ struct PrivacyDashboardView: View {
         switch status {
         case .local: return .accentGreen
         case .cloud: return Color(red: 0.24, green: 0.53, blue: 0.98)
-        case .metadata: return .accentOrange
         }
     }
 
@@ -180,7 +182,6 @@ struct PrivacyDashboardView: View {
         switch status {
         case .local: return "lock.fill"
         case .cloud: return "arrow.up.forward.circle"
-        case .metadata: return "info.circle"
         }
     }
 
@@ -236,12 +237,12 @@ struct PrivacyDashboardView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Neural Engine")
+                    Text("Local Models")
                         .font(Typography.captionSmallSemibold)
                         .foregroundColor(themeManager.palette.textSecondary)
-                    Text("Available")
+                    Text(localModelsInstalled ? "Installed" : "None")
                         .font(Typography.micro)
-                        .foregroundColor(.accentGreen)
+                        .foregroundColor(localModelsInstalled ? .accentGreen : themeManager.palette.textMuted)
                 }
             }
             .padding(Spacing.lg)
@@ -249,16 +250,16 @@ struct PrivacyDashboardView: View {
             .clipShape(RoundedRectangle(cornerRadius: Radius.standard, style: .continuous))
             #endif
 
-            if !onDeviceAvailable {
+            if !localModelsInstalled {
                 HStack(spacing: Spacing.xl) {
                     Image(systemName: "arrow.down.circle")
                         .font(Typography.bodyMedium)
                         .foregroundColor(themeManager.palette.textMuted)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("No on-device models installed")
+                        Text("No local models installed")
                             .font(Typography.bodySmallMedium)
                             .foregroundColor(themeManager.palette.textPrimary)
-                        Text("Download Core ML models in Settings → Providers → On-Device to enable fully local inference.")
+                        Text("Install Ollama and pull a model (e.g. `ollama pull llama3.2`) for fully local inference — then pick it under Settings → AI → Ollama.")
                             .font(Typography.captionSmall)
                             .foregroundColor(themeManager.palette.textMuted)
                     }

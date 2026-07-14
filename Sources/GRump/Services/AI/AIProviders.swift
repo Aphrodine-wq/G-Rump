@@ -12,6 +12,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
     case openAI = "openai"
     case google = "google"
     case openRouter = "openrouter"
+    case ollama = "ollama"
 
     var id: String { rawValue }
 
@@ -21,6 +22,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openAI: return "OpenAI"
         case .google: return "Google"
         case .openRouter: return "OpenRouter"
+        case .ollama: return "Ollama"
         }
     }
 
@@ -30,10 +32,22 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openAI: return "GPT models via the OpenAI API"
         case .google: return "Gemini models via the Google AI API"
         case .openRouter: return "Many models through one OpenRouter key"
+        case .ollama: return "Local models on your Mac — private, free, works offline"
         }
     }
 
-    var requiresAPIKey: Bool { true }
+    var requiresAPIKey: Bool {
+        switch self {
+        case .ollama: return false
+        case .anthropic, .openAI, .google, .openRouter: return true
+        }
+    }
+
+    /// True for providers that run on this machine — no key, no cloud, and
+    /// streaming must not be blocked by internet connectivity checks.
+    var isLocal: Bool {
+        self == .ollama
+    }
 
     var defaultBaseURL: String {
         switch self {
@@ -41,6 +55,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openAI: return "https://api.openai.com/v1"
         case .google: return "https://generativelanguage.googleapis.com/v1beta"
         case .openRouter: return "https://openrouter.ai/api/v1"
+        case .ollama: return "http://localhost:11434/v1"
         }
     }
 
@@ -53,6 +68,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openAI: return "OpenAIAPIKey"
         case .google: return "GoogleAPIKey"
         case .openRouter: return "OpenRouterAPIKey"
+        case .ollama: return "OllamaAPIKey" // unused (keyless), keeps hydration uniform
         }
     }
 
@@ -62,6 +78,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openAI: return "circle.hexagongrid"
         case .google: return "diamond"
         case .openRouter: return "arrow.triangle.branch"
+        case .ollama: return "desktopcomputer"
         }
     }
 
@@ -71,16 +88,20 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .openAI: return "sk-..."
         case .google: return "AIza..."
         case .openRouter: return "sk-or-..."
+        case .ollama: return "No key required"
         }
     }
 
     /// Where a user creates an API key for this provider ("Get a key" links).
+    /// Ollama has no keys — link to the install page instead of nil so the
+    /// onboarding card still has a useful destination.
     var keyConsoleURL: URL? {
         switch self {
         case .anthropic: return URL(string: "https://console.anthropic.com/settings/keys")
         case .openAI: return URL(string: "https://platform.openai.com/api-keys")
         case .google: return URL(string: "https://aistudio.google.com/apikey")
         case .openRouter: return URL(string: "https://openrouter.ai/settings/keys")
+        case .ollama: return URL(string: "https://ollama.com/download")
         }
     }
 }
@@ -238,6 +259,7 @@ final class AIModelRegistry: @unchecked Sendable {
         case .openAI: preferred = "gpt-5.2"
         case .google: preferred = "gemini-3-pro"
         case .openRouter: preferred = "anthropic/claude-sonnet-5"
+        case .ollama: return getModels(for: provider).first // whatever is installed locally
         }
         return getModel(by: preferred) ?? getModels(for: provider).first
     }
@@ -283,6 +305,13 @@ final class AIModelRegistry: @unchecked Sendable {
 
     private func loadDefaultModels() {
         models = defaultModelCatalog()
+    }
+
+    /// Replace one provider's models with a freshly discovered set. The static
+    /// catalog covers the cloud providers; dynamic providers (Ollama) merge
+    /// their locally installed models through here.
+    func replaceModels(for provider: AIProvider, with newModels: [EnhancedAIModel]) {
+        models = models.filter { $0.provider != provider } + newModels.filter { $0.provider == provider }
     }
 
     // MARK: - Configuration Management

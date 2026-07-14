@@ -55,6 +55,14 @@ final class AIKeyValidatorTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer sk-or-test")
     }
 
+    func testOllamaProbesNativeTagsEndpointUnauthenticated() throws {
+        let request = try XCTUnwrap(AIKeyValidator.validationRequest(for: .ollama, apiKey: ""))
+        XCTAssertEqual(request.url?.absoluteString, "http://localhost:11434/api/tags",
+                       "probe hits the native API root, not the /v1 OpenAI-compat path")
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"), "Ollama is keyless")
+    }
+
     func testCustomBaseURLIsRespected() throws {
         let request = try XCTUnwrap(AIKeyValidator.validationRequest(
             for: .anthropic, apiKey: "k", baseURL: "https://proxy.example.com/v1"))

@@ -27,8 +27,9 @@ extension ChatViewModel {
             return
         }
 
-        // Check connectivity before attempting to stream
-        if !ConnectionMonitor.shared.canStream {
+        // Check connectivity before attempting to stream. Local providers
+        // (Ollama) stream over localhost, so being offline is fine.
+        if !ConnectionMonitor.shared.canStream && !currentAIProvider.isLocal {
             errorMessage = "You appear to be offline. Check your internet connection and try again."
             return
         }

@@ -65,6 +65,9 @@ enum ModelRouter {
     // fallbacks). Opus and Sonnet trade places on heavy vs. balanced work,
     // Haiku takes the light mechanical tiers. Fable is premium and is NEVER
     // auto-routed — reaching it requires an explicit user selection.
+    // Local Ollama models are also never auto-routed: subtask quality is
+    // unpredictable across arbitrary local models, so they are used only
+    // when explicitly selected as the current model.
 
     private static let opus = "claude-opus-4-8"
     private static let sonnet = "claude-sonnet-5"

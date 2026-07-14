@@ -13,8 +13,10 @@ struct ChatTopBarView: View {
     @State private var editedTitle = ""
     @State private var showInsightsPopover = false
 
-    // All providers are cloud — there is no local/on-device mode.
-    private var isLocalProvider: Bool { false }
+    // True when the selected model runs on this machine (Ollama).
+    private var isLocalProvider: Bool {
+        viewModel.currentEnhancedModel?.provider.isLocal ?? false
+    }
 
     var body: some View {
         HStack(spacing: Spacing.xxl) {

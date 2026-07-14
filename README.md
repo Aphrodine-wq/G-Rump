@@ -13,9 +13,10 @@ as a native macOS app. Think Claude Code, Aider, or OpenHands, except it's 62K l
 of Swift instead of a terminal, it remembers what it learned last week, and it has
 opinions about your code.
 
-Bring a key from **Anthropic (default), OpenAI, Google, or OpenRouter**. Keys live in
-the macOS Keychain, requests go straight to the provider, and there are no accounts,
-no telemetry middleman, and no backend.
+Bring a key from **Anthropic (default), OpenAI, Google, or OpenRouter** — or no key
+at all with **local Ollama models**. Keys live in the macOS Keychain, requests go
+straight to the provider (or to localhost), and there are no accounts, no telemetry
+middleman, and no backend.
 
 ## Why another coding agent
 
@@ -40,8 +41,8 @@ no telemetry middleman, and no backend.
 | Tools | **153 native tools** — files, shell, git, Docker, deploy, HTTP, SQLite, OCR/vision, Apple-native |
 | MCP | Client (stdio / http / websocket) **and** server — 68 one-click presets, plus G-Rump exposes its own tools on TCP 18790 |
 | Agent modes | Plan, Build, Spec — each swaps the system strategy |
-| Providers | Anthropic, OpenAI, Google, OpenRouter — native Anthropic + Gemini wire formats, streaming tool calls everywhere |
-| Models | Claude Opus 4.8 (default), Fable 5, Sonnet 5, Haiku 4.5, GPT-5.2, GPT-5.3-Codex, Gemini 3 Pro, and OpenRouter routes |
+| Providers | Anthropic, OpenAI, Google, OpenRouter, local Ollama — native Anthropic + Gemini wire formats, streaming tool calls everywhere |
+| Models | Claude Opus 4.8 (default), Fable 5, Sonnet 5, Haiku 4.5, GPT-5.2, GPT-5.3-Codex, Gemini 3 Pro, OpenRouter routes, and whatever you've pulled into Ollama |
 | Memory | 3-tier store (session / project / global), hybrid vector + keyword + recency recall, deliberate forgetting |
 | Skills | 73 bundled `SKILL.md` skills in 21 packs, plus your own global and per-project skills with relevance scoring |
 | Build & run | Xcode-style toolbar — ⌘R builds (xcodebuild/SPM) and runs to a booted simulator with live app logs; streamed build console with parsed, fixable issues |
@@ -123,7 +124,7 @@ the model and your machine:
 | Runs as | native macOS app | terminal CLI | terminal CLI | web UI + sandbox |
 | Written in | Swift | TypeScript | Python | Python |
 | License | MIT | proprietary | Apache-2.0 | MIT |
-| BYOK multi-provider | 4 providers | Anthropic-centric | yes | yes |
+| BYOK multi-provider | 5 providers (incl. local Ollama) | Anthropic-centric | yes | yes |
 | Cross-session memory built in | yes | project files | no | no |
 
 All four are good tools. G-Rump's bet is that a coding agent should be a first-class

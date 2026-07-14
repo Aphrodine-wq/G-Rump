@@ -50,11 +50,18 @@ final class AIModelCatalogTests: XCTestCase {
                                   "google/gemini-3-pro", "qwen/qwen3-coder"])
     }
 
-    func testEveryProviderHasModels() {
-        for provider in AIProvider.allCases {
+    func testEveryCloudProviderHasModels() {
+        // Local providers (Ollama) have no static entries — their models are
+        // discovered live from the local server.
+        for provider in AIProvider.allCases where !provider.isLocal {
             XCTAssertFalse(registry.getModels(for: provider).isEmpty,
                            "\(provider.displayName) has no catalog entries")
         }
+    }
+
+    func testOllamaHasNoStaticCatalogEntries() {
+        XCTAssertTrue(registry.defaultModelCatalog().allSatisfy { $0.provider != .ollama },
+                      "Ollama models must come from live discovery, not the static catalog")
     }
 
     // MARK: - Model shape
