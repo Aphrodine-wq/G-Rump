@@ -21,6 +21,7 @@ extension ChatViewModel {
         // Survives `continue` so transient stream errors deep in a run retry
         // with backoff instead of dying (reset after each successful stream).
         var streamRetriesThisTurn = 0
+        var verifyState = AgentVerifyState()
         currentAgentStepMax = maxIterations
 
         repeat {
@@ -195,6 +196,11 @@ extension ChatViewModel {
             }
 
             if toolCallBuffers.isEmpty || finishReason == "stop" {
+                // Would-be completion point: verify edits build, then check
+                // the request is actually satisfied. Either can inject a note
+                // and send the loop back to work.
+                if await runAutoVerifyIfNeeded(state: &verifyState) { continue }
+                if await runCompletionGateIfNeeded(state: &verifyState, iterationCount: iterationCount, maxIterations: maxIterations) { continue }
                 break
             }
 
@@ -278,17 +284,24 @@ extension ChatViewModel {
                    let path = args["path"] as? String {
                     let op: CodeChange.Operation = call.name == "create_file" ? .created : .edited
                     currentRunCodeChanges.append(CodeChange(filePath: path, operation: op, content: String(result.prefix(2000))))
+                    // New edits invalidate any earlier green build.
+                    verifyState.buildSucceededSinceLastWrite = false
                 }
 
                 // --- Causal Regression Tracker: analyze build/test failures ---
-                let buildTestTools: Set<String> = ["run_build", "run_tests"]
-                if buildTestTools.contains(call.name), !success {
-                    if let analysis = await regressionTracker.analyze(
-                        errorOutput: result,
-                        failedCommand: call.name,
-                        workingDirectory: workingDirectory
-                    ) {
-                        appendAgentNote(analysis.markdownSummary)
+                let buildTestTools: Set<String> = ["run_build", "run_tests", "xcodebuild", "swift_package"]
+                if buildTestTools.contains(call.name) {
+                    if success, !Self.buildFailed(result) {
+                        // The model verified its own work — auto-verify can skip.
+                        verifyState.buildSucceededSinceLastWrite = true
+                    } else if !success {
+                        if let analysis = await regressionTracker.analyze(
+                            errorOutput: result,
+                            failedCommand: call.name,
+                            workingDirectory: workingDirectory
+                        ) {
+                            appendAgentNote(analysis.markdownSummary)
+                        }
                     }
                 }
             }

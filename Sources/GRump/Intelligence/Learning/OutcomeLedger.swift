@@ -27,6 +27,9 @@ struct RunOutcome: Codable, Identifiable, Equatable {
     /// message is classified as a correction.
     var success: Bool
     var amended: Bool
+    /// Gate/verify telemetry (optional: absent in pre-2.2 ledgers).
+    var completionRetries: Int?
+    var autoVerifyCycles: Int?
 
     init(
         id: UUID = UUID(),
@@ -42,7 +45,9 @@ struct RunOutcome: Codable, Identifiable, Equatable {
         injectedLessonIds: [String] = [],
         userCorrections: [String] = [],
         success: Bool,
-        amended: Bool = false
+        amended: Bool = false,
+        completionRetries: Int? = nil,
+        autoVerifyCycles: Int? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -58,6 +63,8 @@ struct RunOutcome: Codable, Identifiable, Equatable {
         self.userCorrections = userCorrections
         self.success = success
         self.amended = amended
+        self.completionRetries = completionRetries
+        self.autoVerifyCycles = autoVerifyCycles
     }
 
     /// True when this run should trigger a reflection pass on its own.

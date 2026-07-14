@@ -132,7 +132,9 @@ extension ChatViewModel {
             regressionSummary: regressionSummary,
             adversarialCriticals: adversarialCriticals,
             injectedLessonIds: injectedIds,
-            success: !hasErrors
+            success: !hasErrors,
+            completionRetries: currentRunCompletionRetries,
+            autoVerifyCycles: currentRunAutoVerifyCycles
         )
         LessonStore.shared.recordOutcome(ids: injectedIds, success: !hasErrors)
 

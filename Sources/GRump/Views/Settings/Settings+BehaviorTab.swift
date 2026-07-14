@@ -63,6 +63,24 @@ extension SettingsView {
             }
             settingsCard {
                 VStack(alignment: .leading, spacing: Spacing.xxl) {
+                    sectionTitle("Verification", icon: "checkmark.shield.fill", accent: themeManager.accentColor)
+                    Toggle("Auto-verify after edits", isOn: $autoVerifyEnabledSetting)
+                    Text("When the agent finishes a run that changed code, build the project automatically and send failures back for fixing (max 3 cycles). Per-project override: autoVerify in .grump/config.json.")
+                        .font(Typography.bodySmall)
+                        .foregroundColor(.textMuted)
+                    Toggle("Run tests during auto-verify", isOn: $autoVerifyRunTestsSetting)
+                        .disabled(!autoVerifyEnabledSetting)
+                    Text("Only runs when the project sets testCommand in .grump/config.json — large suites stay your call.")
+                        .font(Typography.bodySmall)
+                        .foregroundColor(.textMuted)
+                    Toggle("Completion check", isOn: $completionGateEnabledSetting)
+                    Text("Before accepting a run as done, a fast model checks the original request was fully satisfied (open plan steps block completion). Fails open — it never traps a finished run.")
+                        .font(Typography.bodySmall)
+                        .foregroundColor(.textMuted)
+                }
+            }
+            settingsCard {
+                VStack(alignment: .leading, spacing: Spacing.xxl) {
                     sectionTitle("Input", icon: "keyboard", accent: themeManager.accentColor)
                     Toggle("Return to send", isOn: $returnToSendSetting)
                     Text(returnToSendSetting

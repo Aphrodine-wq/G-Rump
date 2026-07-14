@@ -15,6 +15,12 @@ struct ProjectConfig: Codable, Equatable {
     var maxAgentSteps: Int?
     /// Path relative to project root for persistent context (e.g. ".grump/context.md"). If nil, falls back to .grump/context.md when present.
     var contextFile: String?
+    /// Auto-verify overrides: nil falls back to the global AutoVerifyEnabled default.
+    var autoVerify: Bool?
+    /// Custom build command for auto-verify (default: ecosystem auto-detect).
+    var buildCommand: String?
+    /// Opt-in test command for auto-verify (tests never run without one).
+    var testCommand: String?
 
     static func load(from directory: String) -> ProjectConfig? {
         guard !directory.isEmpty else { return nil }

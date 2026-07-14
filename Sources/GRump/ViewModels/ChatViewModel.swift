@@ -87,6 +87,9 @@ class ChatViewModel: ObservableObject {
     /// The agent's tracked checklist (update_plan tool). Conversation-scoped,
     /// in-memory only — cleared when the conversation changes, not per run.
     var currentPlan: AgentPlan?
+    /// Gate/verify telemetry for the current run (recorded onto RunOutcome).
+    var currentRunAutoVerifyCycles = 0
+    var currentRunCompletionRetries = 0
 
     /// Preserved partial response content when a stream error occurs.
     @Published var streamErrorPartialContent: String?

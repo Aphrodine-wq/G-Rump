@@ -94,6 +94,8 @@ extension ChatViewModel {
         isThinking = false
         activeToolCalls = []
         currentRunCodeChanges = []
+        currentRunAutoVerifyCycles = 0
+        currentRunCompletionRetries = 0
 
         // Load temporal intelligence and intent continuity for this run
         Task {

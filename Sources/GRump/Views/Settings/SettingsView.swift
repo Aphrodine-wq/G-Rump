@@ -35,6 +35,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @State var selectedTab: SettingsTab = .account
     @AppStorage(SettingsKeys.maxAgentSteps) var maxAgentStepsStorage: Int = 200
+    @AppStorage("AutoVerifyEnabled") var autoVerifyEnabledSetting: Bool = true
+    @AppStorage("AutoVerifyRunTests") var autoVerifyRunTestsSetting: Bool = false
+    @AppStorage("CompletionGateEnabled") var completionGateEnabledSetting: Bool = true
     @AppStorage(SettingsKeys.compactToolResults) var compactToolResults: Bool = false
     @AppStorage(SettingsKeys.allowSystemNotifications) var allowSystemNotifications: Bool = true
     @AppStorage(SettingsKeys.notificationSoundEnabled) var notificationSoundEnabled: Bool = true

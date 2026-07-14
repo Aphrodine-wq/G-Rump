@@ -49,11 +49,24 @@ extension ChatViewModel {
                 timeoutTask.cancel()
                 var result = String(data: outData, encoding: .utf8) ?? ""
 
+                // stderr is where compilers and test runners report errors —
+                // dropping it left the agent blind to build failures.
+                let errText = String(data: errData, encoding: .utf8) ?? ""
+                if !errText.isEmpty {
+                    result += (result.isEmpty ? "" : "\n") + errText
+                }
+
                 // Truncate very long output
                 if result.count > 30000 {
                     let head = String(result.prefix(15000))
                     let tail = String(result.suffix(5000))
                     result = head + "\n\n[... \(result.count - 20000) characters truncated ...]\n\n" + tail
+                }
+
+                // A deterministic failure marker: tools and the auto-verify
+                // classifier key off this instead of scraping error prose.
+                if process.terminationStatus != 0 {
+                    result += "\n[exit code: \(process.terminationStatus)]"
                 }
 
                 continuation.resume(returning: result.isEmpty ? "(no output, exit code: \(process.terminationStatus))" : result)
