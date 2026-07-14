@@ -47,6 +47,25 @@ final class AgentModeTests: XCTestCase {
         XCTAssertEqual(AgentMode.spec.rawValue, "spec")
     }
 
+    // MARK: - ⇧⇥ Cycling
+
+    func testNextCyclesInDeclarationOrder() {
+        XCTAssertEqual(AgentMode.plan.next, .fullStack)
+        XCTAssertEqual(AgentMode.fullStack.next, .spec)
+        XCTAssertEqual(AgentMode.spec.next, .plan, "next should wrap around")
+    }
+
+    func testNextVisitsAllModes() {
+        var visited: Set<AgentMode> = []
+        var mode = AgentMode.plan
+        for _ in 0..<AgentMode.allCases.count {
+            visited.insert(mode)
+            mode = mode.next
+        }
+        XCTAssertEqual(visited, Set(AgentMode.allCases), "cycling should visit every mode")
+        XCTAssertEqual(mode, .plan, "full cycle should return to start")
+    }
+
     // MARK: - Expanded Tests
 
     func testIdentifiable() {

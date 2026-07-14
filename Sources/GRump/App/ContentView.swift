@@ -235,15 +235,7 @@ struct ContentView: View {
     }
 
     var emptyStateView: some View {
-        EmptyStateViews.emptyStateView(
-            themeManager: themeManager,
-            showQuestionSuggestions: $state.showQuestionSuggestions,
-            suggestedQuestions: $state.suggestedQuestions,
-            onPromptSelected: { prompt in
-                viewModel.userInput = prompt
-                messageFieldFocused = true
-            }
-        )
+        EmptyStateViews.emptyStateView(themeManager: themeManager)
     }
 
     // Chat detail views, input, mode buttons, error banners, and tool call bars

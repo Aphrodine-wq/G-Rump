@@ -35,6 +35,55 @@ final class NativeTextInputTests: XCTestCase {
         XCTAssertNotNil(textView.dropHandler)
     }
 
+    // MARK: - InputTextView Shift+Tab
+
+    func testShiftTabHandlerCanBeSet() {
+        let textView = InputTextView()
+        XCTAssertNil(textView.shiftTabHandler)
+        textView.shiftTabHandler = { _ in true }
+        XCTAssertNotNil(textView.shiftTabHandler)
+    }
+
+    func testShiftTabKeyDownInvokesHandler() {
+        let textView = InputTextView()
+        var handlerCalled = false
+        textView.shiftTabHandler = { _ in
+            handlerCalled = true
+            return true
+        }
+        guard let event = NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: .shift,
+            timestamp: 0, windowNumber: 0, context: nil,
+            characters: "\t", charactersIgnoringModifiers: "\t",
+            isARepeat: false, keyCode: 48
+        ) else {
+            XCTFail("Could not synthesize ⇧⇥ event")
+            return
+        }
+        textView.keyDown(with: event)
+        XCTAssertTrue(handlerCalled, "⇧⇥ keyDown should invoke shiftTabHandler")
+    }
+
+    func testPlainTabDoesNotInvokeShiftTabHandler() {
+        let textView = InputTextView()
+        var handlerCalled = false
+        textView.shiftTabHandler = { _ in
+            handlerCalled = true
+            return true
+        }
+        guard let event = NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [],
+            timestamp: 0, windowNumber: 0, context: nil,
+            characters: "\t", charactersIgnoringModifiers: "\t",
+            isARepeat: false, keyCode: 48
+        ) else {
+            XCTFail("Could not synthesize Tab event")
+            return
+        }
+        textView.keyDown(with: event)
+        XCTAssertFalse(handlerCalled, "plain Tab must not trigger mode cycling")
+    }
+
     // MARK: - InputTextView Drag Support
 
     func testDraggingEnteredReturnsCopyWithHandler() {

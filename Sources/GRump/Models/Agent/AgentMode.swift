@@ -11,7 +11,7 @@ enum SystemRunApprovalResponse {
 }
 #endif
 
-// MARK: - Agent Mode (Chat, Plan, Build, Debate, Spec)
+// MARK: - Agent Mode (Plan, Build, Spec)
 
 enum AgentMode: String, CaseIterable, Identifiable, Codable {
     case plan
@@ -19,6 +19,13 @@ enum AgentMode: String, CaseIterable, Identifiable, Codable {
     case spec
 
     var id: String { rawValue }
+
+    /// The next mode in declaration order, wrapping around. Drives ⇧⇥ cycling.
+    var next: AgentMode {
+        let all = AgentMode.allCases
+        let index = all.firstIndex(of: self) ?? all.startIndex
+        return all[(index + 1) % all.count]
+    }
 
     var displayName: String {
         switch self {

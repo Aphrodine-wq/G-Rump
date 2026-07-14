@@ -13,6 +13,7 @@ struct ChatInputView: View {
     var onSend: () -> Void
     var focus: FocusState<Bool>.Binding
     var onStop: (() -> Void)?
+    var onShiftTab: (() -> Void)?
     var onFileAttached: (([URL]) -> Void)?
 
     @AppStorage("ReturnToSend") private var returnToSend = false
@@ -76,6 +77,11 @@ struct ChatInputView: View {
                             }
                             return false
                         }
+                    },
+                    onShiftTab: { _ in
+                        guard let onShiftTab else { return false }
+                        onShiftTab()
+                        return true
                     },
                     onDrop: { providers in
                         handleFileDropProviders(providers: providers)

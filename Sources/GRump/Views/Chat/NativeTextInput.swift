@@ -17,6 +17,7 @@ struct NativeTextInput: NSViewRepresentable {
     var maxHeight: CGFloat
     var isFirstResponder: Bool
     var onReturnKey: ((NSEvent) -> Bool)?
+    var onShiftTab: ((NSEvent) -> Bool)?
     var onDrop: (([NSItemProvider]) -> Bool)?
 
     func makeCoordinator() -> Coordinator {
@@ -50,6 +51,9 @@ struct NativeTextInput: NSViewRepresentable {
         textView.string = text
         textView.returnHandler = { event in
             context.coordinator.parent.onReturnKey?(event) ?? false
+        }
+        textView.shiftTabHandler = { event in
+            context.coordinator.parent.onShiftTab?(event) ?? false
         }
 
         // Drop support
@@ -90,6 +94,9 @@ struct NativeTextInput: NSViewRepresentable {
         // Update handlers
         textView.returnHandler = { event in
             context.coordinator.parent.onReturnKey?(event) ?? false
+        }
+        textView.shiftTabHandler = { event in
+            context.coordinator.parent.onShiftTab?(event) ?? false
         }
 
         if onDrop != nil {
@@ -132,15 +139,22 @@ struct NativeTextInput: NSViewRepresentable {
     }
 }
 
-/// Custom `NSTextView` subclass that intercepts return key and drop events.
+/// Custom `NSTextView` subclass that intercepts return key, ⇧⇥, and drop events.
 class InputTextView: NSTextView {
     var returnHandler: ((NSEvent) -> Bool)?
+    var shiftTabHandler: ((NSEvent) -> Bool)?
     var dropHandler: (([NSItemProvider]) -> Bool)?
 
     override func keyDown(with event: NSEvent) {
         // Intercept Return key
         if event.keyCode == 36 { // Return key
             if let handler = returnHandler, handler(event) {
+                return // Handled
+            }
+        }
+        // Intercept ⇧⇥ (mode cycling) — swallow so no tab is inserted
+        if event.keyCode == 48, event.modifierFlags.contains(.shift) { // Tab key
+            if let handler = shiftTabHandler, handler(event) {
                 return // Handled
             }
         }
@@ -207,6 +221,7 @@ struct NativeTextInputContainer: View {
     var maxHeight: CGFloat = 200
     var isFirstResponder: Bool = false
     var onReturnKey: ((NSEvent) -> Bool)?
+    var onShiftTab: ((NSEvent) -> Bool)?
     var onDrop: (([NSItemProvider]) -> Bool)?
 
     var body: some View {
@@ -231,6 +246,7 @@ struct NativeTextInputContainer: View {
                 maxHeight: maxHeight,
                 isFirstResponder: isFirstResponder,
                 onReturnKey: onReturnKey,
+                onShiftTab: onShiftTab,
                 onDrop: onDrop
             )
             .frame(minHeight: minHeight, maxHeight: maxHeight)

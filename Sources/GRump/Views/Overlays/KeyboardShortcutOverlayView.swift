@@ -83,6 +83,8 @@ struct KeyboardShortcutOverlayView: View {
                 .keyboardShortcut("8", modifiers: .control)
             Button(action: { switchPanel(.docs) }) { EmptyView() }
                 .keyboardShortcut("9", modifiers: .control)
+            Button(action: { switchPanel(.memory) }) { EmptyView() }
+                .keyboardShortcut("0", modifiers: .control)
             #endif
         }
         .frame(width: 0, height: 0)

@@ -5,10 +5,11 @@ struct StatusBarView: View {
     @ObservedObject var viewModel: ChatViewModel
     @StateObject private var perfAdvisor = PerformanceAdvisor.shared
     @State private var showGitShortcuts = false
+    @State private var showModePopover = false
 
     var body: some View {
         HStack(spacing: Spacing.xl) {
-            // Left section - connection status
+            // Left section - connection status + agent mode
             HStack(spacing: Spacing.md) {
                 Circle()
                     .fill(connectionColor)
@@ -18,6 +19,8 @@ struct StatusBarView: View {
                 Text(connectionStatus)
                     .font(Typography.micro)
                     .foregroundColor(themeManager.palette.textMuted)
+
+                modeLabel
             }
 
             Spacer()
@@ -110,6 +113,32 @@ struct StatusBarView: View {
         )
     }
 
+    // MARK: - Agent Mode Label
+
+    private var modeLabel: some View {
+        let mode = viewModel.agentMode
+        return Button(action: { showModePopover.toggle() }) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: mode.icon)
+                    .font(.system(size: 10))
+                Text(mode.displayName)
+                    .font(Typography.micro)
+            }
+            .foregroundColor(mode.modeAccentColor)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.xs)
+            .background(mode.modeAccentColor.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: Radius.sm))
+        }
+        .buttonStyle(.plain)
+        .help("\(mode.displayName) mode — \(mode.description) Click for modes; ⇧⇥ cycles.")
+        .accessibilityLabel("Agent mode: \(mode.displayName)")
+        .popover(isPresented: $showModePopover, arrowEdge: .top) {
+            ModeInfoPopover(viewModel: viewModel, isPresented: $showModePopover)
+                .environmentObject(themeManager)
+        }
+    }
+
     private func confidenceColor(_ level: ConfidenceLevel) -> Color {
         switch level {
         case .veryLow:  return .red
@@ -138,6 +167,43 @@ struct StatusBarView: View {
         case .disconnected: return "Disconnected"
         case .checking: return "Checking..."
         }
+    }
+}
+
+/// Popover from the status-bar mode label: lists all agent modes with short
+/// explanations; clicking one switches the mode.
+struct ModeInfoPopover: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject var viewModel: ChatViewModel
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Agent Mode")
+                .font(Typography.captionSemibold)
+                .foregroundColor(themeManager.palette.textPrimary)
+
+            Divider()
+
+            ForEach(AgentMode.allCases) { mode in
+                ModeOptionRow(
+                    mode: mode,
+                    isSelected: mode == viewModel.agentMode,
+                    action: {
+                        viewModel.agentMode = mode
+                        isPresented = false
+                    }
+                )
+            }
+
+            Divider()
+
+            Text("⇧⇥ cycles modes from the chat input")
+                .font(Typography.micro)
+                .foregroundColor(themeManager.palette.textMuted)
+        }
+        .padding(Spacing.lg)
+        .frame(width: 300)
     }
 }
 

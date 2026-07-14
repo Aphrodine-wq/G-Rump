@@ -11,12 +11,6 @@ final class RegressionTests: XCTestCase {
         XCTAssertNotNil(contentView)
     }
     
-    func testRightPanelManagerCreation() {
-        // Test that RightPanelManager can be created
-        let panelManager = RightPanelManager()
-        XCTAssertNotNil(panelManager)
-    }
-    
     func testKeyboardShortcutHandlerCreation() {
         // Test that KeyboardShortcutHandler can be created
         let shortcutHandler = KeyboardShortcutHandler(

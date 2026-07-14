@@ -229,6 +229,7 @@ struct GRumpApp: App {
                     Text("Settings — ⌘,")
                     Text("Stop Generation — ⌘.")
                     Text("Focus Input — ⌘L")
+                    Text("Cycle Agent Mode — ⇧⇥")
                     Text("Toggle Sidebar — ⌘\\")
                     Text("Toggle Activity Bar — ⌘⌥A")
                     Text("Zen Mode — ⌘⇧Z")

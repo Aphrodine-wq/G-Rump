@@ -10,7 +10,13 @@ class ContentViewState: ObservableObject {
     @Published var settingsInitialTab: SettingsTab?
     @Published var showThreadNavigation = false
     @Published var showSpecQuestionsModal = false
+    @Published var showModeSelectModal = false
     @Published var showLayoutCustomizer = false
+
+    /// Conversations already offered the first-message mode prompt this launch.
+    /// Not persisted: after relaunch, any conversation with user messages never
+    /// re-prompts (the gate checks message history), so inference covers it.
+    var modePromptedConversationIds: Set<UUID> = []
 
     // MARK: - Focus State
     @Published var messageFieldFocused = false
@@ -18,8 +24,6 @@ class ContentViewState: ObservableObject {
     // MARK: - UI State
     @Published var toolCallsBarExpanded = false
     @Published var lastScrollTime: Date = .distantPast
-    @Published var showQuestionSuggestions = false
-    @Published var suggestedQuestions: [String] = []
     @Published var showTimeline = false
     @Published var modeToastText: String?
     @Published var modeToastWorkItem: DispatchWorkItem?

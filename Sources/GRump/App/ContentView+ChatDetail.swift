@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - ContentView+ChatDetail
 //
-// Chat detail views, input section, mode buttons, error banners,
+// Chat detail views, input section, mode selection, error banners,
 // tool call bars, and helper functions.
 // Extracted from ContentView.swift for maintainability.
 
@@ -31,64 +31,63 @@ extension ContentView {
         }
     }
 
-    // MARK: - Mode Buttons
+    // MARK: - Mode Selection
 
-    var modeButtonsRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Spacing.md) {
-                ForEach(AgentMode.allCases) { mode in
-                    let isSelected = viewModel.agentMode == mode
-                    Button {
-                        withAnimation(.easeInOut(duration: Anim.quick)) {
-                            viewModel.agentMode = mode
-                            state.showModeToast(mode)
-                        }
-                    } label: {
-                        HStack(spacing: Spacing.sm) {
-                            Image(systemName: mode.icon)
-                                .font(.system(size: 12, weight: .semibold))
-                            Text(mode.displayName)
-                                .font(Typography.captionSmallSemibold)
-                        }
-                        .fixedSize()
-                        .foregroundColor(isSelected ? mode.modeAccentColor : themeManager.palette.textSecondary)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.sm)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                                .fill(isSelected ? mode.modeAccentColor.opacity(0.12) : themeManager.palette.bgInput)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                                .stroke(isSelected ? mode.modeAccentColor.opacity(0.5) : Color.clear, lineWidth: isSelected ? 2 : 0)
-                        )
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                    .help(mode.description)
-                    .accessibilityLabel("\(mode.displayName) mode")
-                    .accessibilityHint(mode.description)
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
-                }
-            }
-            .padding(.horizontal, Spacing.huge)
+    /// Send gate: on the first user message of a new conversation, ask which
+    /// mode to start the session in before sending. Lives in the UI layer so
+    /// programmatic sends (daemon, quick chat, follow-ups) bypass it.
+    func gatedSend() {
+        if state.showModeSelectModal {
+            // ⏎ while the card is up confirms the highlighted mode
+            confirmMode(viewModel.agentMode)
+            return
         }
-        .padding(.top, Spacing.sm)
-        .padding(.bottom, Spacing.md)
+        if let conv = viewModel.currentConversation,
+           !conv.messages.contains(where: { $0.role == .user }),
+           !state.modePromptedConversationIds.contains(conv.id) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                state.showModeSelectModal = true
+            }
+            return // message stays in the input until a mode is confirmed
+        }
+        if viewModel.agentMode == .spec {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                state.showSpecQuestionsModal = true
+            }
+        } else {
+            viewModel.sendMessage()
+        }
+    }
+
+    func confirmMode(_ mode: AgentMode) {
+        viewModel.agentMode = mode // persists via didSet → UserDefaults
+        if let id = viewModel.currentConversation?.id {
+            state.modePromptedConversationIds.insert(id)
+        }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            state.showModeSelectModal = false
+        }
+        if mode == .spec {
+            // Chain into the existing spec-context flow instead of sending
+            withAnimation(.easeInOut(duration: 0.25)) {
+                state.showSpecQuestionsModal = true
+            }
+        } else {
+            viewModel.sendMessage()
+        }
+    }
+
+    func cycleAgentMode() {
+        withAnimation(.easeInOut(duration: Anim.quick)) {
+            viewModel.agentMode = viewModel.agentMode.next
+            state.showModeToast(viewModel.agentMode)
+        }
     }
 
     // MARK: - Chat Input Section
 
     var chatInputSection: some View {
-        let onSend: () -> Void = {
-            if viewModel.agentMode == .spec {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    state.showSpecQuestionsModal = true
-                }
-            } else {
-                viewModel.sendMessage()
-            }
-        }
-        return VStack(spacing: 0) {
+        VStack(spacing: 0) {
             // Undo send toast
             if viewModel.undoSendAvailable {
                 HStack(spacing: Spacing.lg) {
@@ -129,6 +128,19 @@ extension ContentView {
                     .padding(.bottom, Spacing.sm)
             }
 
+            // Inline mode select card (first message of a new conversation)
+            if state.showModeSelectModal {
+                ModeSelectCard(
+                    currentMode: viewModel.agentMode,
+                    onPick: { confirmMode($0) },
+                    onCancel: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            state.showModeSelectModal = false
+                        }
+                    }
+                )
+            }
+
             // Inline Spec Context bar (replaces old modal sheet)
             if state.showSpecQuestionsModal {
                 SpecContextBar(
@@ -162,14 +174,11 @@ extension ContentView {
             ChatInputView(
                 text: $viewModel.userInput,
                 isLoading: viewModel.isLoading,
-                onSend: onSend,
+                onSend: { gatedSend() },
                 focus: $messageFieldFocused,
-                onStop: { viewModel.stopGeneration() }
+                onStop: { viewModel.stopGeneration() },
+                onShiftTab: { cycleAgentMode() }
             )
-            // Mode buttons below chat bar
-            if viewModel.canUseAI {
-                modeButtonsRow
-            }
         }
     }
 
@@ -268,6 +277,11 @@ extension ContentView {
         chatDetailBase
             .onChange(of: viewModel.errorMessage) { _, newValue in
                 if newValue != nil { HapticHelper.error() }
+            }
+            .onChange(of: viewModel.currentConversation?.id) { _, _ in
+                // Dismiss stale send gates when switching conversations
+                state.showModeSelectModal = false
+                state.showSpecQuestionsModal = false
             }
             .onChange(of: viewModel.activeToolCalls) { old, new in
                 let oldCompleted = Set(old.filter { $0.status == .completed }.map(\.id))
