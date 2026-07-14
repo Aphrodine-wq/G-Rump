@@ -9,7 +9,7 @@
 
 G-Rump is a coding agentic harness — the agent loop, tool system, provider layer,
 memory, and safety gates that let an LLM actually do work on your machine — shipped
-as a native macOS app. Think Claude Code, Aider, or OpenHands, except it's 62K lines
+as a native macOS app. Think Claude Code, Aider, or OpenHands, except it's 67K lines
 of Swift instead of a terminal, it remembers what it learned last week, and it has
 opinions about your code.
 
@@ -17,6 +17,16 @@ Bring a key from **Anthropic (default), OpenAI, Google, or OpenRouter** — or n
 at all with **local Ollama models**. Keys live in the macOS Keychain, requests go
 straight to the provider (or to localhost), and there are no accounts, no telemetry
 middleman, and no backend.
+
+## Status: early software
+
+G-Rump is grumpy enough to tell you what's broken. The harness — loop, tools,
+providers, MCP, memory, safety gates — is real and tested. The *experience* is not
+polished yet: chat has rough edges, agentic coding tasks succeed or wander depending
+on the day, build-and-run and the learning loop are new and lightly battle-tested.
+If you want a finished product, come back in a few releases. If you want to help
+iron it out, the [roadmap](https://www.g-rump.com/roadmap) says exactly what works,
+what's rough, and where a PR would land well.
 
 ## Why another coding agent
 
@@ -38,14 +48,14 @@ middleman, and no backend.
 | | |
 |---|---|
 | Agent loop | Multi-turn streaming tool use, parallel tool execution, retries with backoff. Default 200 steps, configurable 5–1000 |
-| Tools | **153 native tools** — files, shell, git, Docker, deploy, HTTP, SQLite, OCR/vision, Apple-native |
-| MCP | Client (stdio / http / websocket) **and** server — 68 one-click presets, plus G-Rump exposes its own tools on TCP 18790 |
+| Tools | **160 native tools** — files, shell, git, Docker, deploy, HTTP, SQLite, OCR/vision, Apple-native |
+| MCP | Client (stdio / http / websocket) **and** server — 67 one-click presets, plus G-Rump exposes its own tools on TCP 18790 |
 | Agent modes | Plan, Build, Spec — each swaps the system strategy |
 | Providers | Anthropic, OpenAI, Google, OpenRouter, local Ollama — native Anthropic + Gemini wire formats, streaming tool calls everywhere |
 | Models | Claude Opus 4.8 (default), Fable 5, Sonnet 5, Haiku 4.5, GPT-5.2, GPT-5.3-Codex, Gemini 3 Pro, OpenRouter routes, and whatever you've pulled into Ollama |
 | Memory | 3-tier store (session / project / global), hybrid vector + keyword + recency recall, deliberate forgetting |
 | Skills | 73 bundled `SKILL.md` skills in 21 packs, plus your own global and per-project skills with relevance scoring |
-| Build & run | Xcode-style toolbar — ⌘R builds (xcodebuild/SPM) and runs to a booted simulator with live app logs; streamed build console with parsed, fixable issues |
+| Build & run | Xcode-style toolbar — ⌘R builds (xcodebuild/SPM) and runs to a booted simulator with live app logs; streamed build console with parsed, fixable issues. New and environment-dependent — expect rough edges |
 | IDE surface | 20 dock panels + a ⌘0 project navigator — build console, git, terminal, simulator, tests, logs, profiling — with live SourceKit-LSP diagnostics |
 | Autonomy | An opt-in daemon that works queued goals on a scratch branch, behind approval gates, and never pushes |
 | Tests | 1,500+ tests, SwiftLint strict, CI on every push |

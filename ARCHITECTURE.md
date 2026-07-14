@@ -29,15 +29,15 @@ Sources/GRump/
 │   ├── Onboarding/             # 6-step first-run flow (typed steps + gating)
 │   ├── Welcome/                # Xcode-style welcome window (recents, open/clone/new)
 │   ├── Profile/                # You | Your Agent (developer profile + SOUL editor)
-│   ├── Panels/                 # 19 IDE panels incl. the build console
+│   ├── Panels/                 # 20 IDE panels incl. build console + learning
 │   ├── Components/             # Reusable UI components
 │   ├── Layout/                 # Sidebar, main layout shells, ⌘0 navigator pane
 │   ├── Overlays/               # Modals, keyboard shortcut overlay
 │   └── ...                     # DevTools, Git, Terminal, etc.
 ├── Services/
-│   ├── AI/                     # Multi-provider (Anthropic, OpenAI, Google, OpenRouter)
+│   ├── AI/                     # Multi-provider (Anthropic, OpenAI, Google, OpenRouter, Ollama)
 │   ├── MCP/                    # Model Context Protocol client & server
-│   ├── ToolExecution/          # 153 tool defs + executors by domain
+│   ├── ToolExecution/          # 160 tool defs + executors by domain
 │   ├── Apple/                  # Spotlight, SecureEnclave, FocusFilter, Apple Intelligence
 │   ├── Developer/              # LSP, BuildService, XcodeProjectInspector, CodeApply
 │   └── System/                 # ProjectStore, ConnectionMonitor, GlobalHotkey, Sparkle

@@ -4,6 +4,61 @@ All notable changes to G-Rump are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-07-14
+
+2.1 turns G-Rump from a chat app with tools into a small IDE with an agent in
+it: a real build engine with run-to-simulator, a project navigator, an
+experimental self-learning loop, and local models via Ollama — no key needed.
+Honest note: the newest surfaces (build & run, learning loop) are lightly
+battle-tested. They work; they will also surprise you occasionally. The
+[roadmap](https://www.g-rump.com/roadmap) tracks what's solid and what's rough.
+
+### Added
+
+- **Build engine + run-to-simulator.** Xcode-style toolbar above the chat:
+  ⌘R builds via `xcodebuild` or SPM and, on a simulator destination, continues
+  install → launch → live app logs streamed into the new Build console panel
+  (Log and Issues tabs, Fix-with-G-Rump, reveal-in-navigator, `xed --line`).
+  ⌘⇧. stops. The agent can drive the same loop through `xcrun_simctl` tools.
+- **Project navigator.** ⌘0 toggles a left file-tree pane; build issues and
+  agent file references reveal straight into it.
+- **Self-learning loop (experimental).** Every run's outcome lands in a
+  per-project ledger; a reflection pass distills short, confidence-scored
+  lessons that ride along on future prompts; strong lesson clusters can become
+  skill proposals you approve or reject as diffs in the new Learning panel
+  (the 20th dock panel). Off-switch in Settings → Brain. Writes to SOUL.md,
+  MIND.md, and skill directories always require approval.
+- **Local Ollama provider.** Fifth provider, keyless: models are discovered
+  live from `localhost:11434`, tool support is gated per model, and being
+  offline is fine. Ollama was cut as dead code in 2.0.0; this is a fresh,
+  working implementation. Never auto-routed.
+- **Welcome window.** Xcode-style launch window (⇧⌘1): pinned recents, open,
+  clone (streaming, cancellable), new project.
+- **Developer profile.** Profile → You feeds a capped block (name, role,
+  stack, conventions) into the system prompt; Profile → Your Agent embeds the
+  SOUL editor.
+- **Settings as a real window.** Native `Settings{}` scene on ⌘, — 21 tabs
+  regrouped into 7 groups. All legacy entry points still work.
+- **Mode-select card.** New conversations open with an inline Plan / Build /
+  Spec card gating the first message; ⇧⇥ cycles modes from the input; the
+  status bar shows the current mode with a switcher.
+- **Onboarding rework.** Six typed steps with real gating; provider step
+  validates keys inline (or probes Ollama reachability) and allows an explicit
+  "add a key later" deferral. The skills-allowlist overwrite bug is dead.
+
+### Changed
+
+- App icons regenerated on the proper 824pt Apple squircle grid.
+- Docs (README, ARCHITECTURE, CLAUDE.md) rewritten against counted reality:
+  160 native tools, 67 MCP presets, 20 panels, 73 skills, ~67K LOC, 1,581
+  tests.
+
+### Removed
+
+- Empty-state suggestion chips and the mode buttons row (replaced by the
+  mode-select card); orphaned ChatAreaView, SpecQuestionsModal,
+  RightPanelManager.
+
 ## [2.0.0] - 2026-07-09
 
 G-Rump 2.0 is the multi-provider release. The app is no longer tied to a single

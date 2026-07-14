@@ -7,7 +7,7 @@ running the app. This doc explains how to test it at three levels.
 
 | Level | Needs | Verifies |
 |---|---|---|
-| 1. Automated suites | macOS (or CI) | Agent logic, cognitive memory, request shaping — ~1,449 checks |
+| 1. Automated suites | macOS (or CI) | Agent logic, cognitive memory, request shaping — ~1,581 checks |
 | 2. Full app | macOS | The end-to-end product (daemon, approval gates, memory in the UI) |
 | 3. Legacy smoke tests | Any OS + Node 18 + an OpenAI-compatible key | A chat / tool-call / embeddings round-trip (historical tooling) |
 
@@ -16,7 +16,7 @@ running the app. This doc explains how to test it at three levels.
 ## Level 1 — Automated test suites (macOS / CI)
 
 ```bash
-swift test -j 12          # ~1,449 app tests (agent logic, modes, memory, request shaping)
+swift test -j 12          # ~1,581 app tests (agent logic, modes, memory, request shaping)
 ```
 
 Tests that directly evidence the core claims:

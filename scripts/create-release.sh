@@ -45,12 +45,25 @@ fi
 VERSION="${TAG#v}"
 cp "$ZIP_PATH" "dist/G-Rump-$VERSION.zip"
 
-# 5. Create the GitHub release
+# 5. Extract this version's notes from CHANGELOG.md
+NOTES_FILE="$(mktemp)"
+trap 'rm -f "$NOTES_FILE"' EXIT
+awk -v ver="$VERSION" '
+    $0 ~ "^## \\[" ver "\\]" { found = 1; next }
+    found && /^## \[/ { exit }
+    found { print }
+' CHANGELOG.md > "$NOTES_FILE"
+if [ ! -s "$NOTES_FILE" ]; then
+    echo "Warning: no CHANGELOG.md section for $VERSION — using a generic note."
+    echo "G-Rump $TAG. See CHANGELOG.md for details." > "$NOTES_FILE"
+fi
+
+# 6. Create the GitHub release
 echo "Creating GitHub release..."
 gh release create "$TAG" \
     --repo "$REPO" \
     --title "G-Rump $TAG" \
-    --notes-file RELEASE_NOTES.md \
+    --notes-file "$NOTES_FILE" \
     "dist/G-Rump-$VERSION.zip"
 
 echo ""

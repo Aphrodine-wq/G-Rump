@@ -36,13 +36,13 @@ CI runs on `Xcode_16.2`, so that's a safe baseline.
 ### Running tests
 
 ```bash
-swift test --parallel                                   # full suite (~1,449 checks)
+swift test --parallel                                   # full suite (~1,581 checks)
 swift test --filter GRumpTests.ModelsTests              # one test file
 swift test --filter GRumpTests.ModelsTests/testFoo      # one test method
 ```
 
 Use `--parallel` locally — it's what CI runs (`swift test --parallel -j $(sysctl -n hw.ncpu)`)
-and a cold full build of ~54K LOC under `StrictConcurrency=complete` is slow
+and a cold full build of ~67K LOC under `StrictConcurrency=complete` is slow
 otherwise.
 
 ### XcodeGen (optional)

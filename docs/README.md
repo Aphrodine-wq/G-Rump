@@ -13,7 +13,7 @@ Comprehensive documentation for the G-Rump AI coding agent.
 ### AI & Agent
 - [AI Providers](ai-agent/ai-providers.md) — Anthropic, OpenAI, Google, OpenRouter
 - [Agent Modes](ai-agent/agent-modes.md) — Plan, Build, Spec
-- [Tools](ai-agent/tools.md) — All 153 tools, categories, execution flow
+- [Tools](ai-agent/tools.md) — All 160 tools, categories, execution flow
 - [Skills](ai-agent/skills.md) — Skills system, bundled skills, custom project skills
 - [Soul](ai-agent/soul.md) — SOUL.md personality system, templates
 

@@ -83,7 +83,7 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 
 2. **Server Host** (`MCPServerHost.swift`): G-Rump exposes its own tools as an MCP server on TCP port `18790`. External clients (Claude Desktop, etc.) connect via `tools/list` + `tools/call`. `run_command` is refused for safety.
 
-3. **Presets** (`MCPServerConfig.swift`): ~60 preconfigured one-click servers (GitHub, Postgres, Slack, Supabase, Figma, Playwright, Stripe, etc.).
+3. **Presets** (`MCPServerConfig.swift`): 67 preconfigured one-click servers (GitHub, Postgres, Slack, Supabase, Figma, Playwright, Stripe, etc.).
 
 ### Skills System
 
