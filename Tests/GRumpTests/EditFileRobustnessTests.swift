@@ -58,22 +58,24 @@ final class EditFileRobustnessTests: XCTestCase {
     // MARK: - Whitespace-tolerant fallback
 
     func testWhitespaceTolerantSingleMatchApplies() throws {
-        let path = try write("indent.swift", "func run() {\n        return compute()\n}\n")
-        // Model proposes the line with WRONG indentation — exact match fails.
+        // File is TAB-indented; the model proposes spaces. Spaces are not a
+        // substring of the tab line, so the exact path fails and the tolerant
+        // path must fire.
+        let path = try write("indent.swift", "func run() {\n\treturn compute()\n}\n")
         let result = vm.executeEditFile([
             "path": path,
             "old_content": "    return compute()",
-            "new_content": "        return computeFast()",
+            "new_content": "\treturn computeFast()",
         ])
         XCTAssertTrue(result.contains("whitespace-tolerant"), "should flag the tolerant match: \(result)")
         XCTAssertTrue(read(path).contains("return computeFast()"))
     }
 
     func testWhitespaceTolerantSpliceIsVerbatim() throws {
-        let path = try write("verbatim.swift", "if ok {\n            doWork()\n}\n")
+        let path = try write("verbatim.swift", "if ok {\n\tdoWork()\n}\n")
         let result = vm.executeEditFile([
             "path": path,
-            "old_content": "doWork()",
+            "old_content": "    doWork()",
             "new_content": "doOtherWork()",
         ])
         XCTAssertTrue(result.contains("whitespace-tolerant"), "unexpected result: \(result)")
@@ -82,11 +84,13 @@ final class EditFileRobustnessTests: XCTestCase {
     }
 
     func testWhitespaceTolerantMultiMatchFails() throws {
+        // "    retry()" (4 spaces) is a substring of neither line, but trims
+        // equal to both — tolerant multi-match must refuse.
         let path = try write("ambiguous.swift", "  retry()\n\tretry()\ndone()\n")
         let result = vm.executeEditFile([
             "path": path,
-            "old_content": "retry()",
-            "new_content": "retryOnce()",
+            "old_content": "    retry()",
+            "new_content": "    retryOnce()",
         ])
         XCTAssertTrue(result.contains("whitespace-tolerant") && result.contains("2 locations"), "unexpected result: \(result)")
         XCTAssertEqual(read(path), "  retry()\n\tretry()\ndone()\n", "file must be untouched")
@@ -95,11 +99,13 @@ final class EditFileRobustnessTests: XCTestCase {
     // MARK: - Near-miss hints survive as the final fallback
 
     func testNearMissHintStillFires() throws {
-        let path = try write("hint.swift", "let total = sum(items)\n")
+        // Multi-line old_content whose first line exists but second drifted
+        // in CONTENT (not just whitespace) — no exact, no tolerant, hint fires.
+        let path = try write("hint.swift", "let total = sum(items)\nreturn total\n")
         let result = vm.executeEditFile([
             "path": path,
-            "old_content": "let total = sum(items, tax)",
-            "new_content": "let total = sum(items)",
+            "old_content": "let total = sum(items)\nreturn total + tax",
+            "new_content": "let total = sum(items)\nreturn total",
         ])
         XCTAssertTrue(result.contains("similar content exists at line 1"), "unexpected result: \(result)")
     }
