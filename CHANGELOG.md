@@ -4,6 +4,53 @@ All notable changes to G-Rump are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+The task-completion reliability program: the agent loop stops trusting
+"the model went quiet" as proof of "done".
+
+### Added
+
+- **Completion gate.** When a run that changed code (or has open plan steps)
+  tries to finish, a fast outside check audits the original request first —
+  open plan steps block completion deterministically; otherwise a light-model
+  judge reviews changed files, build status, and the final message. Fails
+  open, max 2 re-entries, off-switch in Settings → Behavior.
+- **Auto-verify after edits.** At the completion point, if the run edited
+  code and never proved a green build, the project builds automatically
+  (ecosystem auto-detect or `buildCommand` in `.grump/config.json`) and
+  failures go back to the agent for fixing — max 3 cycles, then an honest
+  give-up note. Tests are strictly opt-in via `testCommand`.
+- **`update_plan` tool.** The agent keeps a tracked checklist
+  (pending / in_progress / done); the current plan rides along on every
+  request and Build mode is instructed to plan first on multi-step tasks.
+- **Anthropic prompt caching.** Three ephemeral breakpoints (system, tools,
+  advancing message prefix) cut per-step cost and latency on long runs.
+  Kill switch: `AnthropicPromptCachingEnabled`.
+- **Rolling context compaction.** Long runs summarize their oldest turns
+  (light model) instead of hard-dropping them; the original request is
+  pinned and always survives truncation.
+- **Real eval battery.** `scripts/agent-eval.mjs` runs 8 agentic coding
+  tasks against the Anthropic API with the app's actual tool schemas
+  (`GRump --dump-tools`), graded deterministically; completion-rate history
+  lands in `evals/history.jsonl`.
+
+### Fixed
+
+- **Shell tools were blind to stderr.** `run_command`/`run_build`/friends
+  read stderr but never returned it — the agent literally could not see
+  compiler errors. stderr is now included and non-zero exits carry a
+  deterministic `[exit code: N]` marker.
+- **Deep-run stream deaths.** Transient stream errors now retry per turn
+  (with backoff) instead of killing any run past step 3.
+- **`edit_file` ambiguity.** Multi-location matches now error (with a
+  `replace_all` opt-out) instead of silently replacing everything, and a
+  whitespace-tolerant fallback handles indentation drift — applied only when
+  unambiguous and flagged for re-verification.
+- **`.grump/context.md` was ignored** for projects without a
+  `config.json`.
+- **Truncation could orphan tool results** (API 400s deep into long runs).
+
 ## [2.1.0] - 2026-07-14
 
 2.1 turns G-Rump from a chat app with tools into a small IDE with an agent in
