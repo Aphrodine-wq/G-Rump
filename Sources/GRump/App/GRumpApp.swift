@@ -31,6 +31,21 @@ struct GRumpApp: App {
     @State private var swiftDataError: String?
 
     init() {
+        // Headless tool-schema export for the eval harness: `GRump --dump-tools <path>`.
+        // Runs before any service/actor spins up; must not touch AIModelRegistry.shared
+        // (ProviderMigration deadlocks outside normal launch).
+        let args = ProcessInfo.processInfo.arguments
+        if let flagIndex = args.firstIndex(of: "--dump-tools"), args.indices.contains(flagIndex + 1) {
+            do {
+                let data = try ToolDefinitions.toolsJSONData()
+                try data.write(to: URL(fileURLWithPath: args[flagIndex + 1]))
+                exit(0)
+            } catch {
+                GRumpLogger.general.error("--dump-tools failed: \(error.localizedDescription)")
+                exit(1)
+            }
+        }
+
         #if !GRUMP_SPM_BUILD
         do {
             modelContainer = try SwiftDataConfiguration.makeContainer()

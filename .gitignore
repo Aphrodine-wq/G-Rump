@@ -56,3 +56,4 @@ smt.db
 # Local tooling state
 .claude/
 .planning/
+/evals/tools.json

@@ -143,4 +143,18 @@ final class ToolDefinitionsTests: XCTestCase {
             XCTAssertTrue(names.contains(tool), "Network tool '\(tool)' should exist")
         }
     }
+
+    // Guards the `--dump-tools` payload consumed by scripts/agent-eval.mjs.
+    func testToolsJSONDataIsValidAndContainsCoreTools() throws {
+        let data = try ToolDefinitions.toolsJSONData()
+        let decoded = try JSONSerialization.jsonObject(with: data)
+        guard let array = decoded as? [[String: Any]] else {
+            XCTFail("toolsJSONData should decode to an array of tool dicts")
+            return
+        }
+        let names = Set(array.compactMap { ($0["function"] as? [String: Any])?["name"] as? String })
+        XCTAssertTrue(names.contains("edit_file"), "dump payload must include edit_file")
+        XCTAssertTrue(names.contains("run_build"), "dump payload must include run_build")
+        XCTAssertGreaterThan(names.count, 100, "dump payload should carry the full tool registry")
+    }
 }
