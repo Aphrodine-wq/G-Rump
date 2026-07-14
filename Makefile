@@ -1,11 +1,14 @@
 JOBS := $(shell sysctl -n hw.ncpu)
 
-.PHONY: run build build-debug build-release clean reset app zip release-zip dmg sign notarize package help
+.PHONY: run run-app build build-debug build-release clean reset app zip release-zip dmg sign notarize package help
 
 # ── Development ───────────────────────────────────────
 
-run: build-debug ## Build debug and run
+run: build-debug ## Build debug and run (terminal only — bare binary can't take keyboard focus when launched from scripts; prefer run-app)
 	.build/debug/GRump
+
+run-app: ## Build optimized native release, assemble signed dev .app, launch via LaunchServices
+	./scripts/dev-app.sh
 
 build: build-debug ## Alias for build-debug
 

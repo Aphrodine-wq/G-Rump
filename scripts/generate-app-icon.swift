@@ -83,14 +83,35 @@ struct FrownyFaceLogo: View {
     }
 }
 
+// MARK: - App Icon View (macOS icon grid)
+// Apple's macOS icon grid: on a 1024pt canvas the icon is an 824x824 squircle
+// centered with ~100pt transparent margins on each side. Rendering full-bleed
+// makes the icon look oversized and square next to every other Dock icon.
+struct AppIconView: View {
+    var size: CGFloat = 1024
+
+    var body: some View {
+        let squircleSize = size * (824.0 / 1024.0)
+        let shape = RoundedRectangle(cornerRadius: squircleSize * 0.225, style: .continuous)
+        ZStack {
+            shape.fill(Color.white)
+            FrownyFaceLogo(size: squircleSize * 0.72)
+        }
+        .frame(width: squircleSize, height: squircleSize)
+        .clipShape(shape)
+        .shadow(color: Color.black.opacity(0.25), radius: size * 0.012, y: size * 0.008)
+        .frame(width: size, height: size)
+    }
+}
+
 // MARK: - Icon Generator
 class IconGenerator {
-    
+
     /// Generate an icon at exactly `pixelSize` x `pixelSize` pixels (1x scale).
     static func generateIcon(pixelSize: Int) -> NSImage? {
         let size = CGFloat(pixelSize)
-        let logo = FrownyFaceLogo(size: size)
-        
+        let logo = AppIconView(size: size)
+
         let hostingView = NSHostingView(rootView: logo)
         hostingView.frame = CGRect(x: 0, y: 0, width: size, height: size)
         hostingView.layoutSubtreeIfNeeded()
