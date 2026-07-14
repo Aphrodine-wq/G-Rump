@@ -41,8 +41,9 @@ extension MultiProviderAIService {
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+        let cachingEnabled = UserDefaults.standard.object(forKey: "AnthropicPromptCachingEnabled") as? Bool ?? true
         let body = anthropicBody(messages: messages, model: model, maxTokens: maxTokens,
-                                 stream: true, tools: tools)
+                                 stream: true, tools: tools, enableCaching: cachingEnabled)
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         return request
     }
@@ -52,7 +53,8 @@ extension MultiProviderAIService {
         model: String,
         maxTokens: Int,
         stream: Bool,
-        tools: [[String: Any]]?
+        tools: [[String: Any]]?,
+        enableCaching: Bool = false
     ) -> [String: Any] {
         var apiMessages: [[String: Any]] = []
         var systemParts: [String] = []
@@ -106,6 +108,18 @@ extension MultiProviderAIService {
         }
         flushToolResults()
 
+        // Prompt caching: three ephemeral breakpoints — system, last tool,
+        // and the last message's last content block. The message breakpoint
+        // advances every turn, so long agentic runs get incremental cache
+        // reads over the whole prior transcript.
+        if enableCaching, !apiMessages.isEmpty {
+            let lastIdx = apiMessages.count - 1
+            if var content = apiMessages[lastIdx]["content"] as? [[String: Any]], !content.isEmpty {
+                content[content.count - 1]["cache_control"] = ["type": "ephemeral"]
+                apiMessages[lastIdx]["content"] = content
+            }
+        }
+
         var body: [String: Any] = [
             "model": model,
             "max_tokens": maxTokens,
@@ -114,10 +128,18 @@ extension MultiProviderAIService {
         ]
         let system = systemParts.joined(separator: "\n\n")
         if !system.isEmpty {
-            body["system"] = system
+            if enableCaching {
+                body["system"] = [["type": "text", "text": system, "cache_control": ["type": "ephemeral"]]]
+            } else {
+                body["system"] = system
+            }
         }
         if let tools = tools, !tools.isEmpty {
-            body["tools"] = tools.compactMap { anthropicTool(from: $0) }
+            var mapped = tools.compactMap { anthropicTool(from: $0) }
+            if enableCaching, !mapped.isEmpty {
+                mapped[mapped.count - 1]["cache_control"] = ["type": "ephemeral"]
+            }
+            body["tools"] = mapped
             body["tool_choice"] = ["type": "auto"]
         }
         return body

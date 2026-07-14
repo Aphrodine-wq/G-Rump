@@ -140,4 +140,74 @@ final class AnthropicRequestBuilderTests: XCTestCase {
         XCTAssertNotNil(input)
         XCTAssertTrue(input?.isEmpty ?? false)
     }
+
+    // MARK: - Prompt caching
+
+    private func cachedBody(messages: [Message], tools: [[String: Any]]? = nil) -> [String: Any] {
+        MultiProviderAIService.anthropicBody(
+            messages: messages, model: "claude-opus-4-8",
+            maxTokens: 64_000, stream: true, tools: tools, enableCaching: true)
+    }
+
+    func testCachingSystemBecomesBlockArrayWithCacheControl() {
+        let result = cachedBody(messages: [
+            Message(role: .system, content: "Be terse."),
+            Message(role: .user, content: "hi")
+        ])
+        let system = result["system"] as? [[String: Any]]
+        XCTAssertNotNil(system, "cached system must be a block array, not a string")
+        XCTAssertEqual(system?.first?["text"] as? String, "Be terse.")
+        XCTAssertEqual((system?.first?["cache_control"] as? [String: String])?["type"], "ephemeral")
+    }
+
+    func testCachingMarksOnlyLastTool() {
+        let twoTools = sampleTools + [[
+            "type": "function",
+            "function": ["name": "write_file", "description": "w", "parameters": ["type": "object"]] as [String: Any]
+        ]]
+        let result = cachedBody(messages: [Message(role: .user, content: "hi")], tools: twoTools)
+        let tools = result["tools"] as? [[String: Any]] ?? []
+        XCTAssertEqual(tools.count, 2)
+        XCTAssertNil(tools.first?["cache_control"], "only the LAST tool carries the breakpoint")
+        XCTAssertEqual((tools.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+    }
+
+    func testCachingMarksLastContentBlockOfLastMessage() {
+        let result = cachedBody(messages: [
+            Message(role: .user, content: "first"),
+            Message(role: .user, content: "second")
+        ])
+        let messages = result["messages"] as? [[String: Any]] ?? []
+        XCTAssertEqual(messages.count, 2)
+        let firstBlocks = messages.first?["content"] as? [[String: Any]] ?? []
+        XCTAssertNil(firstBlocks.last?["cache_control"], "earlier messages carry no breakpoint")
+        let lastBlocks = messages.last?["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual((lastBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+    }
+
+    func testCachingMarksToolResultBlocks() {
+        let call = ToolCall(id: "toolu_9", name: "read_file", arguments: "{}")
+        let result = cachedBody(messages: [
+            Message(role: .user, content: "go"),
+            Message(role: .assistant, content: "", toolCalls: [call]),
+            Message(role: .tool, content: "file contents", toolCallId: "toolu_9")
+        ])
+        let messages = result["messages"] as? [[String: Any]] ?? []
+        let lastBlocks = messages.last?["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual(lastBlocks.last?["type"] as? String, "tool_result")
+        XCTAssertEqual((lastBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+    }
+
+    func testCachingDisabledKeepsLegacyShape() {
+        let result = body(messages: [
+            Message(role: .system, content: "Be terse."),
+            Message(role: .user, content: "hi")
+        ], tools: sampleTools)
+        XCTAssertEqual(result["system"] as? String, "Be terse.", "kill-switch must restore the plain-string system")
+        let tools = result["tools"] as? [[String: Any]] ?? []
+        XCTAssertNil(tools.last?["cache_control"])
+        let messages = result["messages"] as? [[String: Any]] ?? []
+        let blocks = messages.last?["content"] as? [[String: Any]] ?? []
+        XCTAssertNil(blocks.last?["cache_control"])
+    }
 }

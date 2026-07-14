@@ -264,9 +264,10 @@ extension ChatViewModel {
                     result: result,
                     wasError: !success
                 ) {
-                    // Inject pivot strategy as a system message to break the loop
-                    let pivotMsg = Message(role: .system, content: pivot.systemMessage)
-                    currentConversation?.messages.append(pivotMsg)
+                    // Inject pivot strategy to break the loop. User-role, not
+                    // system: mid-run system messages get hoisted into the
+                    // Anthropic system block and invalidate the prompt cache.
+                    appendAgentNote(pivot.systemMessage)
                 }
 
                 // --- Code Change Tracking: record file modifications for adversarial review ---
@@ -287,8 +288,7 @@ extension ChatViewModel {
                         failedCommand: call.name,
                         workingDirectory: workingDirectory
                     ) {
-                        let analysisMsg = Message(role: .system, content: analysis.markdownSummary)
-                        currentConversation?.messages.append(analysisMsg)
+                        appendAgentNote(analysis.markdownSummary)
                     }
                 }
             }
@@ -298,6 +298,17 @@ extension ChatViewModel {
         } while iterationCount < maxIterations
 
         await runPostAgentCleanup(iterationCount: iterationCount, maxIterations: maxIterations)
+    }
+
+    // MARK: - Agent Notes
+
+    /// Injects harness guidance into the conversation as a USER-role message.
+    /// Never use `.system` for mid-run injections: `anthropicBody` hoists all
+    /// system messages into the top-level system block, which both invalidates
+    /// the prompt-cache breakpoint and reorders context.
+    func appendAgentNote(_ text: String) {
+        let note = Message(role: .user, content: "[Agent notice] \(text)")
+        currentConversation?.messages.append(note)
     }
 
     // MARK: - Retry Logic
