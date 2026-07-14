@@ -90,6 +90,11 @@ class ChatViewModel: ObservableObject {
     /// Gate/verify telemetry for the current run (recorded onto RunOutcome).
     var currentRunAutoVerifyCycles = 0
     var currentRunCompletionRetries = 0
+    /// Rolling context compaction (see ChatViewModel+Compaction). Never
+    /// mutates the persisted conversation; reset when the conversation changes.
+    var compactionSummary: String?
+    var compactionCutoffIndex = 0
+    var isCompacting = false
 
     /// Preserved partial response content when a stream error occurs.
     @Published var streamErrorPartialContent: String?

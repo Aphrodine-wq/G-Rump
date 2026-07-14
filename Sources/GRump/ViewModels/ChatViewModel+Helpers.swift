@@ -92,7 +92,21 @@ extension ChatViewModel {
         }
 
         if let conversation = currentConversation {
-            let msgs = conversation.messages
+            var msgs = conversation.messages
+
+            // Consume rolling compaction: pinned framing + summary note
+            // replace everything before the cutoff (persisted history is
+            // untouched — this shapes only the API payload).
+            if compactionCutoffIndex > 0, compactionCutoffIndex < msgs.count, let summary = compactionSummary {
+                var reduced: [Message] = []
+                if let framing = msgs.prefix(compactionCutoffIndex).first(where: { $0.role == .user }) {
+                    reduced.append(framing)
+                }
+                reduced.append(Message(role: .user, content: "[Agent notice] Summary of earlier progress (older turns compacted):\n\(summary)"))
+                reduced.append(contentsOf: msgs[compactionCutoffIndex...])
+                msgs = reduced
+            }
+
             let estimatedTokens = msgs.reduce(0) { $0 + estimateTokens($1.content) }
             let contextLimit = selectedModel.contextWindow - selectedModel.maxOutput - 2000
 
@@ -150,13 +164,20 @@ extension ChatViewModel {
         let nonSystemMsgs = messages.filter { $0.role != .system }
 
         let systemTokens = systemMsgs.reduce(0) { $0 + estimateMessageTokens($1) }
-        let budget = targetTokens - systemTokens
+        var budget = targetTokens - systemTokens
         guard budget > 0 else {
             // Even system prompt is too large; keep just the last system message
             return Array(systemMsgs.suffix(1))
         }
 
-        // 2. Walk backwards through non-system messages, fitting as many as possible
+        // 2. Pin the first user message — the task framing must survive
+        // truncation or long runs forget what they were asked to do.
+        let pinned = nonSystemMsgs.first(where: { $0.role == .user })
+        if let pinned {
+            budget -= estimateMessageTokens(pinned)
+        }
+
+        // 3. Walk backwards through non-system messages, fitting as many as possible
         var result: [Message] = []
         var tokenCount = 0
 
@@ -175,13 +196,25 @@ extension ChatViewModel {
             tokenCount += msgTokens
         }
 
-        // 3. Prepend system messages
-        let droppedCount = nonSystemMsgs.count - result.count
-        if droppedCount > 0 {
-            let note = Message(role: .system, content: "[Context note: \(droppedCount) earlier messages were omitted to fit context window. The most recent messages are preserved.]")
-            result.insert(note, at: 0)
+        // 4. Orphan guard: a tool_result whose parent assistant tool_use turn
+        // was dropped is rejected by the Anthropic API — drop leading tool
+        // messages until the window starts on a non-tool message.
+        while let first = result.first, first.role == .tool {
+            result.removeFirst()
         }
-        return systemMsgs + result
+
+        // 5. Re-attach the pinned framing (dedupe by id) + a drop note.
+        // The note is user-role: a system-role note would be hoisted into the
+        // Anthropic system block and invalidate the prompt cache every turn.
+        var head: [Message] = []
+        if let pinned, !result.contains(where: { $0.id == pinned.id }) {
+            head.append(pinned)
+        }
+        let droppedCount = nonSystemMsgs.count - result.count - head.count
+        if droppedCount > 0 {
+            head.append(Message(role: .user, content: "[Agent notice] \(droppedCount) earlier messages were omitted to fit the context window. The original request and the most recent messages are preserved."))
+        }
+        return systemMsgs + head + result
     }
 
     // MARK: - Project Memory

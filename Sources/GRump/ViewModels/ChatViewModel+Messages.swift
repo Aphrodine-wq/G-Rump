@@ -10,6 +10,7 @@ extension ChatViewModel {
         conversations.insert(conversation, at: 0)
         currentConversation = conversation
         currentPlan = nil
+        resetCompactionState()
         userInput = ""
         syncDirty = true
         flushSync()
@@ -59,9 +60,16 @@ extension ChatViewModel {
         }
         if currentConversation?.id != conversation.id {
             currentPlan = nil
+            resetCompactionState()
         }
         currentConversation = conversation
         userInput = loadDraft(forConversationId: conversation.id)
+    }
+
+    func resetCompactionState() {
+        compactionSummary = nil
+        compactionCutoffIndex = 0
+        isCompacting = false
     }
 
     func syncConversation() {

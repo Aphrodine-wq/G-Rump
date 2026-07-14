@@ -32,6 +32,10 @@ extension ChatViewModel {
             var textBuffer = ""
             var toolCallBuffers: [Int: (id: String, name: String, args: String)] = [:]
 
+            // Rolling compaction: summarize old turns before the context
+            // fills, so buildAPIMessages never has to hard-drop the plan.
+            await maybeCompactContext()
+
             let apiMessages = buildAPIMessages(cachedPrompt: cachedPrompt)
             let stream: AsyncThrowingStream<StreamEvent, Error>
 
