@@ -19,6 +19,9 @@ struct MessageRow: View {
     @EnvironmentObject var viewModel: ChatViewModel
     let message: Message
     var agentMode: AgentMode = .plan
+    /// Line count computed once per row — long messages would otherwise re-split
+    /// their full content on every body evaluation (each hover toggle).
+    private let contentLineCount: Int
     @State private var showCopyConfirm = false
     @State private var isHovered = false
     @State private var reaction: MessageReaction?
@@ -27,6 +30,14 @@ struct MessageRow: View {
     @State private var showAllTools = false
     @State private var isCollapsed: Bool? // nil = auto-detect on appear
     @ObservedObject private var speech = SpeechOutputService.shared
+
+    init(message: Message, agentMode: AgentMode = .plan) {
+        self.message = message
+        self.agentMode = agentMode
+        self.contentLineCount = message.content.reduce(into: 1) { count, char in
+            if char == "\n" { count += 1 }
+        }
+    }
 
     /// Live brain config (cached read) for the TTS affordance.
     private var brainConfig: BrainConfig { BrainConfigStore.shared.load() }
@@ -37,7 +48,22 @@ struct MessageRow: View {
     private static let collapsedPreviewLines = 30
 
     private var shouldAutoCollapse: Bool {
-        !isUser && message.content.components(separatedBy: "\n").count > Self.collapseThreshold
+        !isUser && contentLineCount > Self.collapseThreshold
+    }
+
+    /// First `collapsedPreviewLines` lines without materializing the full line array.
+    private var collapsedPreview: String {
+        let content = message.content
+        var newlines = 0
+        var idx = content.startIndex
+        while idx < content.endIndex {
+            if content[idx] == "\n" {
+                newlines += 1
+                if newlines == Self.collapsedPreviewLines { break }
+            }
+            idx = content.index(after: idx)
+        }
+        return String(content[..<idx])
     }
 
     private var effectivelyCollapsed: Bool {
@@ -156,6 +182,12 @@ struct MessageRow: View {
 
     // MARK: - Assistant Message (flat text, small inline icon)
 
+    /// Readable (non-redacted) reasoning captured with this message, if any.
+    private var persistedThinkingText: String {
+        guard let blocks = message.thinkingBlocks else { return "" }
+        return blocks.filter { !$0.isRedacted }.map(\.thinking).joined(separator: "\n\n")
+    }
+
     private var assistantBlock: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Inline label: tiny frowny icon + "G-Rump"
@@ -164,6 +196,11 @@ struct MessageRow: View {
                 Text("G-Rump")
                     .font(Typography.captionSmallSemibold)
                     .foregroundColor(themeManager.palette.textMuted)
+            }
+
+            // Captured reasoning trace — collapsed by default, reopenable
+            if !persistedThinkingText.isEmpty {
+                ThinkingDisclosureView(thinkingText: persistedThinkingText)
             }
 
             // Tool calls as compact one-liners
@@ -218,11 +255,7 @@ struct MessageRow: View {
             if !message.content.isEmpty {
                 if effectivelyCollapsed {
                     // Show truncated preview
-                    let previewText = message.content
-                        .split(separator: "\n", omittingEmptySubsequences: false)
-                        .prefix(Self.collapsedPreviewLines)
-                        .joined(separator: "\n")
-                    MarkdownTextView(text: previewText)
+                    MarkdownTextView(text: collapsedPreview)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
 
@@ -239,8 +272,7 @@ struct MessageRow: View {
                             HStack(spacing: Spacing.md) {
                                 Image(systemName: "chevron.down")
                                     .font(.system(size: 9, weight: .bold))
-                                let totalLines = message.content.components(separatedBy: "\n").count
-                                Text("Show all \(totalLines) lines")
+                                Text("Show all \(contentLineCount) lines")
                                     .font(Typography.captionSmallSemibold)
                             }
                             .foregroundColor(themeManager.palette.effectiveAccent)
@@ -329,9 +361,6 @@ struct MessageRow: View {
             // Copy
             copyButton
 
-            // Copy as Markdown
-            copyMarkdownButton
-
             // Speak (TTS) — only when enabled
             if brainConfig.ttsEnabled {
                 speakButton
@@ -412,34 +441,6 @@ struct MessageRow: View {
         }
         .buttonStyle(ScaleButtonStyle())
         .accessibilityLabel(speech.isSpeaking ? "Stop speaking" : "Speak message")
-    }
-
-    // MARK: - Copy as Markdown
-
-    private var copyMarkdownButton: some View {
-        Button(action: {
-            #if os(macOS)
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(message.content, forType: .string)
-            #else
-            UIPasteboard.general.string = message.content
-            #endif
-            showCopyConfirm = true
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(1500))
-                showCopyConfirm = false
-            }
-        }) {
-            HStack(spacing: Spacing.xs) {
-                Image(systemName: "text.alignleft")
-                    .font(Typography.micro)
-                Text("Markdown")
-                    .font(Typography.micro)
-            }
-            .foregroundColor(themeManager.palette.textMuted)
-        }
-        .buttonStyle(ScaleButtonStyle())
-        .accessibilityLabel("Copy as markdown")
     }
 
     private func toolIconForName(_ name: String) -> String {

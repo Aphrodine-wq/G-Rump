@@ -112,12 +112,6 @@ struct StreamingStatusLine: View {
                     }
                 }
                 .transition(.opacity)
-                .onAppear {
-                    // Auto-fade the status line 3 seconds after completion
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 3_000_000_000)
-                    }
-                }
             case .error(let msg):
                 Text("Error: \(msg)")
                     .foregroundColor(.red)

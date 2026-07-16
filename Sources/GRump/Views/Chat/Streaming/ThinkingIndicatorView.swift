@@ -144,6 +144,70 @@ struct ThinkingIndicatorView: View {
     }
 }
 
+// MARK: - Persisted Thinking Disclosure
+//
+// Static, collapsed-by-default reasoning trace for COMPLETED assistant messages.
+// The live streaming path uses ThinkingIndicatorView above; this renders the
+// thinking blocks that were captured with the message (Claude-style "Thought
+// process" you can reopen later). No timer, no shimmer.
+
+struct ThinkingDisclosureView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let thinkingText: String
+
+    @State private var isExpanded: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Button(action: { withAnimation(.easeInOut(duration: Anim.quick)) { isExpanded.toggle() } }) {
+                HStack(spacing: Spacing.md) {
+                    Image(systemName: "brain")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(themeManager.palette.textMuted.opacity(0.7))
+                    Text("Thought process")
+                        .font(Typography.captionSmallSemibold)
+                        .foregroundColor(themeManager.palette.textMuted)
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(themeManager.palette.textMuted.opacity(0.5))
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isExpanded ? "Hide thought process" : "Show thought process")
+
+            if isExpanded {
+                ScrollView {
+                    Text(thinkingText)
+                        .font(Typography.captionSmall)
+                        .fontDesign(.monospaced)
+                        .foregroundColor(themeManager.palette.textMuted.opacity(0.7))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 200)
+                .padding(Spacing.lg)
+                .background(
+                    RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                        .fill(themeManager.palette.bgDark.opacity(0.5))
+                )
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity
+                ))
+            }
+        }
+        .padding(.leading, Spacing.lg)
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                .fill(themeManager.palette.effectiveAccent.opacity(0.25))
+                .frame(width: 2.5)
+                .padding(.vertical, Spacing.sm)
+        }
+    }
+}
+
 // MARK: - Thinking Dots Animation
 
 /// Three dots that animate in a smooth wave pattern like Claude's thinking indicator.
