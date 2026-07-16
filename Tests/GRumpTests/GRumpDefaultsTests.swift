@@ -42,6 +42,17 @@ final class GRumpDefaultsTests: XCTestCase {
         let prompt = GRumpDefaults.defaultSystemPrompt
         XCTAssertTrue(prompt.contains("Communication Style"))
         XCTAssertTrue(prompt.contains("direct and concise"))
+        XCTAssertTrue(prompt.contains("Lead with the answer"), "Missing lead-with-outcome guidance")
+        XCTAssertTrue(prompt.contains("Match the response to the question"), "Missing length-calibration guidance")
+        XCTAssertTrue(prompt.contains("Report outcomes faithfully"), "Missing honest-reporting guidance")
+        XCTAssertTrue(prompt.contains("language tag"), "Missing code fence guidance")
+    }
+
+    func testDefaultSystemPromptContainsAnsweringVsActing() {
+        let prompt = GRumpDefaults.defaultSystemPrompt
+        XCTAssertTrue(prompt.contains("Answering vs. Acting"), "Missing answering-vs-acting contract")
+        XCTAssertTrue(prompt.contains("the deliverable is the answer"), "Questions must be answered, not acted on")
+        XCTAssertTrue(prompt.contains("apply it only when asked"), "Reported problems must not trigger unasked fixes")
     }
 
     func testDefaultSystemPromptContainsWorkingDirectoryGuidance() {
