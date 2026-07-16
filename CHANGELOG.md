@@ -8,8 +8,10 @@ All notable changes to G-Rump are documented here. The format follows
 
 The reliability-and-quality release: the agent loop stops trusting "the
 model went quiet" as proof of "done", Claude Fable 5 is fully supported,
-adaptive thinking raises coding quality on every current Claude model, and
-runs can go twice as long.
+adaptive thinking raises coding quality on every current Claude model, runs
+can go twice as long, and chat responses got a rendering overhaul — faster,
+more correct markdown, aligned tables, JSON highlighting, and reopenable
+thought processes.
 
 ### Added
 
@@ -58,6 +60,20 @@ runs can go twice as long.
   tasks against the Anthropic API with the app's actual tool schemas
   (`GRump --dump-tools`), graded deterministically; completion-rate history
   lands in `evals/history.jsonl`.
+- **Thought process on past messages.** Reasoning traces captured from
+  thinking models were persisted but invisible — completed assistant
+  messages now show a collapsed "Thought process" disclosure you can reopen
+  any time (redacted blocks stay hidden).
+- **Markdown tables, done properly.** Separator alignment (`:---`, `:---:`,
+  `---:`) is respected per column, ragged rows normalize to the header's
+  column count (short rows pad, overflow folds into the last cell), and data
+  rows zebra-stripe for scannability.
+- **JSON syntax highlighting.** `json` / `jsonc` / `json5` / `jsonl` /
+  `ndjson` blocks highlight literals, strings, and numbers instead of
+  rendering flat — the single most common block type in AI output.
+- **More inline markdown.** `_italic_` and `__bold__` (word-boundary aware,
+  so `snake_case` stays plain) and backslash escapes (`\*` renders a
+  literal asterisk).
 
 ### Fixed
 
@@ -74,12 +90,29 @@ runs can go twice as long.
 - **`.grump/context.md` was ignored** for projects without a
   `config.json`.
 - **Truncation could orphan tool results** (API 400s deep into long runs).
+- **Streaming could duplicate text fragments.** The incremental markdown
+  parser estimated block offsets to skip re-parsing, but the estimates
+  undercounted blank lines — mid-stream re-parses could start inside
+  already-rendered text and repeat it. Streaming now fully re-parses off
+  the main thread (still debounced to ~60fps); correct by construction.
+- **Emphasis false positives.** `2 * 3 * 4` no longer italicizes " 3 " —
+  emphasis delimiters require non-whitespace flanking.
+- **Code blocks clipped at larger content sizes.** Line heights were
+  hardcoded for the default text scale; they now scale with the
+  content-size preference, keeping the line-number gutter and code aligned.
+- **The streaming cursor vanished on long code blocks** once the live view
+  truncated to the last 8 lines (it compared against the untruncated list).
 
 ### Changed
 
 - **Panel dock is now a single source of truth.** The right-edge sidebar
   renders `PanelTab.dockGroups`, and tests assert every panel appears in
   the dock exactly once — a new panel can no longer be silently unreachable.
+- **Chat rendering is dramatically cheaper.** Inline formatting batches
+  plain text runs instead of appending one attributed character at a time
+  (long paragraphs: thousands of appends → a handful); syntax-highlighted
+  code renders one concatenated Text per line instead of one view per token;
+  long messages no longer re-split their full content on every hover.
 
 ### Removed
 
@@ -87,6 +120,12 @@ runs can go twice as long.
   `secondaryActivityBarVisible`, and `secondarySidebarVisible` persisted to
   UserDefaults but were consumed nowhere; they are gone, along with a
   never-rendered "Quick Input Position" customizer section.
+- **The duplicate "Markdown" copy button** on assistant messages — it was
+  byte-identical to Copy.
+- **The Run button on unlabeled code blocks.** Only explicitly tagged shell
+  blocks (`bash`, `zsh`, `sh`, …) offer Run in Terminal; a block with no
+  language tag no longer grows a button that silently executes arbitrary
+  text.
 
 ## [2.1.0] - 2026-07-14
 
