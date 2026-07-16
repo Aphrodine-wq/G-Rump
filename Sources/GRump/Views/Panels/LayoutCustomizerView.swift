@@ -8,14 +8,8 @@ class LayoutOptions: ObservableObject {
     @Published var activityBarVisible: Bool {
         didSet { UserDefaults.standard.set(activityBarVisible, forKey: "LayoutActivityBarVisible") }
     }
-    @Published var secondaryActivityBarVisible: Bool {
-        didSet { UserDefaults.standard.set(secondaryActivityBarVisible, forKey: "LayoutSecondaryActivityBarVisible") }
-    }
     @Published var primarySidebarVisible: Bool {
         didSet { UserDefaults.standard.set(primarySidebarVisible, forKey: "LayoutPrimarySidebarVisible") }
-    }
-    @Published var secondarySidebarVisible: Bool {
-        didSet { UserDefaults.standard.set(secondarySidebarVisible, forKey: "LayoutSecondarySidebarVisible") }
     }
     @Published var panelVisible: Bool {
         didSet { UserDefaults.standard.set(panelVisible, forKey: "LayoutPanelVisible") }
@@ -26,12 +20,6 @@ class LayoutOptions: ObservableObject {
 
     @Published var primarySidebarPosition: SidebarPosition {
         didSet { UserDefaults.standard.set(primarySidebarPosition.rawValue, forKey: "LayoutPrimarySidebarPosition") }
-    }
-    @Published var panelAlignment: PanelAlignment {
-        didSet { UserDefaults.standard.set(panelAlignment.rawValue, forKey: "LayoutPanelAlignment") }
-    }
-    @Published var quickInputPosition: QuickInputPosition {
-        didSet { UserDefaults.standard.set(quickInputPosition.rawValue, forKey: "LayoutQuickInputPosition") }
     }
 
     @Published var fullScreenMode: Bool {
@@ -49,32 +37,14 @@ class LayoutOptions: ObservableObject {
         var displayName: String { rawValue.capitalized }
     }
 
-    enum PanelAlignment: String, CaseIterable {
-        case left, right, center, justify
-        var displayName: String { rawValue.capitalized }
-    }
-
-    enum QuickInputPosition: String, CaseIterable {
-        case top, center
-        var displayName: String { rawValue.capitalized }
-    }
-
     init() {
         self.activityBarVisible = UserDefaults.standard.object(forKey: "LayoutActivityBarVisible") as? Bool ?? true
-        self.secondaryActivityBarVisible = UserDefaults.standard.object(forKey: "LayoutSecondaryActivityBarVisible") as? Bool ?? false
         self.primarySidebarVisible = UserDefaults.standard.object(forKey: "LayoutPrimarySidebarVisible") as? Bool ?? true
-        self.secondarySidebarVisible = UserDefaults.standard.object(forKey: "LayoutSecondarySidebarVisible") as? Bool ?? false
         self.panelVisible = UserDefaults.standard.object(forKey: "LayoutPanelVisible") as? Bool ?? true
         self.statusBarVisible = UserDefaults.standard.object(forKey: "LayoutStatusBarVisible") as? Bool ?? true
 
         let sidebarPos = UserDefaults.standard.string(forKey: "LayoutPrimarySidebarPosition") ?? "right"
         self.primarySidebarPosition = SidebarPosition(rawValue: sidebarPos) ?? .right
-
-        let panelAlign = UserDefaults.standard.string(forKey: "LayoutPanelAlignment") ?? "center"
-        self.panelAlignment = PanelAlignment(rawValue: panelAlign) ?? .center
-
-        let quickInput = UserDefaults.standard.string(forKey: "LayoutQuickInputPosition") ?? "center"
-        self.quickInputPosition = QuickInputPosition(rawValue: quickInput) ?? .center
 
         self.fullScreenMode = UserDefaults.standard.object(forKey: "LayoutFullScreenMode") as? Bool ?? false
         self.zenMode = UserDefaults.standard.object(forKey: "LayoutZenMode") as? Bool ?? false
@@ -270,30 +240,6 @@ struct LayoutCustomizerView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Quick Input Section
-
-    private var quickInputSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.xl) {
-            HStack {
-                Text("Quick Input Position")
-                    .font(Typography.captionSemibold)
-                    .foregroundColor(themeManager.palette.textSecondary)
-                    .textCase(.uppercase)
-                    .tracking(0.4)
-
-                Spacer()
-
-                HStack(spacing: Spacing.md) {
-                    ForEach(LayoutOptions.QuickInputPosition.allCases, id: \.self) { position in
-                        positionButton(title: position.displayName, isSelected: options.quickInputPosition == position) {
-                            options.quickInputPosition = position
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // MARK: - Modes Section
 
     private var modesSection: some View {
@@ -351,14 +297,10 @@ struct LayoutCustomizerView: View {
 
     private func resetToDefaults() {
         options.activityBarVisible = true
-        options.secondaryActivityBarVisible = false
         options.primarySidebarVisible = true
-        options.secondarySidebarVisible = false
         options.panelVisible = true
         options.statusBarVisible = true
         options.primarySidebarPosition = .right
-        options.panelAlignment = .center
-        options.quickInputPosition = .center
         options.fullScreenMode = false
         options.zenMode = false
         options.centeredLayout = false

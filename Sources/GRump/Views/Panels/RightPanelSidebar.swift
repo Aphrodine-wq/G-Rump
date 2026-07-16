@@ -12,38 +12,22 @@ struct RightPanelSidebar: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Primary panels (top group)
-            VStack(spacing: Spacing.xs) {
-                ForEach([PanelTab.chat, .files, .git, .tests, .terminal, .memory, .learning], id: \.self) { tab in
-                    panelButton(tab)
+            // Panel groups from the single source of truth (PanelTab.dockGroups),
+            // separated by thin dividers.
+            ForEach(Array(PanelTab.dockGroups.enumerated()), id: \.offset) { index, group in
+                if index > 0 {
+                    Rectangle()
+                        .fill(themeManager.palette.borderSubtle)
+                        .frame(height: Border.thin)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.lg)
                 }
-            }
-            .padding(.top, Spacing.xl)
-
-            Rectangle()
-                .fill(themeManager.palette.borderSubtle)
-                .frame(height: Border.thin)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.vertical, Spacing.lg)
-
-            // Apple dev panels (middle group)
-            VStack(spacing: Spacing.xs) {
-                ForEach([PanelTab.build, .preview, .simulator, .xcode, .spm, .profiling, .logs, .docs], id: \.self) { tab in
-                    panelButton(tab)
+                VStack(spacing: Spacing.xs) {
+                    ForEach(group, id: \.self) { tab in
+                        panelButton(tab)
+                    }
                 }
-            }
-
-            Rectangle()
-                .fill(themeManager.palette.borderSubtle)
-                .frame(height: Border.thin)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.vertical, Spacing.lg)
-
-            // Content panels (bottom group)
-            VStack(spacing: Spacing.xs) {
-                ForEach([PanelTab.assets, .localization, .schema, .appstore, .accessibility], id: \.self) { tab in
-                    panelButton(tab)
-                }
+                .padding(.top, index == 0 ? Spacing.xl : 0)
             }
 
             Spacer()

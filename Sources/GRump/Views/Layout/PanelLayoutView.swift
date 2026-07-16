@@ -6,7 +6,6 @@ struct PanelLayoutView: View {
     @ObservedObject var layoutOptions: LayoutOptions
     @AppStorage("SelectedPanel") private var selectedPanelRaw: String = PanelTab.chat.rawValue
     @AppStorage("RightPanelCollapsed") private var rightPanelCollapsed = true
-    @Binding var showSettings: Bool
     var lspService: LSPService?
 
     let chatDetailView: AnyView

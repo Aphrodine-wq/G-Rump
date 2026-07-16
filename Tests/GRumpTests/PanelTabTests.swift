@@ -129,4 +129,25 @@ final class PanelTabTests: XCTestCase {
         let labels = PanelTab.allCases.map(\.label)
         XCTAssertEqual(labels.count, Set(labels).count, "All PanelTab labels should be unique")
     }
+
+    // MARK: - Dock Groups
+
+    func testDockGroupsCoverAllCasesExactlyOnce() {
+        let docked = PanelTab.dockGroups.flatMap { $0 }
+        XCTAssertEqual(docked.count, PanelTab.allCases.count,
+                       "Dock groups must contain every panel exactly once — no duplicates, no omissions")
+        XCTAssertEqual(Set(docked), Set(PanelTab.allCases),
+                       "Every PanelTab case must appear in a dock group or it is unreachable from the sidebar")
+    }
+
+    func testDockGroupsAreNonEmpty() {
+        for (index, group) in PanelTab.dockGroups.enumerated() {
+            XCTAssertFalse(group.isEmpty, "Dock group \(index) should not be empty")
+        }
+    }
+
+    func testDockGroupsStartWithChat() {
+        XCTAssertEqual(PanelTab.dockGroups.first?.first, .chat,
+                       "Chat is the app's home panel and should lead the dock")
+    }
 }

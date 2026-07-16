@@ -75,6 +75,16 @@ enum PanelTab: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Dock groups for the right panel icon sidebar, top to bottom:
+    /// core workflow, Apple dev tools, content tools.
+    /// Single source of truth — `RightPanelSidebar` renders exactly these,
+    /// and a test asserts every case appears exactly once.
+    static let dockGroups: [[PanelTab]] = [
+        [.chat, .files, .git, .tests, .terminal, .memory, .learning],
+        [.build, .preview, .simulator, .xcode, .spm, .profiling, .logs, .docs],
+        [.assets, .localization, .schema, .appstore, .accessibility]
+    ]
+
     var shortcut: String? {
         switch self {
         case .chat: return "1"

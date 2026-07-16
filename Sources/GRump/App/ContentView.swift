@@ -191,7 +191,6 @@ struct ContentView: View {
             chatArea: AnyView(
                 PanelLayoutView(
                     layoutOptions: LayoutOptions.shared,
-                    showSettings: $state.showSettings,
                     lspService: state.lspService,
                     chatDetailView: AnyView(chatDetailView)
                 )
