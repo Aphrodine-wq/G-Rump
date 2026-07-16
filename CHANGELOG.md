@@ -11,6 +11,12 @@ The task-completion reliability program: the agent loop stops trusting
 
 ### Added
 
+- **Response quality contract.** The default system prompt now spells out
+  how answers should read: lead with the outcome, calibrate structure to
+  the question, complete sentences over fragment chains, no filler openers,
+  `file:line` code references, and honest verified-vs-should-work reporting.
+  A new Answering-vs-Acting rule keeps questions from triggering unasked
+  edits — problems get diagnosed and a fix proposed, applied only on request.
 - **Completion gate.** When a run that changed code (or has open plan steps)
   tries to finish, a fast outside check audits the original request first —
   open plan steps block completion deterministically; otherwise a light-model
@@ -50,6 +56,19 @@ The task-completion reliability program: the agent loop stops trusting
 - **`.grump/context.md` was ignored** for projects without a
   `config.json`.
 - **Truncation could orphan tool results** (API 400s deep into long runs).
+
+### Changed
+
+- **Panel dock is now a single source of truth.** The right-edge sidebar
+  renders `PanelTab.dockGroups`, and tests assert every panel appears in
+  the dock exactly once — a new panel can no longer be silently unreachable.
+
+### Removed
+
+- **Dead layout settings.** `panelAlignment`, `quickInputPosition`,
+  `secondaryActivityBarVisible`, and `secondarySidebarVisible` persisted to
+  UserDefaults but were consumed nowhere; they are gone, along with a
+  never-rendered "Quick Input Position" customizer section.
 
 ## [2.1.0] - 2026-07-14
 
