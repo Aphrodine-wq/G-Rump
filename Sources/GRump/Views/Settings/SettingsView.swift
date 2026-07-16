@@ -34,7 +34,7 @@ struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State var selectedTab: SettingsTab = .account
-    @AppStorage(SettingsKeys.maxAgentSteps) var maxAgentStepsStorage: Int = 200
+    @AppStorage(SettingsKeys.maxAgentSteps) var maxAgentStepsStorage: Int = 400
     @AppStorage("AutoVerifyEnabled") var autoVerifyEnabledSetting: Bool = true
     @AppStorage("AutoVerifyRunTests") var autoVerifyRunTestsSetting: Bool = false
     @AppStorage("CompletionGateEnabled") var completionGateEnabledSetting: Bool = true

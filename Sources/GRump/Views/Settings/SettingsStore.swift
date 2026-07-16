@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 final class SettingsStore: ObservableObject {
-    @AppStorage("MaxAgentSteps") var maxAgentSteps: Int = 200
+    @AppStorage("MaxAgentSteps") var maxAgentSteps: Int = 400
     @AppStorage("CompactToolResults") var compactToolResults: Bool = false
     @AppStorage("AllowSystemNotifications") var allowSystemNotifications: Bool = true
     @AppStorage("NotificationSoundEnabled") var notificationSoundEnabled: Bool = true

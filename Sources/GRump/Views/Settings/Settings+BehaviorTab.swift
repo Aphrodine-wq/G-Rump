@@ -44,18 +44,18 @@ extension SettingsView {
                         Text("Max agent steps")
                             .font(Typography.bodySmallMedium)
                             .foregroundColor(.textPrimary)
-                        Stepper(value: $maxAgentStepsStorage, in: 5...1000, step: 5) {
+                        Stepper(value: $maxAgentStepsStorage, in: 5...2000, step: 5) {
                             Text("\(maxAgentStepsStorage)")
                                 .font(Typography.bodySmall)
                                 .foregroundColor(.textSecondary)
                                 .frame(minWidth: 28, alignment: .trailing)
                         }
                         .onChange(of: maxAgentStepsStorage) { _, v in
-                            maxAgentStepsStorage = min(1000, max(5, v))
+                            maxAgentStepsStorage = min(2000, max(5, v))
                         }
                         .onAppear {
-                            if maxAgentStepsStorage < 5 || maxAgentStepsStorage > 1000 {
-                                maxAgentStepsStorage = 200
+                            if maxAgentStepsStorage < 5 || maxAgentStepsStorage > 2000 {
+                                maxAgentStepsStorage = 400
                             }
                         }
                     }
