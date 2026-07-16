@@ -82,6 +82,16 @@ extension MultiProviderAIService {
             case .assistant:
                 flushToolResults()
                 var blocks: [[String: Any]] = []
+                // Thinking blocks replay FIRST and unchanged — Claude Fable 5
+                // signs every block, and stripping or reordering them can
+                // reject the tool-use continuation.
+                for thinking in message.thinkingBlocks ?? [] {
+                    if let data = thinking.data {
+                        blocks.append(["type": "redacted_thinking", "data": data])
+                    } else if !thinking.signature.isEmpty {
+                        blocks.append(["type": "thinking", "thinking": thinking.thinking, "signature": thinking.signature])
+                    }
+                }
                 if !message.content.isEmpty {
                     blocks.append(["type": "text", "text": message.content])
                 }
@@ -128,6 +138,13 @@ extension MultiProviderAIService {
             "stream": stream,
             "messages": apiMessages
         ]
+        // Adaptive thinking is the recommended mode for coding/agentic work.
+        // Opus 4.8 runs with thinking OFF when the param is omitted; Fable 5
+        // accepts an explicit adaptive (thinking is always on there). Models
+        // outside the gate (Haiku, older) reject the parameter.
+        if anthropicSupportsAdaptiveThinking(model) {
+            body["thinking"] = ["type": "adaptive"]
+        }
         let system = systemParts.joined(separator: "\n\n")
         if !system.isEmpty {
             if enableCaching {
@@ -145,6 +162,17 @@ extension MultiProviderAIService {
             body["tool_choice"] = ["type": "auto"]
         }
         return body
+    }
+
+    /// Models that accept `thinking: {type: "adaptive"}`. Explicit allowlist —
+    /// unknown or older models (Haiku 4.5, Sonnet 4.5, Opus 4.5 and earlier)
+    /// reject the parameter with a 400, so the default is to omit it.
+    nonisolated static func anthropicSupportsAdaptiveThinking(_ model: String) -> Bool {
+        let id = model.lowercased()
+        if id.contains("fable") || id.contains("mythos") { return true }
+        if id.contains("opus-4-6") || id.contains("opus-4-7") || id.contains("opus-4-8") { return true }
+        if id.contains("sonnet-4-6") || id.contains("sonnet-5") { return true }
+        return false
     }
 
     /// OpenAI-style {type: function, function: {name, description, parameters}}

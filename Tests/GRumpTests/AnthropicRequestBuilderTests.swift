@@ -227,4 +227,82 @@ final class AnthropicRequestBuilderTests: XCTestCase {
         let blocks = messages.last?["content"] as? [[String: Any]] ?? []
         XCTAssertNil(blocks.last?["cache_control"])
     }
+
+    // MARK: - Thinking block replay (Claude Fable 5)
+
+    func testThinkingBlocksReplayFirstInAssistantTurn() {
+        let call = ToolCall(id: "toolu_01", name: "read_file", arguments: "{\"path\": \"/tmp/a\"}")
+        let thinking = ThinkingBlock(thinking: "I'll read the file first.", signature: "sig_abc")
+        let result = body(messages: [
+            Message(role: .user, content: "read it"),
+            Message(role: .assistant, content: "Reading.", toolCalls: [call], thinkingBlocks: [thinking])
+        ])
+        let blocks = (result["messages"] as? [[String: Any]])?.last?["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual(blocks.count, 3)
+        XCTAssertEqual(blocks[0]["type"] as? String, "thinking",
+                       "Thinking must precede text and tool_use — reordering rejects the continuation")
+        XCTAssertEqual(blocks[0]["thinking"] as? String, "I'll read the file first.")
+        XCTAssertEqual(blocks[0]["signature"] as? String, "sig_abc")
+        XCTAssertEqual(blocks[1]["type"] as? String, "text")
+        XCTAssertEqual(blocks[2]["type"] as? String, "tool_use")
+    }
+
+    func testRedactedThinkingReplaysAsDataBlock() {
+        let redacted = ThinkingBlock(data: "opaque==")
+        let result = body(messages: [
+            Message(role: .user, content: "hi"),
+            Message(role: .assistant, content: "Done.", thinkingBlocks: [redacted])
+        ])
+        let blocks = (result["messages"] as? [[String: Any]])?.last?["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual(blocks.first?["type"] as? String, "redacted_thinking")
+        XCTAssertEqual(blocks.first?["data"] as? String, "opaque==")
+        XCTAssertNil(blocks.first?["thinking"], "Redacted blocks carry only data")
+    }
+
+    func testUnsignedThinkingBlocksAreDropped() {
+        // A regular thinking block without a signature can't be replayed —
+        // the API validates signatures on every non-redacted block.
+        let unsigned = ThinkingBlock(thinking: "partial", signature: "")
+        let result = body(messages: [
+            Message(role: .user, content: "hi"),
+            Message(role: .assistant, content: "Done.", thinkingBlocks: [unsigned])
+        ])
+        let blocks = (result["messages"] as? [[String: Any]])?.last?["content"] as? [[String: Any]] ?? []
+        XCTAssertEqual(blocks.count, 1)
+        XCTAssertEqual(blocks.first?["type"] as? String, "text")
+    }
+
+    // MARK: - Adaptive thinking parameter
+
+    func testAdaptiveThinkingSentForSupportedModels() {
+        for model in ["claude-opus-4-8", "claude-fable-5", "claude-sonnet-5"] {
+            let result = MultiProviderAIService.anthropicBody(
+                messages: [Message(role: .user, content: "hi")], model: model,
+                maxTokens: 64_000, stream: true, tools: nil)
+            let thinking = result["thinking"] as? [String: Any]
+            XCTAssertEqual(thinking?["type"] as? String, "adaptive", "\(model) should request adaptive thinking")
+            XCTAssertNil(thinking?["budget_tokens"], "budget_tokens 400s on current models")
+        }
+    }
+
+    func testAdaptiveThinkingOmittedForUnsupportedModels() {
+        for model in ["claude-haiku-4-5", "claude-sonnet-4-5", "claude-opus-4-5"] {
+            let result = MultiProviderAIService.anthropicBody(
+                messages: [Message(role: .user, content: "hi")], model: model,
+                maxTokens: 64_000, stream: true, tools: nil)
+            XCTAssertNil(result["thinking"], "\(model) rejects the adaptive thinking parameter")
+        }
+    }
+
+    func testAdaptiveThinkingGateMatrix() {
+        XCTAssertTrue(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-fable-5"))
+        XCTAssertTrue(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-mythos-5"))
+        XCTAssertTrue(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-opus-4-8"))
+        XCTAssertTrue(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-opus-4-7"))
+        XCTAssertTrue(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-sonnet-4-6"))
+        XCTAssertTrue(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-sonnet-5"))
+        XCTAssertFalse(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-haiku-4-5"))
+        XCTAssertFalse(MultiProviderAIService.anthropicSupportsAdaptiveThinking("claude-sonnet-4-5"))
+        XCTAssertFalse(MultiProviderAIService.anthropicSupportsAdaptiveThinking("gpt-5.2"))
+    }
 }

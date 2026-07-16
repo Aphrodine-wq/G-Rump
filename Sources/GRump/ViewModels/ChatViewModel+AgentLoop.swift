@@ -31,6 +31,10 @@ extension ChatViewModel {
 
             var textBuffer = ""
             var toolCallBuffers: [Int: (id: String, name: String, args: String)] = [:]
+            // Native reasoning blocks (Anthropic). Kept on the committed
+            // assistant message so later turns replay them unchanged —
+            // required on Claude Fable 5, which signs every block.
+            var thinkingBlockBuffer: [ThinkingBlock] = []
 
             // Rolling compaction: summarize old turns before the context
             // fills, so buildAPIMessages never has to hard-drop the plan.
@@ -97,6 +101,14 @@ extension ChatViewModel {
                             if let name = delta.function?.name { existing.name += name }
                             if let args = delta.function?.arguments { existing.args += args }
                             toolCallBuffers[idx] = existing
+                        }
+
+                    case .thinkingBlock(let block):
+                        thinkingBlockBuffer.append(block)
+                        // Surface summarized reasoning in the thinking UI when
+                        // the model provides it (empty under display: omitted).
+                        if !block.thinking.isEmpty {
+                            thinkingContent += block.thinking
                         }
 
                     case .done(let reason):
@@ -180,7 +192,8 @@ extension ChatViewModel {
                     let toolCalls: [ToolCall]? = toolCallBuffers.isEmpty ? nil : toolCallBuffers.sorted(by: { $0.key < $1.key }).map {
                         ToolCall(id: $0.value.id, name: $0.value.name, arguments: $0.value.args)
                     }
-                    let assistantMsg = Message(role: .assistant, content: textBuffer, toolCalls: toolCalls)
+                    let assistantMsg = Message(role: .assistant, content: textBuffer, toolCalls: toolCalls,
+                                               thinkingBlocks: thinkingBlockBuffer.isEmpty ? nil : thinkingBlockBuffer)
                     currentConversation?.messages.append(assistantMsg)
                     syncConversation()
                 }
@@ -193,10 +206,23 @@ extension ChatViewModel {
                 ToolCall(id: $0.value.id, name: $0.value.name, arguments: $0.value.args)
             }
             if !textBuffer.isEmpty || toolCalls != nil {
-                let assistantMsg = Message(role: .assistant, content: textBuffer, toolCalls: toolCalls)
+                let assistantMsg = Message(role: .assistant, content: textBuffer, toolCalls: toolCalls,
+                                           thinkingBlocks: thinkingBlockBuffer.isEmpty ? nil : thinkingBlockBuffer)
                 currentConversation?.messages.append(assistantMsg)
                 syncConversation()
                 streamingContent = ""
+            }
+
+            // Safety classifiers can decline a request (HTTP 200, stop_reason
+            // "refusal", possibly empty content — Claude Fable 5 especially).
+            // Without this the run just stops with nothing in the chat.
+            if finishReason == "refusal" {
+                if textBuffer.isEmpty {
+                    let notice = Message(role: .assistant, content: "The model declined this request (safety classifiers). Rephrase the request, or switch models — Settings → Models.")
+                    currentConversation?.messages.append(notice)
+                    syncConversation()
+                }
+                break
             }
 
             if toolCallBuffers.isEmpty || finishReason == "stop" {

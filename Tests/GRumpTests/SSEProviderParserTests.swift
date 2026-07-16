@@ -103,6 +103,97 @@ final class SSEProviderParserTests: XCTestCase {
         XCTAssertEqual(reason, "tool_calls")
     }
 
+    // MARK: - Anthropic native thinking (Fable 5 signs every block)
+
+    func testAnthropicThinkingBlockCapturedAcrossDeltas() {
+        var state = SSELineParser.AnthropicStreamState()
+        XCTAssertTrue(SSELineParser.parseAnthropicEvent([
+            "type": "content_block_start", "index": 0,
+            "content_block": ["type": "thinking", "thinking": "", "signature": ""]
+        ], state: &state).isEmpty, "Thinking start emits nothing — the block is buffered until stop")
+        XCTAssertTrue(SSELineParser.parseAnthropicEvent([
+            "type": "content_block_delta", "index": 0,
+            "delta": ["type": "thinking_delta", "thinking": "First I'll read "]
+        ], state: &state).isEmpty)
+        XCTAssertTrue(SSELineParser.parseAnthropicEvent([
+            "type": "content_block_delta", "index": 0,
+            "delta": ["type": "thinking_delta", "thinking": "the file."]
+        ], state: &state).isEmpty)
+        XCTAssertTrue(SSELineParser.parseAnthropicEvent([
+            "type": "content_block_delta", "index": 0,
+            "delta": ["type": "signature_delta", "signature": "sig_abc123"]
+        ], state: &state).isEmpty)
+
+        let events = SSELineParser.parseAnthropicEvent([
+            "type": "content_block_stop", "index": 0
+        ], state: &state)
+        guard case .thinkingBlock(let block)? = events.first else {
+            return XCTFail("Expected thinkingBlock at content_block_stop, got \(events)")
+        }
+        XCTAssertEqual(block.thinking, "First I'll read the file.")
+        XCTAssertEqual(block.signature, "sig_abc123")
+        XCTAssertFalse(block.isRedacted)
+        XCTAssertTrue(state.thinkingBuffers.isEmpty, "Buffer must clear after emission")
+    }
+
+    func testAnthropicRedactedThinkingRoundTripsFromStartEvent() {
+        var state = SSELineParser.AnthropicStreamState()
+        _ = SSELineParser.parseAnthropicEvent([
+            "type": "content_block_start", "index": 0,
+            "content_block": ["type": "redacted_thinking", "data": "opaque_payload=="]
+        ], state: &state)
+        let events = SSELineParser.parseAnthropicEvent([
+            "type": "content_block_stop", "index": 0
+        ], state: &state)
+        guard case .thinkingBlock(let block)? = events.first else {
+            return XCTFail("Expected thinkingBlock for redacted_thinking")
+        }
+        XCTAssertEqual(block.data, "opaque_payload==")
+        XCTAssertTrue(block.isRedacted)
+    }
+
+    func testAnthropicContentBlockStopForNonThinkingBlockEmitsNothing() {
+        var state = SSELineParser.AnthropicStreamState()
+        _ = SSELineParser.parseAnthropicEvent([
+            "type": "content_block_start", "index": 1,
+            "content_block": ["type": "tool_use", "id": "toolu_01", "name": "read_file"]
+        ], state: &state)
+        XCTAssertTrue(SSELineParser.parseAnthropicEvent([
+            "type": "content_block_stop", "index": 1
+        ], state: &state).isEmpty, "tool_use / text stops must not emit thinking blocks")
+    }
+
+    func testAnthropicThinkingDoesNotDisturbToolOrdinals() {
+        // A thinking block at index 0 must not shift tool ordinal mapping.
+        var state = SSELineParser.AnthropicStreamState()
+        _ = SSELineParser.parseAnthropicEvent([
+            "type": "content_block_start", "index": 0,
+            "content_block": ["type": "thinking", "thinking": "", "signature": ""]
+        ], state: &state)
+        let events = SSELineParser.parseAnthropicEvent([
+            "type": "content_block_start", "index": 1,
+            "content_block": ["type": "tool_use", "id": "toolu_01", "name": "read_file"]
+        ], state: &state)
+        guard case .toolCallDelta(let deltas)? = events.first else {
+            return XCTFail("Expected toolCallDelta")
+        }
+        XCTAssertEqual(deltas.first?.index, 0, "First tool still maps to ordinal 0")
+    }
+
+    func testAnthropicRefusalStopReasonPassesThrough() {
+        // Fable 5 safety classifiers end the turn with stop_reason "refusal"
+        // on HTTP 200 — the loop needs to see it verbatim to notify the user.
+        var state = SSELineParser.AnthropicStreamState()
+        let events = SSELineParser.parseAnthropicEvent([
+            "type": "message_delta",
+            "delta": ["stop_reason": "refusal"]
+        ], state: &state)
+        guard case .done(let reason)? = events.first else {
+            return XCTFail("Expected done event")
+        }
+        XCTAssertEqual(reason, "refusal")
+    }
+
     // MARK: - Google (Gemini)
 
     func testGoogleTextChunk() {

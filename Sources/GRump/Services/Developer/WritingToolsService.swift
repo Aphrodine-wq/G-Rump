@@ -201,9 +201,7 @@ final class WritingToolsService: ObservableObject {
                 switch event {
                 case .text(let text):
                     accumulated += text
-                case .done:
-                    break
-                case .toolCallDelta:
+                case .done, .toolCallDelta, .thinkingBlock:
                     break
                 }
             }

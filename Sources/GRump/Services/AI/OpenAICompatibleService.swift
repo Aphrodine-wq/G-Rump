@@ -382,6 +382,10 @@ enum SSELineParser {
 enum StreamEvent {
     case text(String)
     case toolCallDelta([ToolCallDelta])
+    /// A completed native reasoning block (Anthropic thinking / redacted_thinking).
+    /// Captured so assistant turns can replay it — required on Claude Fable 5,
+    /// where every response carries signed thinking blocks.
+    case thinkingBlock(ThinkingBlock)
     case done(String)
 }
 

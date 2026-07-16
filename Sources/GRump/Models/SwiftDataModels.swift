@@ -78,6 +78,7 @@ final class SDMessage {
     var timestamp: Date
     var toolCallId: String?
     var toolCallsData: Data? // JSON-encoded [ToolCall]
+    var thinkingBlocksData: Data? // JSON-encoded [ThinkingBlock]
 
     // Threading
     var parentMessageId: UUID?
@@ -100,6 +101,7 @@ final class SDMessage {
         timestamp: Date = Date(),
         toolCallId: String? = nil,
         toolCallsData: Data? = nil,
+        thinkingBlocksData: Data? = nil,
         parentMessageId: UUID? = nil,
         branchId: UUID? = nil,
         threadId: UUID? = nil,
@@ -114,6 +116,7 @@ final class SDMessage {
         self.timestamp = timestamp
         self.toolCallId = toolCallId
         self.toolCallsData = toolCallsData
+        self.thinkingBlocksData = thinkingBlocksData
         self.parentMessageId = parentMessageId
         self.branchId = branchId
         self.threadId = threadId
@@ -132,6 +135,16 @@ final class SDMessage {
         }
         set {
             toolCallsData = try? JSONEncoder().encode(newValue)
+        }
+    }
+
+    var thinkingBlocks: [ThinkingBlock]? {
+        get {
+            guard let data = thinkingBlocksData else { return nil }
+            return try? JSONDecoder().decode([ThinkingBlock].self, from: data)
+        }
+        set {
+            thinkingBlocksData = try? JSONEncoder().encode(newValue)
         }
     }
 
@@ -314,6 +327,10 @@ extension SDMessage {
                 guard let tc = legacy.toolCalls else { return nil }
                 return try? JSONEncoder().encode(tc)
             }(),
+            thinkingBlocksData: {
+                guard let tb = legacy.thinkingBlocks else { return nil }
+                return try? JSONEncoder().encode(tb)
+            }(),
             parentMessageId: legacy.parentMessageId,
             branchId: legacy.branchId,
             threadId: legacy.threadId,
@@ -329,7 +346,8 @@ extension SDMessage {
             content: content,
             timestamp: timestamp,
             toolCallId: toolCallId,
-            toolCalls: toolCalls
+            toolCalls: toolCalls,
+            thinkingBlocks: thinkingBlocks
         )
         msg.parentMessageId = parentMessageId
         msg.branchId = branchId
@@ -562,6 +580,7 @@ final class SDMessage: Codable, Identifiable {
     var timestamp: Date
     var toolCallId: String?
     var toolCallsData: Data?
+    var thinkingBlocksData: Data?
     var parentMessageId: UUID?
     var branchId: UUID?
     var threadId: UUID?
@@ -580,6 +599,7 @@ final class SDMessage: Codable, Identifiable {
         timestamp: Date = Date(),
         toolCallId: String? = nil,
         toolCallsData: Data? = nil,
+        thinkingBlocksData: Data? = nil,
         parentMessageId: UUID? = nil,
         branchId: UUID? = nil,
         threadId: UUID? = nil,
@@ -594,6 +614,7 @@ final class SDMessage: Codable, Identifiable {
         self.timestamp = timestamp
         self.toolCallId = toolCallId
         self.toolCallsData = toolCallsData
+        self.thinkingBlocksData = thinkingBlocksData
         self.parentMessageId = parentMessageId
         self.branchId = branchId
         self.threadId = threadId
@@ -610,6 +631,16 @@ final class SDMessage: Codable, Identifiable {
         }
         set {
             toolCallsData = try? JSONEncoder().encode(newValue)
+        }
+    }
+
+    var thinkingBlocks: [ThinkingBlock]? {
+        get {
+            guard let data = thinkingBlocksData else { return nil }
+            return try? JSONDecoder().decode([ThinkingBlock].self, from: data)
+        }
+        set {
+            thinkingBlocksData = try? JSONEncoder().encode(newValue)
         }
     }
 
@@ -790,6 +821,10 @@ extension SDMessage {
                 guard let tc = legacy.toolCalls else { return nil }
                 return try? JSONEncoder().encode(tc)
             }(),
+            thinkingBlocksData: {
+                guard let tb = legacy.thinkingBlocks else { return nil }
+                return try? JSONEncoder().encode(tb)
+            }(),
             parentMessageId: legacy.parentMessageId,
             branchId: legacy.branchId,
             threadId: legacy.threadId,
@@ -805,7 +840,8 @@ extension SDMessage {
             content: content,
             timestamp: timestamp,
             toolCallId: toolCallId,
-            toolCalls: toolCalls
+            toolCalls: toolCalls,
+            thinkingBlocks: thinkingBlocks
         )
         msg.parentMessageId = parentMessageId
         msg.branchId = branchId

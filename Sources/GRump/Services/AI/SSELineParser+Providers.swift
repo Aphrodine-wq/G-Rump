@@ -18,10 +18,14 @@ extension SSELineParser {
     // MARK: - Anthropic
 
     /// Maps Anthropic content-block indexes (which count text blocks too) to
-    /// the sequential tool ordinals the agent loop buffers by.
+    /// the sequential tool ordinals the agent loop buffers by, and accumulates
+    /// native thinking blocks so they can be replayed on later turns
+    /// (Claude Fable 5 signs every block; stripping them from an assistant
+    /// turn can reject the tool-use continuation).
     struct AnthropicStreamState {
         var blockOrdinals: [Int: Int] = [:]
         var nextToolOrdinal = 0
+        var thinkingBuffers: [Int: ThinkingBlock] = [:]
     }
 
     /// Parse one Anthropic SSE event (already JSON-decoded). Pure — all
@@ -33,17 +37,33 @@ extension SSELineParser {
         switch json["type"] as? String ?? "" {
         case "content_block_start":
             guard let block = json["content_block"] as? [String: Any],
-                  block["type"] as? String == "tool_use",
                   let blockIndex = json["index"] as? Int else { return [] }
-            let ordinal = state.nextToolOrdinal
-            state.nextToolOrdinal += 1
-            state.blockOrdinals[blockIndex] = ordinal
-            return [.toolCallDelta([ToolCallDelta(
-                index: ordinal,
-                id: block["id"] as? String,
-                type: "function",
-                function: ToolCallFunctionDelta(name: block["name"] as? String, arguments: "")
-            )])]
+            switch block["type"] as? String ?? "" {
+            case "tool_use":
+                let ordinal = state.nextToolOrdinal
+                state.nextToolOrdinal += 1
+                state.blockOrdinals[blockIndex] = ordinal
+                return [.toolCallDelta([ToolCallDelta(
+                    index: ordinal,
+                    id: block["id"] as? String,
+                    type: "function",
+                    function: ToolCallFunctionDelta(name: block["name"] as? String, arguments: "")
+                )])]
+            case "thinking":
+                state.thinkingBuffers[blockIndex] = ThinkingBlock(
+                    thinking: block["thinking"] as? String ?? "",
+                    signature: block["signature"] as? String ?? ""
+                )
+                return []
+            case "redacted_thinking":
+                // Arrives complete in the start event; round-trips as-is.
+                state.thinkingBuffers[blockIndex] = ThinkingBlock(
+                    data: block["data"] as? String ?? ""
+                )
+                return []
+            default:
+                return []
+            }
 
         case "content_block_delta":
             guard let delta = json["delta"] as? [String: Any] else { return [] }
@@ -63,9 +83,24 @@ extension SSELineParser {
                     type: nil,
                     function: ToolCallFunctionDelta(name: nil, arguments: partial)
                 )])]
+            case "thinking_delta":
+                guard let blockIndex = json["index"] as? Int,
+                      state.thinkingBuffers[blockIndex] != nil else { return [] }
+                state.thinkingBuffers[blockIndex]?.thinking += delta["thinking"] as? String ?? ""
+                return []
+            case "signature_delta":
+                guard let blockIndex = json["index"] as? Int,
+                      state.thinkingBuffers[blockIndex] != nil else { return [] }
+                state.thinkingBuffers[blockIndex]?.signature += delta["signature"] as? String ?? ""
+                return []
             default:
                 return []
             }
+
+        case "content_block_stop":
+            guard let blockIndex = json["index"] as? Int,
+                  let block = state.thinkingBuffers.removeValue(forKey: blockIndex) else { return [] }
+            return [.thinkingBlock(block)]
 
         case "message_delta":
             guard let delta = json["delta"] as? [String: Any],

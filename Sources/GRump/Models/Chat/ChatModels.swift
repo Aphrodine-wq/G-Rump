@@ -55,6 +55,19 @@ enum GRumpDefaults {
 
 // MARK: - App Models
 
+/// A native reasoning block from an Anthropic response. Claude Fable 5 always
+/// thinks and signs its blocks; assistant turns replayed to the API must carry
+/// them back UNCHANGED (thinking first, then text/tool_use) or tool-use
+/// continuations can be rejected. `data` is set for redacted_thinking blocks,
+/// which round-trip as-is.
+struct ThinkingBlock: Codable, Equatable, Sendable {
+    var thinking: String = ""
+    var signature: String = ""
+    var data: String?               // redacted_thinking payload; nil for regular blocks
+
+    var isRedacted: Bool { data != nil }
+}
+
 struct Message: Identifiable, Codable, Equatable, Sendable {
     var id: UUID = UUID()
     let role: Role
@@ -62,6 +75,7 @@ struct Message: Identifiable, Codable, Equatable, Sendable {
     var timestamp: Date = Date()
     var toolCallId: String?         // for role == .tool
     var toolCalls: [ToolCall]?      // for role == .assistant with tool use
+    var thinkingBlocks: [ThinkingBlock]?  // for role == .assistant on thinking-capable models
 
     // Threading support
     var parentMessageId: UUID?      // ID of the message this is a reply to
