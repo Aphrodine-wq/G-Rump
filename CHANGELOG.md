@@ -6,11 +6,29 @@ All notable changes to G-Rump are documented here. The format follows
 
 ## [Unreleased]
 
-The task-completion reliability program: the agent loop stops trusting
-"the model went quiet" as proof of "done".
+The reliability-and-quality release: the agent loop stops trusting "the
+model went quiet" as proof of "done", Claude Fable 5 is fully supported,
+adaptive thinking raises coding quality on every current Claude model, and
+runs can go twice as long.
 
 ### Added
 
+- **Claude Fable 5 works end-to-end.** Fable signs every reasoning block and
+  expects them back: the app now captures native thinking blocks (including
+  redacted ones) from the stream and replays them unchanged — first in the
+  assistant turn — so tool-use continuations no longer risk rejection. When
+  Fable's safety classifiers decline a request (HTTP 200, `refusal` stop
+  reason), the chat says so instead of stopping silently.
+- **Adaptive thinking on by default.** Anthropic requests on models that
+  support it (Opus 4.6+, Sonnet 4.6+, Sonnet 5, Fable 5) now ask for
+  `thinking: adaptive` — the recommended mode for coding and agentic work.
+  Opus 4.8, the app default, previously ran with thinking off entirely.
+- **Mode switches flow mid-conversation.** Changing Plan/Build/Spec with ⇧⇥
+  or the status-bar switcher now drops an explicit pivot note into the
+  conversation, so the model carries context forward under the new mode
+  instead of silently receiving different instructions.
+- **Longer autonomous runs.** Max agent steps default doubled to 400 and the
+  ceiling raised to 2,000 (Settings → Behavior).
 - **Response quality contract.** The default system prompt now spells out
   how answers should read: lead with the outcome, calibrate structure to
   the question, complete sentences over fragment chains, no filler openers,
