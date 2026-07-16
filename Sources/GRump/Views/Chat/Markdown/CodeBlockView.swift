@@ -22,6 +22,12 @@ struct CodeBlockView: View {
         code.components(separatedBy: "\n")
     }
 
+    /// Shared fixed row height keeps the line-number gutter and code column aligned,
+    /// and scales with the content-size preference so larger text never clips.
+    private var rowHeight: CGFloat {
+        Typography.codeRowHeight(scale: themeManager.contentSize.scaleFactor)
+    }
+
     private func refreshHighlightCache() {
         let highlighter = SyntaxHighlighter(language: language)
         cachedLineTokens = codeLines.map { highlighter.highlight($0) }
@@ -128,7 +134,7 @@ struct CodeBlockView: View {
                             Text("\(idx + 1)")
                                 .font(Typography.codeScaled(scale: themeManager.contentSize.scaleFactor))
                                 .foregroundColor(lineNumColor)
-                                .frame(height: 14 + Typography.userLineSpacing)
+                                .frame(height: rowHeight)
                         }
                     }
                     .padding(.leading, Spacing.xl)
@@ -144,8 +150,9 @@ struct CodeBlockView: View {
                     // Code text (syntax-highlighted) — uses cached tokens to avoid per-render highlighting
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(cachedLineTokens.enumerated()), id: \.offset) { _, tokens in
-                            highlightedLineView(tokens: tokens)
-                                .frame(height: 14 + Typography.userLineSpacing)
+                            highlightedLineText(tokens: tokens)
+                                .font(Typography.codeLargeScaled(scale: themeManager.contentSize.scaleFactor))
+                                .frame(height: rowHeight)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
@@ -156,7 +163,7 @@ struct CodeBlockView: View {
                 }
                 .frame(minWidth: 0, alignment: .leading)
             }
-            .frame(maxHeight: min(CGFloat(codeLines.count) * (14 + Typography.userLineSpacing) + 20, 400))
+            .frame(maxHeight: min(CGFloat(codeLines.count) * rowHeight + 20, 400))
             .background(bgCode)
 
             // Apply/Reject footer bar (Cursor-style)
@@ -299,15 +306,12 @@ struct CodeBlockView: View {
         }
     }
 
-    @ViewBuilder
-    private func highlightedLineView(tokens: [SyntaxHighlighter.Token]) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            ForEach(Array(tokens.enumerated()), id: \.offset) { _, token in
-                Text(token.text)
-                    .font(Typography.codeLargeScaled(scale: themeManager.contentSize.scaleFactor))
-                    .foregroundColor(SyntaxHighlighter.color(for: token.kind, scheme: colorScheme))
-            }
-            Spacer(minLength: 0)
+    /// One concatenated `Text` per line instead of one view per token — a long
+    /// code block renders hundreds of views instead of thousands.
+    private func highlightedLineText(tokens: [SyntaxHighlighter.Token]) -> Text {
+        tokens.reduce(Text(verbatim: "")) { line, token in
+            line + Text(token.text)
+                .foregroundColor(SyntaxHighlighter.color(for: token.kind, scheme: colorScheme))
         }
     }
 
@@ -354,8 +358,10 @@ struct CodeBlockView: View {
     #endif
 
     private var isShellLanguage: Bool {
+        // Explicitly tagged shell blocks only — unlabeled blocks must not grow a
+        // Run button that silently executes arbitrary text.
         let lang = language.lowercased()
-        return ["shell", "bash", "zsh", "sh", "fish", "terminal", "console", ""].contains(lang)
+        return ["shell", "bash", "zsh", "sh", "fish", "terminal", "console"].contains(lang)
     }
 
     #if os(macOS)

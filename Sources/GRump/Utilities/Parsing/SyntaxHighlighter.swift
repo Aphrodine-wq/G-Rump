@@ -3,8 +3,9 @@ import SwiftUI
 // MARK: - Syntax Highlighter
 
 /// A zero-dependency, regex-based syntax highlighter for code blocks.
-/// Supports keywords, strings, comments, numbers, and type detection
-/// for Swift, Python, JavaScript/TypeScript, Go, Rust, Java, C/C++, and shell.
+/// Supports keywords, strings, comments, numbers, and type detection for Swift,
+/// Python, JavaScript/TypeScript, Go, Rust, Java, C/C++, shell, Ruby, SQL,
+/// YAML/TOML, HTML, CSS, Dockerfile, and JSON.
 struct SyntaxHighlighter {
     let language: String
 
@@ -228,6 +229,7 @@ struct SyntaxHighlighter {
     private var lineCommentPrefix: String? {
         switch lang {
         case .swift, .go, .rust, .java, .c, .js, .css: return "//"
+        case .json: return "//" // strict JSON has no comments, but LLM examples often use JSONC-style
         case .python, .shell, .ruby, .yaml, .dockerfile: return "#"
         case .sql: return "--"
         case .html: return nil // HTML uses <!-- --> block comments
@@ -240,7 +242,7 @@ struct SyntaxHighlighter {
     }
 
     private enum Lang {
-        case swift, python, js, go, rust, java, c, shell, ruby, sql, yaml, html, css, dockerfile, unknown
+        case swift, python, js, go, rust, java, c, shell, ruby, sql, yaml, html, css, dockerfile, json, unknown
     }
 
     private var lang: Lang {
@@ -259,6 +261,7 @@ struct SyntaxHighlighter {
         case "html", "xml", "svg": return .html
         case "css", "scss", "sass", "less": return .css
         case "dockerfile", "docker": return .dockerfile
+        case "json", "jsonc", "json5", "jsonl", "ndjson": return .json
         default: return .unknown
         }
     }
@@ -348,6 +351,8 @@ struct SyntaxHighlighter {
                     "default", "exists", "union", "case", "when", "then", "end", "begin"]
         case .yaml:
             return ["true", "false", "null", "yes", "no", "on", "off"]
+        case .json:
+            return ["true", "false", "null"]
         case .html:
             return ["div", "span", "p", "a", "img", "h1", "h2", "h3", "h4", "h5", "h6",
                     "ul", "ol", "li", "table", "tr", "td", "th", "form", "input", "button",
@@ -413,7 +418,7 @@ struct SyntaxHighlighter {
                     "DECIMAL", "BIGINT", "SMALLINT", "SERIAL", "UUID", "JSONB", "JSON",
                     "integer", "varchar", "text", "boolean", "timestamp", "date", "float",
                     "decimal", "bigint", "smallint", "serial", "uuid", "jsonb", "json"]
-        case .yaml, .html, .css, .dockerfile:
+        case .yaml, .html, .css, .dockerfile, .json:
             return []
         case .unknown:
             return []

@@ -27,6 +27,12 @@ struct StreamingCodeBlockView: View {
         code.components(separatedBy: "\n")
     }
 
+    /// Shared fixed row height keeps the line-number gutter and code column aligned,
+    /// and scales with the content-size preference so larger text never clips.
+    private var rowHeight: CGFloat {
+        Typography.codeRowHeight(scale: themeManager.contentSize.scaleFactor)
+    }
+
     private var bgCode: Color {
         colorScheme == .dark
             ? Color(red: 0.078, green: 0.078, blue: 0.098)
@@ -132,7 +138,7 @@ struct StreamingCodeBlockView: View {
                         Text("\(startLineNumber + idx)")
                             .font(Typography.codeScaled(scale: themeManager.contentSize.scaleFactor))
                             .foregroundColor(lineNumColor)
-                            .frame(height: 18)
+                            .frame(height: rowHeight)
                     }
                 }
                 .padding(.leading, Spacing.xl)
@@ -150,21 +156,18 @@ struct StreamingCodeBlockView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(visibleTokens.enumerated()), id: \.offset) { idx, tokens in
                         HStack(alignment: .top, spacing: 0) {
-                            ForEach(Array(tokens.enumerated()), id: \.offset) { _, token in
-                                Text(token.text)
-                                    .font(Typography.codeLargeScaled(scale: themeManager.contentSize.scaleFactor))
-                                    .foregroundColor(SyntaxHighlighter.color(for: token.kind, scheme: colorScheme))
-                            }
+                            highlightedLineText(tokens: tokens)
+                                .font(Typography.codeLargeScaled(scale: themeManager.contentSize.scaleFactor))
 
-                            // Show cursor on last line while streaming
-                            if isStreaming && idx == cachedLineTokens.count - 1 {
+                            // Show cursor on last visible line while streaming
+                            if isStreaming && idx == visibleTokens.count - 1 {
                                 StreamingCursorView(lineHeight: 14, cursorWidth: 1.5)
                                     .padding(.leading, 1)
                             }
 
                             Spacer(minLength: 0)
                         }
-                        .frame(height: 18)
+                        .frame(height: rowHeight)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -175,8 +178,17 @@ struct StreamingCodeBlockView: View {
             }
             .frame(minWidth: 0, alignment: .leading)
         }
-        .frame(maxHeight: min(CGFloat(visibleLines.count) * 18 + 20, 400))
+        .frame(maxHeight: min(CGFloat(visibleLines.count) * rowHeight + 20, 400))
         .background(bgCode)
+    }
+
+    /// One concatenated `Text` per line instead of one view per token — a long
+    /// code block renders hundreds of views instead of thousands.
+    private func highlightedLineText(tokens: [SyntaxHighlighter.Token]) -> Text {
+        tokens.reduce(Text(verbatim: "")) { line, token in
+            line + Text(token.text)
+                .foregroundColor(SyntaxHighlighter.color(for: token.kind, scheme: colorScheme))
+        }
     }
 
     // MARK: - Incremental Highlighting

@@ -279,4 +279,32 @@ final class SyntaxHighlighterTests: XCTestCase {
         XCTAssertNotNil(plusToken)
         XCTAssertEqual(plusToken?.kind, .plain)
     }
+
+    // MARK: - JSON
+
+    func testJSONLiteralsAreKeywords() {
+        let hl = SyntaxHighlighter(language: "json")
+        let tokens = hl.highlight("{\"active\": true, \"parent\": null}")
+        let trueToken = tokens.first { $0.text == "true" }
+        XCTAssertEqual(trueToken?.kind, .keyword)
+        let nullToken = tokens.first { $0.text == "null" }
+        XCTAssertEqual(nullToken?.kind, .keyword)
+    }
+
+    func testJSONStringsAndNumbersHighlight() {
+        let hl = SyntaxHighlighter(language: "json")
+        let tokens = hl.highlight("{\"count\": 42}")
+        let stringToken = tokens.first { $0.text == "\"count\"" }
+        XCTAssertEqual(stringToken?.kind, .string)
+        let numberToken = tokens.first { $0.text == "42" }
+        XCTAssertEqual(numberToken?.kind, .number)
+    }
+
+    func testJSONAliasesResolve() {
+        for alias in ["json", "jsonc", "json5", "jsonl", "ndjson"] {
+            let hl = SyntaxHighlighter(language: alias)
+            let tokens = hl.highlight("false")
+            XCTAssertEqual(tokens.first?.kind, .keyword, "alias \(alias) should highlight literals")
+        }
+    }
 }

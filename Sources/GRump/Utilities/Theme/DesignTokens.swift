@@ -60,6 +60,12 @@ enum Typography {
         CGFloat(UserDefaults.standard.double(forKey: "LineSpacing")).clamped(to: 0...10, default: 3.0)
     }
 
+    /// Fixed row height for code block lines (gutter + code stay aligned).
+    /// Scales with the content-size preference so larger code text never clips.
+    static func codeRowHeight(scale: CGFloat) -> CGFloat {
+        ceil(14 * scale) + userLineSpacing
+    }
+
     /// Resolve code font from user preference, falling back to system monospace
     private static func resolveCodeFont(size: CGFloat) -> Font {
         let fontName = UserDefaults.standard.string(forKey: "CodeFont") ?? ""
