@@ -14,29 +14,17 @@ struct MarkdownTextView: View {
     // MARK: - Progressive Rendering State
 
     @State private(set) var renderedBlocks: [Block] = []
-    @State private var pendingText: String = ""
     @State private var isStreaming: Bool = false
     @State private var renderTask: Task<Void, Never>?
     @State private var lastRenderedLength: Int = 0
 
-    /// Incremental parsing state — tracks how far we've parsed to avoid re-parsing the whole text
-    @State private var lastParsedOffset: Int = 0
-    @State private var stableBlockCount: Int = 0
-
-    /// Cached parsed blocks; debounced to avoid parse-per-keystroke during streaming.
-    @State private var cachedBlocks: [Block] = []
+    /// Debounce task for non-streaming re-parse (edits/undo).
     @State private var debounceTask: Task<Void, Never>?
-    /// Debounce task for streaming incremental parse.
+    /// Debounce task for streaming re-parse.
     @State private var streamDebounceTask: Task<Void, Never>?
 
     /// Animation configuration
     @State private var animationDuration: Double = 0.15
-    @State private var chunkSize: Int = 100
-
-    private var debounceNs: UInt64 {
-        let ms = UserDefaults.standard.object(forKey: "StreamDebounceMs") as? Int ?? 50
-        return UInt64(max(0, ms)) * 1_000_000
-    }
 
     init(text: String, themeManager: ThemeManager? = nil, onCodeBlockTap: ((String) -> Void)? = nil) {
         self.text = text
@@ -78,12 +66,8 @@ struct MarkdownTextView: View {
         debounceTask = Task.detached(priority: .userInitiated) {
             let blocks = Self.parseBlocksStatic(input)
             guard !Task.isCancelled else { return }
-            let count = input.count
             await MainActor.run {
                 renderedBlocks = blocks
-                cachedBlocks = blocks
-                lastParsedOffset = count
-                stableBlockCount = blocks.count
             }
         }
     }
@@ -95,61 +79,116 @@ struct MarkdownTextView: View {
         return Text(attrStr)
     }
 
+    /// Characters that can open an inline construct — everything else is batched
+    /// into plain runs so long paragraphs cost a handful of appends, not one per char.
+    private static let inlineDelimiters: Set<Character> = ["*", "_", "~", "`", "[", "\\"]
+
+    /// Punctuation that a backslash escapes (CommonMark's ASCII punctuation set, trimmed
+    /// to the constructs this renderer understands).
+    private static let escapablePunctuation: Set<Character> = [
+        "\\", "*", "_", "~", "`", "[", "]", "(", ")", "#", "!", "<", ">", "|"
+    ]
+
     private func buildAttributedString(_ text: String) -> AttributedString {
         var result = AttributedString()
         var remaining = text[text.startIndex...]
+        var plainRun = ""
+        /// Last source character consumed — drives emphasis flanking rules without
+        /// re-materializing the accumulated result.
+        var lastChar: Character?
+
+        func flushPlain() {
+            guard !plainRun.isEmpty else { return }
+            result.append(AttributedString(plainRun))
+            plainRun = ""
+        }
 
         while !remaining.isEmpty {
+            let first = remaining[remaining.startIndex]
+
+            // Fast path: batch plain characters until the next potential delimiter
+            if !Self.inlineDelimiters.contains(first) {
+                let runEnd = remaining.firstIndex(where: { Self.inlineDelimiters.contains($0) }) ?? remaining.endIndex
+                plainRun += remaining[remaining.startIndex..<runEnd]
+                lastChar = plainRun.last
+                remaining = remaining[runEnd...]
+                continue
+            }
+
+            // Escape: \* renders a literal *
+            if first == "\\" {
+                let next = remaining.index(after: remaining.startIndex)
+                if next < remaining.endIndex, Self.escapablePunctuation.contains(remaining[next]) {
+                    plainRun.append(remaining[next])
+                    remaining = remaining[remaining.index(after: next)...]
+                } else {
+                    plainRun.append("\\")
+                    remaining = remaining[next...]
+                }
+                lastChar = plainRun.last
+                continue
+            }
+
             // Bold + Italic: ***text***
             if remaining.hasPrefix("***"),
                let endRange = remaining[remaining.index(remaining.startIndex, offsetBy: 3)...].range(of: "***") {
                 let content = String(remaining[remaining.index(remaining.startIndex, offsetBy: 3)..<endRange.lowerBound])
+                flushPlain()
                 let start = result.endIndex
                 result.append(AttributedString(content))
                 result[start..<result.endIndex].inlinePresentationIntent = [.stronglyEmphasized, .emphasized]
                 remaining = remaining[endRange.upperBound...]
+                lastChar = "*"
                 continue
             }
 
-            // Bold: **text**
-            if remaining.hasPrefix("**"),
-               let endRange = remaining[remaining.index(remaining.startIndex, offsetBy: 2)...].range(of: "**") {
-                let boldContent = String(remaining[remaining.index(remaining.startIndex, offsetBy: 2)..<endRange.lowerBound])
-                let start = result.endIndex
-                result.append(AttributedString(boldContent))
-                result[start..<result.endIndex].inlinePresentationIntent = .stronglyEmphasized
-                remaining = remaining[endRange.upperBound...]
-                continue
+            // Bold: **text** or __text__
+            if remaining.hasPrefix("**") || remaining.hasPrefix("__") {
+                let marker = String(remaining.prefix(2))
+                if let endRange = remaining[remaining.index(remaining.startIndex, offsetBy: 2)...].range(of: marker) {
+                    let boldContent = String(remaining[remaining.index(remaining.startIndex, offsetBy: 2)..<endRange.lowerBound])
+                    flushPlain()
+                    let start = result.endIndex
+                    result.append(AttributedString(boldContent))
+                    result[start..<result.endIndex].inlinePresentationIntent = .stronglyEmphasized
+                    remaining = remaining[endRange.upperBound...]
+                    lastChar = marker.last
+                    continue
+                }
             }
 
             // Strikethrough: ~~text~~
             if remaining.hasPrefix("~~"),
                let endRange = remaining[remaining.index(remaining.startIndex, offsetBy: 2)...].range(of: "~~") {
                 let content = String(remaining[remaining.index(remaining.startIndex, offsetBy: 2)..<endRange.lowerBound])
+                flushPlain()
                 let start = result.endIndex
                 result.append(AttributedString(content))
                 result[start..<result.endIndex].strikethroughStyle = .single
                 remaining = remaining[endRange.upperBound...]
+                lastChar = "~"
                 continue
             }
 
             // Inline code: `text` — styled with background pill
-            if remaining.hasPrefix("`"),
+            if first == "`",
                let endIdx = remaining[remaining.index(after: remaining.startIndex)...].firstIndex(of: "`") {
                 let codeContent = String(remaining[remaining.index(after: remaining.startIndex)..<endIdx])
                 // Add a space-padded code span with monospace font and accent color
                 let paddedCode = "\u{00A0}\(codeContent)\u{00A0}" // non-breaking spaces for visual padding
+                flushPlain()
                 let start = result.endIndex
                 result.append(AttributedString(paddedCode))
                 result[start..<result.endIndex].font = .system(.body, design: .monospaced).weight(.medium)
                 result[start..<result.endIndex].foregroundColor = themeManager.palette.effectiveAccent
                 result[start..<result.endIndex].backgroundColor = themeManager.palette.effectiveAccent.opacity(0.1)
                 remaining = remaining[remaining.index(after: endIdx)...]
+                lastChar = "`"
                 continue
             }
 
             // Link: [text](url) — tappable via .link
-            if remaining.hasPrefix("["),
+            if first == "[",
                let closeBracket = remaining.firstIndex(of: "]"),
                remaining.index(after: closeBracket) < remaining.endIndex,
                remaining[remaining.index(after: closeBracket)] == "(",
@@ -157,6 +196,7 @@ struct MarkdownTextView: View {
                 let linkText = String(remaining[remaining.index(after: remaining.startIndex)..<closeBracket])
                 let urlStart = remaining.index(after: remaining.index(after: closeBracket))
                 let urlString = String(remaining[urlStart..<closeParen])
+                flushPlain()
                 let start = result.endIndex
                 result.append(AttributedString(linkText))
                 result[start..<result.endIndex].foregroundColor = themeManager.palette.effectiveAccent
@@ -165,27 +205,67 @@ struct MarkdownTextView: View {
                     result[start..<result.endIndex].link = url
                 }
                 remaining = remaining[remaining.index(after: closeParen)...]
+                lastChar = ")"
                 continue
             }
 
-            // Italic: *text*
-            if remaining.hasPrefix("*"),
-               let endIdx = remaining[remaining.index(after: remaining.startIndex)...].firstIndex(of: "*") {
+            // Italic: *text* or _text_ — flanking rules keep "2 * 3" and snake_case plain
+            if first == "*" || first == "_",
+               let endIdx = italicClosingIndex(in: remaining, marker: first, previous: lastChar) {
                 let italicContent = String(remaining[remaining.index(after: remaining.startIndex)..<endIdx])
+                flushPlain()
                 let start = result.endIndex
                 result.append(AttributedString(italicContent))
                 result[start..<result.endIndex].inlinePresentationIntent = .emphasized
                 remaining = remaining[remaining.index(after: endIdx)...]
+                lastChar = first
                 continue
             }
 
-            // Regular character
-            let char = remaining[remaining.startIndex]
-            result.append(AttributedString(String(char)))
+            // Delimiter char that didn't open anything — literal
+            plainRun.append(first)
+            lastChar = first
             remaining = remaining[remaining.index(after: remaining.startIndex)...]
         }
 
+        flushPlain()
         return result
+    }
+
+    /// Finds the closing delimiter for single-marker emphasis, or nil when the opener
+    /// isn't valid emphasis. Rules (CommonMark-inspired, kept deliberately simple):
+    /// the opener must be followed by non-whitespace, the closer preceded by
+    /// non-whitespace, and `_` additionally requires a word boundary before the
+    /// opener so identifiers like snake_case never italicize.
+    private func italicClosingIndex(
+        in remaining: Substring, marker: Character, previous: Character?
+    ) -> Substring.Index? {
+        let afterMarker = remaining.index(after: remaining.startIndex)
+        guard afterMarker < remaining.endIndex else { return nil }
+        // Opener must be left-flanking: next char is non-whitespace (and not the marker itself)
+        let nextChar = remaining[afterMarker]
+        guard !nextChar.isWhitespace, nextChar != marker else { return nil }
+        // Underscore openers must sit at a word boundary
+        if marker == "_", let prev = previous, prev.isLetter || prev.isNumber { return nil }
+
+        var idx = afterMarker
+        while let close = remaining[idx...].firstIndex(of: marker) {
+            let beforeClose = remaining.index(before: close)
+            if !remaining[beforeClose].isWhitespace {
+                // Underscore closers must also end at a word boundary
+                if marker == "_" {
+                    let afterClose = remaining.index(after: close)
+                    if afterClose < remaining.endIndex,
+                       remaining[afterClose].isLetter || remaining[afterClose].isNumber {
+                        idx = afterClose
+                        continue
+                    }
+                }
+                return close
+            }
+            idx = remaining.index(after: close)
+        }
+        return nil
     }
 
     // MARK: - Progressive Rendering
@@ -201,10 +281,8 @@ struct MarkdownTextView: View {
         let isIncreasing = newText.count > lastRenderedLength
 
         if !isIncreasing {
-            // Text shrunk (edit/undo) — trim blocks and full re-parse
+            // Text shrunk (edit/undo) — full re-parse
             isStreaming = false
-            lastParsedOffset = 0
-            stableBlockCount = 0
             parseOnBackground(newText)
             lastRenderedLength = newText.count
             return
@@ -228,36 +306,18 @@ struct MarkdownTextView: View {
         }
     }
 
-    /// Incremental append-only parse: re-parses only from the last "stable" block boundary.
-    /// During streaming, the last block is often incomplete (e.g., a paragraph still being typed).
-    /// We keep all blocks except the last one as stable, and only re-parse from there.
+    /// Debounced full re-parse on a background thread. The parser is a single
+    /// line-oriented pass, so re-parsing the whole text every ~16ms tick is cheap —
+    /// and unlike the previous offset-estimating tail parse, it can never drift and
+    /// duplicate fragments mid-stream (block length estimates undercounted the blank
+    /// lines between blocks, so the tail re-parse started inside already-stable text).
     private func incrementalParse(_ fullText: String) {
         renderTask?.cancel()
         renderTask = Task.detached(priority: .userInitiated) {
-            // Find the offset where stable blocks end
-            let currentBlocks = await MainActor.run { renderedBlocks }
-            let stableCount = max(0, currentBlocks.count - 1) // Last block may be incomplete
-
-            // Compute character offset of stable blocks
-            var stableOffset = 0
-            for i in 0..<stableCount {
-                stableOffset += Self.blockLengthStatic(currentBlocks[i])
-            }
-
-            // Parse only the tail portion (from stable offset onward)
-            let tailStart = fullText.index(fullText.startIndex, offsetBy: min(stableOffset, fullText.count))
-            let tailText = String(fullText[tailStart...])
-            let tailBlocks = Self.parseBlocksStatic(tailText)
-
+            let blocks = Self.parseBlocksStatic(fullText)
             guard !Task.isCancelled else { return }
-
             await MainActor.run {
-                // Replace blocks from stableCount onward with newly parsed tail blocks
-                var merged = Array(currentBlocks.prefix(stableCount))
-                merged.append(contentsOf: tailBlocks)
-                renderedBlocks = merged
-                cachedBlocks = merged
-                pendingText = ""
+                renderedBlocks = blocks
             }
         }
     }
@@ -274,14 +334,6 @@ struct MarkdownTextView: View {
         guard !Task.isCancelled else { return }
 
         renderedBlocks = blocks
-        cachedBlocks = blocks
-        lastParsedOffset = fullText.count
-        stableBlockCount = blocks.count
         isStreaming = false
-        pendingText = ""
-    }
-
-    private func blockLength(_ block: Block) -> Int {
-        Self.blockLengthStatic(block)
     }
 }

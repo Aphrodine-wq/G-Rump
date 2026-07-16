@@ -239,5 +239,102 @@ final class MarkdownParsingTests: XCTestCase {
         XCTAssertTrue(markdown.contains("> A blockquote"))
         XCTAssertTrue(markdown.contains("---"))
     }
+
+    // MARK: - Real Parser Assertions (parseBlocksStatic is internal — call it directly)
+
+    func testParserProducesTypedBlocks() {
+        let markdown = """
+        # Title
+        A paragraph.
+        ```swift
+        let x = 1
+        ```
+        """
+        let blocks = MarkdownTextView.parseBlocksStatic(markdown)
+        XCTAssertEqual(blocks.count, 3)
+        guard case .header(let level, let text) = blocks[0] else {
+            return XCTFail("Expected header, got \(blocks[0])")
+        }
+        XCTAssertEqual(level, 1)
+        XCTAssertEqual(text, "Title")
+        guard case .paragraph(let para) = blocks[1] else {
+            return XCTFail("Expected paragraph, got \(blocks[1])")
+        }
+        XCTAssertEqual(para, "A paragraph.")
+        guard case .codeBlock(let lang, let code) = blocks[2] else {
+            return XCTFail("Expected code block, got \(blocks[2])")
+        }
+        XCTAssertEqual(lang, "swift")
+        XCTAssertEqual(code, "let x = 1")
+    }
+
+    func testUnclosedFenceParsesAsStreamingCodeBlock() {
+        let blocks = MarkdownTextView.parseBlocksStatic("```python\nx = 2")
+        XCTAssertEqual(blocks.count, 1)
+        guard case .streamingCodeBlock(let lang, let code) = blocks[0] else {
+            return XCTFail("Expected streaming code block, got \(blocks[0])")
+        }
+        XCTAssertEqual(lang, "python")
+        XCTAssertEqual(code, "x = 2")
+    }
+
+    // MARK: - Table Alignment
+
+    func testTableAlignmentsParsed() {
+        let markdown = """
+        | Name | Count | Price |
+        | :--- | :---: | ---: |
+        | Widget | 4 | $1.50 |
+        """
+        let blocks = MarkdownTextView.parseBlocksStatic(markdown)
+        XCTAssertEqual(blocks.count, 1)
+        guard case .table(let headers, let rows, let alignments) = blocks[0] else {
+            return XCTFail("Expected table, got \(blocks[0])")
+        }
+        XCTAssertEqual(headers, ["Name", "Count", "Price"])
+        XCTAssertEqual(rows, [["Widget", "4", "$1.50"]])
+        XCTAssertEqual(alignments, [.leading, .center, .trailing])
+    }
+
+    func testTableWithPlainSeparatorDefaultsToLeading() {
+        let alignments = MarkdownTextView.parseTableAlignments("| --- | --- |", columnCount: 2)
+        XCTAssertEqual(alignments, [.leading, .leading])
+    }
+
+    func testTableAlignmentsPadToColumnCount() {
+        let alignments = MarkdownTextView.parseTableAlignments("| ---: |", columnCount: 3)
+        XCTAssertEqual(alignments, [.trailing, .leading, .leading])
+    }
+
+    // MARK: - Ragged Table Rows
+
+    func testShortRowPadsWithEmptyCells() {
+        XCTAssertEqual(
+            MarkdownTextView.normalizeRow(["a"], to: 3),
+            ["a", "", ""]
+        )
+    }
+
+    func testLongRowFoldsOverflowIntoLastColumn() {
+        XCTAssertEqual(
+            MarkdownTextView.normalizeRow(["a", "b", "c", "d"], to: 3),
+            ["a", "b", "c | d"]
+        )
+    }
+
+    func testRaggedTableRowsNormalizedInParser() {
+        let markdown = """
+        | A | B | C |
+        | --- | --- | --- |
+        | 1 | 2 |
+        | 1 | 2 | 3 | 4 |
+        """
+        let blocks = MarkdownTextView.parseBlocksStatic(markdown)
+        guard case .table(_, let rows, _) = blocks[0] else {
+            return XCTFail("Expected table, got \(blocks[0])")
+        }
+        XCTAssertEqual(rows[0], ["1", "2", ""])
+        XCTAssertEqual(rows[1], ["1", "2", "3 | 4"])
+    }
 }
 

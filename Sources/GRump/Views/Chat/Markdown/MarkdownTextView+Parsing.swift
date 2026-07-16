@@ -15,9 +15,14 @@ extension MarkdownTextView {
         case taskListItem(indent: Int, checked: Bool, content: String)
         case blockquote(String)
         case horizontalRule
-        case table(headers: [String], rows: [[String]])
+        case table(headers: [String], rows: [[String]], alignments: [TableAlignment])
         case collapsibleSection(summary: String, content: String, isOpen: Bool)
         case image(alt: String, url: String)
+    }
+
+    /// Per-column alignment from the table separator row (`:---`, `:---:`, `---:`).
+    enum TableAlignment {
+        case leading, center, trailing
     }
 
     // MARK: - Parsing API
@@ -151,16 +156,17 @@ extension MarkdownTextView {
                 if nextLine.contains("|") && nextLine.contains("-") {
                     let headerCells = parsePipeLine(line)
                     if headerCells.count > 1 {
+                        let alignments = parseTableAlignments(nextLine, columnCount: headerCells.count)
                         i += 2 // Skip header + separator
                         var dataRows: [[String]] = []
                         while i < lines.count && lines[i].contains("|") {
                             let cells = parsePipeLine(lines[i])
                             if !cells.isEmpty {
-                                dataRows.append(cells)
+                                dataRows.append(normalizeRow(cells, to: headerCells.count))
                             }
                             i += 1
                         }
-                        blocks.append(.table(headers: headerCells, rows: dataRows))
+                        blocks.append(.table(headers: headerCells, rows: dataRows, alignments: alignments))
                         continue
                     }
                 }
@@ -253,34 +259,34 @@ extension MarkdownTextView {
         return end.components(separatedBy: "|").map { $0.trimmingCharacters(in: .whitespaces) }
     }
 
-    // MARK: - Block Length Estimation
-
-    nonisolated static func blockLengthStatic(_ block: Block) -> Int {
-        switch block {
-        case .codeBlock(_, let code):
-            return code.count + 6 // ```\n...\n```
-        case .paragraph(let content):
-            return content.count
-        case .header(_, let content):
-            return content.count + 2 // #\n
-        case .listItem(_, _, _, let content):
-            return content.count + 2 // •\n
-        case .blockquote(let content):
-            return content.count + 2 // >\n
-        case .horizontalRule:
-            return 3 // ---
-        case .table(let headers, let rows):
-            let headerLength = headers.joined().count
-            let rowLength = rows.flatMap { $0 }.joined().count
-            return headerLength + rowLength
-        case .streamingCodeBlock(_, let code):
-            return code.count + 3 // ```\n... (no closing)
-        case .collapsibleSection(_, let content, _):
-            return content.count + 20 // <details>...</details>
-        case .taskListItem(_, _, let content):
-            return content.count + 6 // - [ ] \n
-        case .image(_, let url):
-            return url.count + 6 // ![]()\n
+    /// Reads per-column alignment from a separator row: `:---` leading,
+    /// `:---:` center, `---:` trailing. Pads with `.leading` when the
+    /// separator has fewer cells than the header.
+    nonisolated static func parseTableAlignments(_ separatorLine: String, columnCount: Int) -> [TableAlignment] {
+        let cells = parsePipeLine(separatorLine)
+        var alignments: [TableAlignment] = cells.map { cell in
+            let opensColon = cell.hasPrefix(":")
+            let closesColon = cell.hasSuffix(":")
+            switch (opensColon, closesColon) {
+            case (true, true): return .center
+            case (false, true): return .trailing
+            default: return .leading
+            }
         }
+        while alignments.count < columnCount { alignments.append(.leading) }
+        return Array(alignments.prefix(columnCount))
     }
+
+    /// Pads ragged rows with empty cells and folds overflow cells into the last
+    /// column, so every row renders the same number of columns as the header.
+    nonisolated static func normalizeRow(_ cells: [String], to columnCount: Int) -> [String] {
+        var row = cells
+        if row.count > columnCount {
+            let overflow = row[(columnCount - 1)...].joined(separator: " | ")
+            row = Array(row.prefix(columnCount - 1)) + [overflow]
+        }
+        while row.count < columnCount { row.append("") }
+        return row
+    }
+
 }

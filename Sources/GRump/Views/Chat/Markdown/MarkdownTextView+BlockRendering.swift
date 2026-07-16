@@ -40,8 +40,8 @@ extension MarkdownTextView {
                 .frame(height: 1)
                 .padding(.vertical, Spacing.sm)
 
-        case .table(let headers, let rows):
-            tableView(headers: headers, rows: rows)
+        case .table(let headers, let rows, let alignments):
+            tableView(headers: headers, rows: rows, alignments: alignments)
 
         case .collapsibleSection(let summary, let content, _):
             CollapsibleSectionView(summary: summary, content: content)
@@ -121,7 +121,7 @@ extension MarkdownTextView {
 
     // MARK: - Table
 
-    func tableView(headers: [String], rows: [[String]]) -> some View {
+    func tableView(headers: [String], rows: [[String]], alignments: [TableAlignment]) -> some View {
         VStack(spacing: 0) {
             // Header row
             HStack(spacing: 0) {
@@ -129,27 +129,30 @@ extension MarkdownTextView {
                     buildInlineText(headers[i].trimmingCharacters(in: .whitespaces))
                         .font(Typography.captionSmallSemibold)
                         .foregroundColor(themeManager.palette.textPrimary)
+                        .multilineTextAlignment(textAlignment(for: columnAlignment(alignments, i)))
                         .padding(.horizontal, Spacing.lg)
                         .padding(.vertical, Spacing.md)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: frameAlignment(for: columnAlignment(alignments, i)))
                 }
             }
             .background(themeManager.palette.bgElevated)
 
             Divider()
 
-            // Data rows
+            // Data rows — subtle zebra striping for scannability
             ForEach(rows.indices, id: \.self) { rowIdx in
                 HStack(spacing: 0) {
                     ForEach(rows[rowIdx].indices, id: \.self) { colIdx in
                         buildInlineText(rows[rowIdx][colIdx].trimmingCharacters(in: .whitespaces))
                             .font(Typography.captionSmall)
                             .foregroundColor(themeManager.palette.textPrimary)
+                            .multilineTextAlignment(textAlignment(for: columnAlignment(alignments, colIdx)))
                             .padding(.horizontal, Spacing.lg)
                             .padding(.vertical, Spacing.sm)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: frameAlignment(for: columnAlignment(alignments, colIdx)))
                     }
                 }
+                .background(rowIdx.isMultiple(of: 2) ? Color.clear : themeManager.palette.bgElevated.opacity(0.4))
                 if rowIdx < rows.count - 1 {
                     Divider()
                 }
@@ -157,6 +160,26 @@ extension MarkdownTextView {
         }
         .clipShape(RoundedRectangle(cornerRadius: Radius.sm))
         .overlay(RoundedRectangle(cornerRadius: Radius.sm).stroke(themeManager.palette.borderCrisp, lineWidth: Border.thin))
+    }
+
+    private func columnAlignment(_ alignments: [TableAlignment], _ index: Int) -> TableAlignment {
+        index < alignments.count ? alignments[index] : .leading
+    }
+
+    private func frameAlignment(for alignment: TableAlignment) -> Alignment {
+        switch alignment {
+        case .leading: return .leading
+        case .center: return .center
+        case .trailing: return .trailing
+        }
+    }
+
+    private func textAlignment(for alignment: TableAlignment) -> TextAlignment {
+        switch alignment {
+        case .leading: return .leading
+        case .center: return .center
+        case .trailing: return .trailing
+        }
     }
 
     // MARK: - Context-Aware Spacing
