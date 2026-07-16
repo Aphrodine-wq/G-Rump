@@ -135,7 +135,17 @@ class ChatViewModel: ObservableObject {
     }
     /// Agent mode for next message (Plan, Build, Spec). Per-message override.
     @Published var agentMode: AgentMode {
-        didSet { UserDefaults.standard.set(agentMode.rawValue, forKey: "AgentMode") }
+        didSet {
+            UserDefaults.standard.set(agentMode.rawValue, forKey: "AgentMode")
+            // Mid-conversation switches get an explicit pivot note so the next
+            // request doesn't silently swap instructions under the model —
+            // the new mode's system text alone reads like it was always there.
+            guard oldValue != agentMode,
+                  let conversation = currentConversation,
+                  !conversation.messages.isEmpty else { return }
+            appendAgentNote("Mode switched: \(oldValue.displayName) → \(agentMode.displayName). Follow the \(agentMode.displayName) mode instructions from here on. Carry forward the conversation's existing context and decisions — do not restart work or re-ask questions that were already answered.")
+            syncConversation()
+        }
     }
 
     // New multi-provider system
