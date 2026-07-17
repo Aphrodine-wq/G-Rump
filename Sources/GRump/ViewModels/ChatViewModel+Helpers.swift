@@ -307,6 +307,13 @@ extension ChatViewModel {
             if case .apiError(let code, let msg) = serviceError {
                 if code == 503 { return "Service temporarily unavailable. Please retry in a moment." }
                 if code == 429 { return "Rate limit reached. Please wait a moment and try again." }
+                if code == 404 || code == 410 {
+                    // Ollama :cloud models keep appearing in /api/tags after the
+                    // hosted backend retires or paywalls them — the failure only
+                    // shows up here, at request time.
+                    let detail = msg.map { " (\($0))" } ?? ""
+                    return "The model \"\(selectedModel)\" is no longer available from its provider\(detail). Pick a different model from the model selector and retry."
+                }
                 if let m = msg { return m }
             }
         }
