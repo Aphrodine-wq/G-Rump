@@ -163,7 +163,8 @@ extension ChatViewModel {
 
                 currentAgentStep = nil
                 currentAgentStepMax = nil
-                let friendly = friendlyErrorMessage(error)
+                let info = chatErrorInfo(error)
+                let friendly = "\(info.title). \(info.guidance)"
                 errorMessage = friendly
                 streamingContent = ""
                 thinkingContent = ""
@@ -173,6 +174,7 @@ extension ChatViewModel {
                 // Preserve partial content + error for inline retry UI
                 streamErrorPartialContent = textBuffer.isEmpty ? nil : textBuffer
                 streamErrorMessage = friendly
+                streamErrorInfo = info
 
                 // Notify user of task failure
                 if let conv = currentConversation {
@@ -385,6 +387,7 @@ extension ChatViewModel {
 
         isLoading = true
         errorMessage = nil
+        streamErrorInfo = nil
         streamingContent = ""
         activeToolCalls = []
 

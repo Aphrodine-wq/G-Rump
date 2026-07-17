@@ -100,6 +100,9 @@ class ChatViewModel: ObservableObject {
     @Published var streamErrorPartialContent: String?
     /// The error message from a failed stream, for inline retry UI.
     @Published var streamErrorMessage: String?
+    /// Structured form of the stream error for the inline error card
+    /// (plain-English title/guidance, technical detail, recovery action).
+    @Published var streamErrorInfo: ChatErrorInfo?
 
     #if os(macOS)
     /// When non-nil, the UI should show an approval dialog for system_run. Call respondToSystemRunApproval when the user chooses.

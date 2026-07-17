@@ -293,30 +293,101 @@ extension ChatViewModel {
     // MARK: - Error Formatting
 
     func friendlyErrorMessage(_ error: Error) -> String {
+        let info = chatErrorInfo(error)
+        return "\(info.title). \(info.guidance)"
+    }
+
+    /// Maps a failure to the inline error card's contract: what happened and
+    /// what to do about it in plain English up front, the raw failure behind
+    /// the Details disclosure, and an optional recovery action.
+    func chatErrorInfo(_ error: Error) -> ChatErrorInfo {
+        let raw = String(describing: error)
         if let urlError = error as? URLError {
             switch urlError.code {
-            case .timedOut: return "Request timed out. Please retry or choose a faster model."
-            case .notConnectedToInternet: return "No internet connection. Check your network and try again."
-            case .networkConnectionLost: return "Network connection lost. Please retry."
-            case .cannotConnectToHost: return "Could not connect to server. Check your connection."
-            case .dnsLookupFailed: return "DNS lookup failed. Check your internet connection."
-            default: return "Network error: \(urlError.localizedDescription)"
+            case .timedOut:
+                return ChatErrorInfo(title: "Request timed out",
+                                     guidance: "Retry, or switch to a faster model.",
+                                     technicalDetail: raw)
+            case .notConnectedToInternet:
+                return ChatErrorInfo(title: "No internet connection",
+                                     guidance: "Check your network and retry.",
+                                     technicalDetail: raw)
+            case .networkConnectionLost:
+                return ChatErrorInfo(title: "Network connection lost",
+                                     guidance: "Retry when the connection is back.",
+                                     technicalDetail: raw)
+            case .cannotConnectToHost:
+                return ChatErrorInfo(title: "Couldn't connect to the server",
+                                     guidance: "Check your connection and retry.",
+                                     technicalDetail: raw)
+            case .dnsLookupFailed:
+                return ChatErrorInfo(title: "DNS lookup failed",
+                                     guidance: "Check your internet connection and retry.",
+                                     technicalDetail: raw)
+            default:
+                return ChatErrorInfo(title: "Network error",
+                                     guidance: urlError.localizedDescription,
+                                     technicalDetail: raw)
             }
         }
-        if let serviceError = error as? OpenAICompatibleService.ServiceError {
-            if case .apiError(let code, let msg) = serviceError {
-                if code == 503 { return "Service temporarily unavailable. Please retry in a moment." }
-                if code == 429 { return "Rate limit reached. Please wait a moment and try again." }
-                if code == 404 || code == 410 {
-                    // Ollama :cloud models keep appearing in /api/tags after the
-                    // hosted backend retires or paywalls them — the failure only
-                    // shows up here, at request time.
-                    let detail = msg.map { " (\($0))" } ?? ""
-                    return "The model \"\(selectedModel)\" is no longer available from its provider\(detail). Pick a different model from the model selector and retry."
-                }
-                if let m = msg { return m }
+        if let serviceError = error as? OpenAICompatibleService.ServiceError,
+           case .apiError(let code, let msg) = serviceError {
+            let detail = "HTTP \(code)" + (msg.map { ": \($0)" } ?? "")
+            switch code {
+            case 503:
+                return ChatErrorInfo(title: "Service temporarily unavailable",
+                                     guidance: "Give it a moment, then retry.",
+                                     technicalDetail: detail)
+            case 429:
+                return ChatErrorInfo(title: "Rate limit reached",
+                                     guidance: "Wait a moment, then retry.",
+                                     technicalDetail: detail)
+            case 404, 410:
+                // Ollama :cloud models keep appearing in /api/tags after the
+                // hosted backend retires or paywalls them — the failure only
+                // shows up here, at request time.
+                return ChatErrorInfo(title: "\u{201C}\(selectedModel)\u{201D} is no longer available",
+                                     guidance: "The provider retired or paywalled it. Pick a different model and retry.",
+                                     technicalDetail: detail,
+                                     action: .pickModel)
+            case 401, 403:
+                return ChatErrorInfo(title: "The provider rejected the API key",
+                                     guidance: "Check the key in Settings → AI Providers, then retry.",
+                                     technicalDetail: detail)
+            default:
+                return ChatErrorInfo(title: "The provider returned an error",
+                                     guidance: msg ?? "Retry in a moment.",
+                                     technicalDetail: detail)
             }
         }
-        return (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        let described = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        return ChatErrorInfo(title: "Something went wrong",
+                             guidance: described,
+                             technicalDetail: raw)
+    }
+}
+
+// MARK: - Structured chat errors
+
+/// Contract for the inline chat error card: `title` and `guidance` are plain
+/// English shown up front; `technicalDetail` lives behind the Details
+/// disclosure; `action` adds a contextual recovery button.
+struct ChatErrorInfo: Equatable {
+    enum Action: Equatable {
+        /// The selected model is gone (retired/paywalled) — offer an inline
+        /// model menu that retries on selection.
+        case pickModel
+    }
+
+    var title: String
+    var guidance: String
+    var technicalDetail: String
+    var action: Action?
+
+    init(title: String, guidance: String, technicalDetail: String, action: Action? = nil) {
+        self.title = title
+        self.guidance = guidance
+        self.technicalDetail = technicalDetail
+        self.action = action
     }
 }

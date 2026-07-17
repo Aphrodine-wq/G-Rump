@@ -124,16 +124,19 @@ struct MessageListView: View {
             // Stream error with inline retry
             if let errorMsg = viewModel.streamErrorMessage {
                 StreamErrorView(
-                    error: errorMsg,
+                    info: viewModel.streamErrorInfo
+                        ?? ChatErrorInfo(title: "Something went wrong", guidance: errorMsg, technicalDetail: errorMsg),
                     partialContent: viewModel.streamErrorPartialContent,
                     onRetry: {
                         viewModel.streamErrorMessage = nil
+                        viewModel.streamErrorInfo = nil
                         viewModel.streamErrorPartialContent = nil
                         viewModel.errorMessage = nil
                         viewModel.retryLastMessage()
                     },
                     onDismiss: {
                         viewModel.streamErrorMessage = nil
+                        viewModel.streamErrorInfo = nil
                         viewModel.streamErrorPartialContent = nil
                         viewModel.errorMessage = nil
                     }

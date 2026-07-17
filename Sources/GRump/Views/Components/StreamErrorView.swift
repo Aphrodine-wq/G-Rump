@@ -1,12 +1,15 @@
 import SwiftUI
 
 /// Graceful error display for streaming failures.
-/// Preserves partial responses, shows inline retry button,
-/// and provides context about what went wrong.
+/// Plain-English title and guidance up front, the raw failure behind a
+/// Details disclosure, a contextual recovery action when one exists
+/// (e.g. an inline model menu when the selected model is gone), and an
+/// inline retry. Preserves partial responses.
 struct StreamErrorView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var viewModel: ChatViewModel
     @Environment(\.accessibilityReduceMotion) var reduceMotion
-    let error: String
+    let info: ChatErrorInfo
     let partialContent: String?
     let onRetry: () -> Void
     let onDismiss: () -> Void
@@ -44,16 +47,21 @@ struct StreamErrorView: View {
                     .foregroundColor(.orange)
 
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Stream interrupted")
+                    Text(info.title)
                         .font(Typography.captionSmallSemibold)
                         .foregroundColor(themeManager.palette.textPrimary)
 
-                    // Collapsible error details
+                    Text(info.guidance)
+                        .font(Typography.captionSmall)
+                        .foregroundColor(themeManager.palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // Collapsible technical detail
                     Button(action: { withAnimation(reduceMotion ? .none : Anim.spring) { isExpanded.toggle() } }) {
                         HStack(spacing: Spacing.xs) {
                             Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                                 .font(.system(size: 8, weight: .bold))
-                            Text(isExpanded ? "Hide details" : "Show details")
+                            Text(isExpanded ? "Hide details" : "Details")
                                 .font(Typography.micro)
                         }
                         .foregroundColor(themeManager.palette.textMuted)
@@ -61,7 +69,7 @@ struct StreamErrorView: View {
                     .buttonStyle(.plain)
 
                     if isExpanded {
-                        Text(error)
+                        Text(info.technicalDetail)
                             .font(Typography.codeMicro)
                             .foregroundColor(themeManager.palette.textSecondary)
                             .padding(Spacing.lg)
@@ -74,6 +82,10 @@ struct StreamErrorView: View {
 
                     // Action buttons
                     HStack(spacing: Spacing.xl) {
+                        if info.action == .pickModel {
+                            pickModelMenu
+                        }
+
                         Button(action: onRetry) {
                             HStack(spacing: Spacing.xs) {
                                 Image(systemName: "arrow.clockwise")
@@ -124,9 +136,50 @@ struct StreamErrorView: View {
             NSAccessibility.post(
                 element: NSApp as Any,
                 notification: .announcementRequested,
-                userInfo: [.announcement: "Stream interrupted: \(error)"]
+                userInfo: [.announcement: "\(info.title). \(info.guidance)"]
             )
             #endif
         }
+    }
+
+    /// Inline model menu for the dead-model case: selecting a model switches
+    /// to it and retries immediately. Mirrors the top-bar picker's sections.
+    private var pickModelMenu: some View {
+        Menu {
+            ForEach(AIProvider.allCases) { provider in
+                let models = viewModel.modelsForProvider(provider)
+                if !models.isEmpty {
+                    Section(provider.displayName) {
+                        ForEach(models) { model in
+                            Button {
+                                viewModel.selectProviderAndModel(provider: provider, model: model)
+                                onRetry()
+                            } label: {
+                                HStack {
+                                    Text(model.displayName)
+                                    if model.id == viewModel.currentEnhancedModel?.id {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Pick a model")
+                    .font(Typography.captionSmallSemibold)
+            }
+            .foregroundColor(themeManager.palette.textPrimary)
+            .padding(.horizontal, Spacing.xxl)
+            .padding(.vertical, Spacing.md)
+            .background(themeManager.palette.bgElevated)
+            .clipShape(Capsule())
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
     }
 }

@@ -89,6 +89,7 @@ extension ChatViewModel {
         isLoading = true
         isPaused = false
         errorMessage = nil
+        streamErrorInfo = nil
         streamingContent = ""
         thinkingContent = ""
         isThinking = false
@@ -131,6 +132,7 @@ extension ChatViewModel {
         isPaused = false
         isLoading = true
         errorMessage = nil
+        streamErrorInfo = nil
         streamingContent = ""
         activeToolCalls = []
         streamTask?.cancel()
