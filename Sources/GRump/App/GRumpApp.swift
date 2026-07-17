@@ -172,7 +172,14 @@ struct GRumpApp: App {
         .defaultSize(width: 1100, height: 700)
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified(showsTitle: true))
-        .windowResizability(.contentSize)
+        // NOT .contentSize: with contentSize resizability the window re-sizes
+        // itself on every content change, and the geometry passes that fire
+        // during the first-send view swap (empty state → message list) race
+        // view teardown inside NSHostingView — observed as a SEGV in
+        // swift_beginAccess from _NSViewGeometryInWindowDidChangeObserver on
+        // live-resize end, a transparent dead content view, or the window
+        // closing itself. The window is user-sized; content never drives it.
+        .windowResizability(.automatic)
         #endif
         .commands {
             CommandGroup(replacing: .newItem) {
