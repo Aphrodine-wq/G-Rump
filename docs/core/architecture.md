@@ -4,9 +4,9 @@ G-Rump is a native macOS AI coding agent built with Swift and SwiftUI, targeting
 
 ## Entry Points
 
-- **`GRumpApp.swift`** — `@main` App struct. Initializes `ThemeManager`, sets up `WindowGroup`, injects environment objects, defines `CommandGroup` menu items and keyboard shortcuts.
-- **`AppRootView.swift`** — Gates onboarding. Shows `ContentView` after first-run setup completes.
-- **`ContentView.swift`** — Main app shell. Manages layout (sidebar, chat, right panel), service initialization, Spotlight indexing, LSP diagnostics, and notification observers.
+- **`App/GRumpApp.swift`** — `@main` App struct. Initializes `ThemeManager`, sets up `WindowGroup`, injects environment objects, defines `CommandGroup` menu items and keyboard shortcuts.
+- **`App/AppRootView.swift`** — Gates onboarding. Shows `ContentView` after first-run setup completes.
+- **`App/ContentView.swift`** — Main app shell. Manages layout (sidebar, chat, right panel), service initialization, Spotlight indexing, LSP diagnostics, and notification observers.
 
 ## Data Flow
 
@@ -21,8 +21,9 @@ User Input → ChatInputView → ChatViewModel → AIService (provider router)
 | Layer | Responsibility |
 |---|---|
 | **Views** | SwiftUI views organized by feature (Chat, Settings, Panels, Overlays) |
-| **ViewModels** | `ChatViewModel` — orchestrates conversations, tool calls, streaming |
+| **ViewModels** | `ChatViewModel` + 15 focused extensions — orchestrates conversations, tool calls, streaming, verification |
 | **Services** | Singletons for AI providers, LSP, MCP, voice input, connection monitoring |
+| **Intelligence** | Memory, learning loop (OutcomeLedger, LessonStore, ReflectionEngine), daemon, conscience values |
 | **Models** | `Conversation`, `Message`, `Tool`, `Skill`, `MCPServerConfig` |
 | **Storage** | SwiftData for conversations; `UserDefaults` for settings; JSON files for exec approvals, skills |
 
@@ -30,19 +31,32 @@ User Input → ChatInputView → ChatViewModel → AIService (provider router)
 
 ```
 Sources/GRump/
-├── GRumpApp.swift              # App entry
-├── ContentView.swift           # Main shell
-├── ThemeManager.swift          # Themes, palettes, accent colors
-├── DesignTokens.swift          # Typography, Spacing, Radius, Border, Anim
-├── ChatViewModel.swift         # AI orchestration
+├── App/                        # GRumpApp entry, AppRootView gate, ContentView shell
+├── Models/                     # Core types, GRumpDefaults, SwiftData models
+├── ViewModels/                 # ChatViewModel + 15 focused extensions
+│   └── ChatViewModel+*         # AgentLoop, AgentVerification, Compaction, Streaming,
+│                               # ToolExecution, PromptBuilding, Conscience, Memory, …
 ├── Views/
-│   ├── Chat/                   # Message views, empty states, input
-│   ├── Settings/               # Settings tab views
-│   ├── Panels/                 # Right panel manager
-│   ├── Layout/                 # Panel layout, sidebar
+│   ├── Chat/                   # Message views, code blocks, diffs, input
+│   ├── Settings/               # 21 settings tabs in 7 groups
+│   ├── Onboarding/             # First-run flow
+│   ├── Welcome/                # Welcome window (recents, open/clone/new)
+│   ├── Panels/                 # 20 IDE dock panels
+│   ├── Layout/                 # Sidebar, layout shells, project navigator
 │   └── Overlays/               # Modals, keyboard shortcuts
-├── Services/                   # AI providers, LSP, MCP, tools
-├── Models/                     # Data models
+├── Services/
+│   ├── AI/                     # Anthropic, OpenAI, Google, OpenRouter, Ollama
+│   ├── MCP/                    # MCP client & server
+│   ├── ToolExecution/          # 160 tool defs + executors by domain
+│   ├── Apple/                  # Spotlight, SecureEnclave, Apple Intelligence
+│   ├── Developer/              # LSP, BuildService, CodeApply
+│   └── System/                 # ProjectStore, ConnectionMonitor, hotkeys
+├── Intelligence/
+│   ├── Memory/                 # MemoryStore, ActivityStore, MemoryGraph
+│   ├── Learning/               # OutcomeLedger, LessonStore, ReflectionEngine, skill proposals
+│   ├── Brain/ Mind/ Daemon/    # Vault notes, identity + conscience, goal loop
+│   └── Eyes/ Suggestions/ …    # Screen perception (opt-in), suggestions, code intel
+├── Utilities/                  # ThemeManager, DesignTokens, parsers, logger
 └── Resources/
     └── Skills/                 # Bundled SKILL.md files
 ```
