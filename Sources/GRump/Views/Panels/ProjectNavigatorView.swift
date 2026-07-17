@@ -66,6 +66,19 @@ struct FileNode: Identifiable, Hashable {
 
 // MARK: - File Tree Service
 
+#if os(macOS)
+/// Bridges the FSEvents C callback to a weakly-held service. The stream's
+/// context must never hold a bare unretained pointer: panel switches destroy
+/// the navigator (and this service) while git/tests are still writing into
+/// the watched tree, and a late callback on a dangling pointer was a
+/// use-after-free SEGV (zombie refresh()/buildTree, over-release when the
+/// asyncAfter block was disposed).
+private final class FileTreeWatchBox {
+    weak var service: FileTreeService?
+    init(_ service: FileTreeService) { self.service = service }
+}
+#endif
+
 @MainActor
 final class FileTreeService: ObservableObject {
     @Published var rootNodes: [FileNode] = []
@@ -74,6 +87,20 @@ final class FileTreeService: ObservableObject {
     #if os(macOS)
     private var fsEventStream: FSEventStreamRef?
     #endif
+
+    deinit {
+        // Teardown must happen here, not only in stopWatching(): SwiftUI
+        // frees this service on every panel switch, and a still-scheduled
+        // stream would keep firing into freed memory. Inline C calls because
+        // deinit cannot call @MainActor methods.
+        #if os(macOS)
+        if let stream = fsEventStream {
+            FSEventStreamStop(stream)
+            FSEventStreamInvalidate(stream)
+            FSEventStreamRelease(stream)
+        }
+        #endif
+    }
 
     private static let ignoredNames: Set<String> = [
         ".git", ".build", ".swiftpm", "node_modules", ".DS_Store",
@@ -169,16 +196,23 @@ final class FileTreeService: ObservableObject {
         let paths = [workingDirectory] as CFArray
         let callback: FSEventStreamCallback = { _, clientCallbackInfo, _, _, _, _ in
             guard let info = clientCallbackInfo else { return }
-            let service = Unmanaged<FileTreeService>.fromOpaque(info).takeUnretainedValue()
+            // The box is retained by the stream context; the service inside
+            // is weak, so a callback that outraces teardown is a safe no-op.
+            let box = Unmanaged<FileTreeWatchBox>.fromOpaque(info).takeUnretainedValue()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                service.refresh()
+                MainActor.assumeIsolated {
+                    box.service?.refresh()
+                }
             }
         }
         var context = FSEventStreamContext(
             version: 0,
-            info: Unmanaged.passUnretained(self).toOpaque(),
+            info: Unmanaged.passRetained(FileTreeWatchBox(self)).toOpaque(),
             retain: nil,
-            release: nil,
+            release: { info in
+                guard let info else { return }
+                Unmanaged<FileTreeWatchBox>.fromOpaque(info).release()
+            },
             copyDescription: nil
         )
         fsEventStream = FSEventStreamCreate(
