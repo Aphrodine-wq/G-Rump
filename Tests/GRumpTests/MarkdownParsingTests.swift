@@ -336,5 +336,39 @@ final class MarkdownParsingTests: XCTestCase {
         XCTAssertEqual(rows[0], ["1", "2", ""])
         XCTAssertEqual(rows[1], ["1", "2", "3 | 4"])
     }
+
+    // MARK: - Fence Info String (language:path apply convention)
+
+    @MainActor
+    func testFenceInfoAbsolutePath() {
+        let info = MarkdownTextView.fenceInfo("swift:/tmp/Foo.swift")
+        XCTAssertEqual(info.language, "swift")
+        XCTAssertEqual(info.filePath, "/tmp/Foo.swift")
+    }
+
+    @MainActor
+    func testFenceInfoPlainLanguageUntouched() {
+        let info = MarkdownTextView.fenceInfo("swift")
+        XCTAssertEqual(info.language, "swift")
+        XCTAssertNil(info.filePath)
+    }
+
+    @MainActor
+    func testFenceInfoRelativePathSplitsLanguage() {
+        // With no project open the path is dropped (Apply has no target),
+        // but the language must still come out clean either way.
+        let info = MarkdownTextView.fenceInfo("swift:Sources/App/Foo.swift")
+        XCTAssertEqual(info.language, "swift")
+        if let path = info.filePath {
+            XCTAssertTrue(path.hasSuffix("Sources/App/Foo.swift"))
+            XCTAssertTrue(path.hasPrefix("/"), "resolved path must be absolute")
+        }
+    }
+
+    @MainActor
+    func testFenceInfoRejectsPathsWithSpaces() {
+        let info = MarkdownTextView.fenceInfo("swift: not a path")
+        XCTAssertNil(info.filePath)
+    }
 }
 

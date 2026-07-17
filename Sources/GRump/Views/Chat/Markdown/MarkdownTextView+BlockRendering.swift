@@ -11,10 +11,13 @@ extension MarkdownTextView {
     func blockView(_ block: Block) -> some View {
         switch block {
         case .codeBlock(let language, let code):
-            CodeBlockView(language: language, code: code)
+            let info = Self.fenceInfo(language)
+            CodeBlockView(language: info.language, code: code,
+                          filePath: info.filePath,
+                          blockId: info.filePath.map { "\($0)#\(code.hashValue)" })
 
         case .streamingCodeBlock(let language, let code):
-            StreamingCodeBlockView(language: language, code: code, isStreaming: true)
+            StreamingCodeBlockView(language: Self.fenceInfo(language).language, code: code, isStreaming: true)
 
         case .paragraph(let content):
             buildInlineText(content)
@@ -52,6 +55,26 @@ extension MarkdownTextView {
         case .image(let alt, let url):
             imageView(alt: alt, urlString: url)
         }
+    }
+
+    // MARK: - Fence Info String
+
+    /// Splits a fence info string on the `language:path` convention
+    /// (e.g. ```swift:Sources/App/Foo.swift). A path marks the block as the
+    /// complete content of that file and activates the Apply/Reject bar.
+    /// Relative paths resolve against the open project; without a project,
+    /// relative paths are ignored (Apply would have no meaningful target).
+    @MainActor
+    static func fenceInfo(_ raw: String) -> (language: String, filePath: String?) {
+        guard let colon = raw.firstIndex(of: ":") else { return (raw, nil) }
+        let language = String(raw[..<colon]).trimmingCharacters(in: .whitespaces)
+        let pathPart = String(raw[raw.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
+        guard !language.isEmpty, !pathPart.isEmpty, !pathPart.contains(" ") else { return (raw, nil) }
+        if pathPart.hasPrefix("/") { return (language, pathPart) }
+        guard let projectPath = ProjectStore.shared.current?.rootPath, !projectPath.isEmpty else {
+            return (language, nil)
+        }
+        return (language, (projectPath as NSString).appendingPathComponent(pathPart))
     }
 
     // MARK: - List Item

@@ -48,6 +48,15 @@ final class GRumpDefaultsTests: XCTestCase {
         XCTAssertTrue(prompt.contains("language tag"), "Missing code fence guidance")
     }
 
+    func testDefaultSystemPromptContainsCodeOutputContract() {
+        let prompt = GRumpDefaults.defaultSystemPrompt
+        XCTAssertTrue(prompt.contains("```diff fence"), "Edits must be shown as focused diffs")
+        XCTAssertTrue(prompt.contains("`language:path`"), "New files need the apply-able fence tag")
+        XCTAssertTrue(prompt.contains("entire intended content"), "Path tag must be restricted to complete-file blocks")
+        XCTAssertTrue(prompt.contains("must be working code"), "Missing working-code requirement")
+        XCTAssertTrue(prompt.contains("how to run or verify it"), "Missing outcome→code→verify tail")
+    }
+
     func testDefaultSystemPromptContainsAnsweringVsActing() {
         let prompt = GRumpDefaults.defaultSystemPrompt
         XCTAssertTrue(prompt.contains("Answering vs. Acting"), "Missing answering-vs-acting contract")

@@ -307,4 +307,30 @@ final class SyntaxHighlighterTests: XCTestCase {
             XCTAssertEqual(tokens.first?.kind, .keyword, "alias \(alias) should highlight literals")
         }
     }
+
+    // MARK: - Diff
+
+    func testDiffLinesClassifyByMarker() {
+        let hl = SyntaxHighlighter(language: "diff")
+        XCTAssertEqual(hl.highlight("+let max = 400").first?.kind, .diffAdded)
+        XCTAssertEqual(hl.highlight("-let max = 200").first?.kind, .diffRemoved)
+        XCTAssertEqual(hl.highlight("@@ -1,4 +1,4 @@").first?.kind, .diffMeta)
+        XCTAssertEqual(hl.highlight("+++ b/Sources/App/Foo.swift").first?.kind, .diffMeta)
+        XCTAssertEqual(hl.highlight("--- a/Sources/App/Foo.swift").first?.kind, .diffMeta)
+        XCTAssertEqual(hl.highlight(" unchanged context").first?.kind, .plain)
+    }
+
+    func testDiffLineIsSingleWholeToken() {
+        let hl = SyntaxHighlighter(language: "diff")
+        let tokens = hl.highlight("+    let s = \"quoted\" // comment")
+        XCTAssertEqual(tokens.count, 1, "diff lines must not be sub-tokenized")
+        XCTAssertEqual(tokens.first?.text, "+    let s = \"quoted\" // comment")
+    }
+
+    func testDiffAliasesResolve() {
+        for alias in ["diff", "patch", "udiff", "Diff"] {
+            let hl = SyntaxHighlighter(language: alias)
+            XCTAssertEqual(hl.highlight("+x").first?.kind, .diffAdded, "alias \(alias) should classify diff lines")
+        }
+    }
 }

@@ -17,6 +17,9 @@ struct SyntaxHighlighter {
         case number
         case type
         case decorator  // @attributes, #directives, decorators
+        case diffAdded    // + lines in diff blocks
+        case diffRemoved  // - lines in diff blocks
+        case diffMeta     // @@ hunk headers and +++/--- file headers
     }
 
     struct Token {
@@ -28,6 +31,21 @@ struct SyntaxHighlighter {
 
     func highlight(_ line: String) -> [Token] {
         guard !line.isEmpty else { return [Token(text: " ", kind: .plain)] }
+
+        // Diff blocks color whole lines by their marker, nothing else.
+        if isDiff {
+            let kind: TokenKind
+            if line.hasPrefix("+++") || line.hasPrefix("---") || line.hasPrefix("@@") {
+                kind = .diffMeta
+            } else if line.hasPrefix("+") {
+                kind = .diffAdded
+            } else if line.hasPrefix("-") {
+                kind = .diffRemoved
+            } else {
+                kind = .plain
+            }
+            return [Token(text: line, kind: kind)]
+        }
 
         var tokens: [Token] = []
         var remaining = line[line.startIndex...]
@@ -131,6 +149,18 @@ struct SyntaxHighlighter {
             return scheme == .dark
                 ? Color(red: 0.95, green: 0.75, blue: 0.30)
                 : Color(red: 0.70, green: 0.50, blue: 0.10)
+        case .diffAdded:
+            return scheme == .dark
+                ? Color(red: 0.380, green: 0.820, blue: 0.557)
+                : Color(red: 0.15, green: 0.55, blue: 0.30)
+        case .diffRemoved:
+            return scheme == .dark
+                ? Color(red: 0.95, green: 0.45, blue: 0.45)
+                : Color(red: 0.75, green: 0.20, blue: 0.20)
+        case .diffMeta:
+            return scheme == .dark
+                ? Color(red: 0.38, green: 0.73, blue: 0.96)
+                : Color(red: 0.15, green: 0.45, blue: 0.75)
         }
     }
 
@@ -239,6 +269,13 @@ struct SyntaxHighlighter {
 
     private var isJSFamily: Bool {
         lang == .js
+    }
+
+    private var isDiff: Bool {
+        switch language.lowercased() {
+        case "diff", "patch", "udiff": return true
+        default: return false
+        }
     }
 
     private enum Lang {
