@@ -8,10 +8,12 @@ Short reference for contributors on key architecture decisions.
 Sources/GRump/
 ├── App/                        # Entry point, AppRootView gate, AppDelegate
 ├── Models/                     # Core types, GRumpDefaults, SwiftData models
-├── ViewModels/                 # ChatViewModel + 13 focused extensions
+├── ViewModels/                 # ChatViewModel + 15 focused extensions
 │   ├── ChatViewModel.swift     # Core view model (~18K, property declarations)
 │   ├── +AgentLoop              # Agent loop, fast reply, retry, intent detection
 │   ├── +AgentPostRun           # Post-run cleanup and follow-up
+│   ├── +AgentVerification      # Completion gate + auto-verify at run end
+│   ├── +Compaction             # Rolling context compaction, pinned task framing
 │   ├── +ExportImport           # Export (JSON, Markdown) and import
 │   ├── +Helpers                # API message building, token estimation
 │   ├── +Conscience             # Fail-closed gate ahead of mutating tools
@@ -47,6 +49,7 @@ Sources/GRump/
 │   ├── Mind/                   # MIND.md identity + ConscienceGate values
 │   ├── Daemon/                 # Autonomous goal loop (scratch-branch, gated)
 │   ├── Eyes/                   # Opt-in screen perception (off by default)
+│   ├── Learning/               # OutcomeLedger, LessonStore, ReflectionEngine, skill proposals
 │   ├── Suggestions/            # SuggestionEngine, types, lifecycle
 │   ├── CodeIntel/              # AmbientCodeAwareness, ContextResolver
 │   └── Analysis/               # CognitiveLoopDetector, ConfidenceCalibration

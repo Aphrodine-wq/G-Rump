@@ -67,11 +67,11 @@ SwiftLint runs in strict mode. Force unwraps are warned (not blocked). `PrivacyI
 
 **Agent modes**: `plan`, `fullStack` ("Build"), `spec` (see `AgentMode.swift`). Mode selection: an inline `ModeSelectCard` gates the first user message of every new conversation (UI-level gate in `ContentView+ChatDetail.gatedSend()` — programmatic `sendMessage()` callers bypass it), ⇧⇥ cycles modes from the chat input (`InputTextView.shiftTabHandler`), and the status bar shows the current mode next to the connection label with a switcher popover.
 
-### Tool System (4 definition files + 6 execution files)
+### Tool System (6 definition files + 8 execution files)
 
-**Definitions** (`ToolDefs+*.swift`): JSON schema definitions split by domain — `FileOps`, `ShellSystem`, `GitDevOps`, `UtilsApple`. Master registry in `ToolDefinitions.swift` with `toolsForCurrentPlatform` (iOS filtering) and `toolsFiltered(allowlist:userDenylist:)`.
+**Definitions** (`ToolDefs+*.swift`): JSON schema definitions split by domain — `FileOps`, `ShellSystem`, `GitDevOps`, `UtilsApple`, `Learning`, `Plan`. Master registry in `ToolDefinitions.swift` with `toolsForCurrentPlatform` (iOS filtering) and `toolsFiltered(allowlist:userDenylist:)`.
 
-**Execution** (`ToolExec+*.swift`): Implementations split by domain — `FileOps`, `ShellSystem`, `GitDevOps`, `AppleNative`, `Utils`, `Extended`. Parallel dispatch via `executeToolCallsParallel` with exponential backoff (200ms/500ms/1s, 2 retries).
+**Execution** (`ToolExec+*.swift`): Implementations split by domain — `FileOps`, `ShellSystem`, `GitDevOps`, `AppleNative`, `Utils`, `Extended`, `Learning`, `Plan`. Parallel dispatch via `executeToolCallsParallel` with exponential backoff (200ms/500ms/1s, 2 retries).
 
 **XML tool call parsing**: `XMLToolCallParser.swift` handles models that emit inline XML instead of native `tool_calls` (three formats: `<execute>`, `<tool_call>`, `<function_call>`).
 
