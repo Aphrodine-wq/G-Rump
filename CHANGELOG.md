@@ -74,9 +74,32 @@ thought processes.
 - **More inline markdown.** `_italic_` and `__bold__` (word-boundary aware,
   so `snake_case` stays plain) and backslash escapes (`\*` renders a
   literal asterisk).
+- **Inline error cards.** Stream failures now show what happened and what
+  to do about it in plain English up front, with the raw failure behind a
+  Details disclosure. When the selected model was retired or paywalled by
+  its provider, the card offers an inline model menu that switches and
+  retries in one click.
+- **Diff syntax highlighting.** ```diff blocks color added/removed lines
+  and hunk headers instead of rendering flat.
+- **One-click apply for new files.** A fence tagged `language:path`
+  (e.g. ```swift:Sources/App/Foo.swift) marks the block as the complete
+  content of that file and activates the existing Apply/Reject/Undo bar —
+  previously built but unreachable from chat. Relative paths resolve
+  against the open project.
+- **Working-code response contract.** The default prompt now requires:
+  edits shown as focused ```diff fences, brand-new files as complete
+  apply-able `language:path` blocks, no `...` elisions or pseudo-code
+  passed off as real, and every code-producing response ends with one
+  line on how to run or verify it.
 
 ### Fixed
 
+- **Panel-switch crash.** The file tree's FSEvents watcher held a bare
+  unretained pointer to its service and was never torn down on panel
+  destruction — bouncing between Git/Tests/Files panels while git or a
+  test run wrote to the project fired callbacks into freed memory
+  (SEGV in `refresh()`/`buildTree`, over-release on block dispose). The
+  watcher now goes through a weak box and is invalidated in `deinit`.
 - **Shell tools were blind to stderr.** `run_command`/`run_build`/friends
   read stderr but never returned it — the agent literally could not see
   compiler errors. stderr is now included and non-zero exits carry a
